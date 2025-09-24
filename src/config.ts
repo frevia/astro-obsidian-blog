@@ -1,9 +1,9 @@
 export const SITE = {
-  website: "https://bgo.me/", // replace this with your deployed domain
-  author: "Yawei Sun",
-  profile: "https://bgo.me/",
+  website: "https://frevia.site/", // replace this with your deployed domain
+  author: "Frevia",
+  profile: "https://frevia.site/",
   desc: "一个时间长河中的个人档案馆。",
-  title: "Bingo!",
+  title: "Frevia's Blog!",
   ogImage: "og.jpg",
   lightAndDarkMode: true,
   postPerIndex: 5,
@@ -14,7 +14,7 @@ export const SITE = {
   editPost: {
     enabled: false,
     text: "Edit page",
-    url: "https://github.com/vsme/obsidian-blog-data",
+    url: "https://github.com/0xfinn/obsidian-blog-data",
   },
   comments: {
     enabled: true, // 启用评论功能

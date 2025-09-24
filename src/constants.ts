@@ -20,24 +20,24 @@ interface Social {
 }
 
 export const SOCIALS: Social[] = [
-  {
-    name: "GitHub",
-    href: "https://github.com/vsme",
-    linkTitle: `${SITE.title} on GitHub`,
-    icon: IconGitHub,
-  },
-  {
-    name: "Bilibili",
-    href: "https://space.bilibili.com/164997305",
-    linkTitle: `${SITE.title} on Bilibili`,
-    icon: IconBili,
-  },
-  {
-    name: "Mail",
-    href: "mailto:hi@yaavi.me",
-    linkTitle: `Send an email to ${SITE.title}`,
-    icon: IconMail,
-  },
+  // {
+  //   name: "GitHub",
+  //   href: "https://github.com/vsme",
+  //   linkTitle: `${SITE.title} on GitHub`,
+  //   icon: IconGitHub,
+  // },
+  // {
+  //   name: "Bilibili",
+  //   href: "https://space.bilibili.com/164997305",
+  //   linkTitle: `${SITE.title} on Bilibili`,
+  //   icon: IconBili,
+  // },
+  // {
+  //   name: "Mail",
+  //   href: "mailto:hi@yaavi.me",
+  //   linkTitle: `Send an email to ${SITE.title}`,
+  //   icon: IconMail,
+  // },
   // {
   //   name: "Zhihu",
   //   href: "https://zhihu.com/people/yaavi",
