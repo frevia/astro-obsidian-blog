@@ -17,7 +17,7 @@ export const SITE = {
     url: "https://github.com/0xfinn/obsidian-blog-data",
   },
   comments: {
-    enabled: true, // 启用评论功能
+    enabled: false, // 启用评论功能
   },
   dynamicOgImage: false,
   dir: "ltr", // "rtl" | "auto"
