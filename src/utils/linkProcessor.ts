@@ -87,31 +87,47 @@ export function processLink(href: string, currentFilePath?: string): string {
     if (!fs.existsSync(targetFilePath)) {
       // 如果文件不存在，尝试在blog目录中查找
       const blogDir = path.resolve(process.cwd(), BLOG_PATH);
-      // 文件名已经在上面解码过了，这里直接使用
-      const fileName = path.basename(targetFilePath);
-      const blogFilePath = path.join(blogDir, fileName);
-
+      // 计算相对于博客目录的路径
+      const relativePath = path.relative(process.cwd(), targetFilePath);
+      // 构建博客目录中的文件路径
+      const blogFilePath = path.join(blogDir, relativePath);
+      // 检查文件是否存在
       if (fs.existsSync(blogFilePath)) {
         targetFilePath = blogFilePath;
       } else {
         // 文件不存在，返回原链接
         return href;
       }
+      targetFilePath = blogFilePath;
     }
 
     // 提取slug
     const slug = extractSlugFromFile(targetFilePath);
     if (slug) {
-      return `/posts/${slug}`;
+      // 获取相对路径
+      const blogDir = path.resolve(process.cwd(), BLOG_PATH);
+      const relativeDir = path
+        .dirname(path.relative(blogDir, targetFilePath))
+        .replace(/\\/g, "/")
+        .replace(/\s/g, "-")
+        .toLowerCase();
+
+      // 如果slug已经包含路径，直接使用，否则拼接相对路径
+      return slug.includes("/")
+        ? `/posts/${slug}`
+        : `/posts/${relativeDir}/${slug}`;
     }
 
-    // 如果没有slug，使用文件名
-    const fileName = path
-      .basename(targetFilePath, path.extname(targetFilePath))
+    // 如果没有slug，使用相对路径
+    const blogDir = path.resolve(process.cwd(), BLOG_PATH);
+    const relativePath = path
+      .relative(blogDir, targetFilePath)
+      .replace(path.extname(targetFilePath), "")
+      .replace(/\\/g, "/")
       .replace(/\s/g, "-")
       .toLowerCase();
 
-    return `/posts/${fileName}`;
+    return `/posts/${relativePath}`;
   } catch {
     // 出错时返回原链接
     return href;

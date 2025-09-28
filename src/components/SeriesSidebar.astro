@@ -1,0 +1,78 @@
+---
+import { getPath } from "@/utils/getPath";
+import { slugifyStr } from "@/utils/slugify";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  currentPost: CollectionEntry<"blog">;
+  allPosts: CollectionEntry<"blog">[];
+}
+
+const { currentPost, allPosts } = Astro.props;
+
+// 获取当前文章所属的系列（假设系列信息存储在frontmatter的series字段中）
+const currentSeries = currentPost.data.series;
+
+// 如果没有系列信息，则不显示侧边栏
+if (!currentSeries) {
+  return null;
+}
+
+// 获取同系列的所有文章
+const seriesPosts = allPosts.filter(post => post.data.series === currentSeries);
+
+// 按发布时间排序
+const sortedSeriesPosts = seriesPosts.sort(
+  (a, b) =>
+    new Date(a.data.pubDatetime).getTime() -
+    new Date(b.data.pubDatetime).getTime()
+);
+---
+
+<aside
+  class="series-sidebar sticky top-20 max-h-[calc(100vh-5rem)] w-64 overflow-y-auto pr-8 pl-4 hidden lg:block"
+>
+  <h3 class="mb-4 text-lg font-bold text-gray-800 dark:text-gray-200">
+    {currentSeries}
+  </h3>
+  <ul class="space-y-1">
+    {
+      sortedSeriesPosts.map(post => (
+        <li>
+          <a
+            href={getPath(post.id, post.filePath)}
+            class:list={[
+              "block rounded-md px-3 py-2 text-sm transition-colors",
+              {
+                "bg-accent/10 font-medium text-accent":
+                  post.id === currentPost.id,
+                "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800":
+                  post.id !== currentPost.id,
+              },
+            ]}
+          >
+            {post.data.title}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</aside>
+
+<style>
+  .series-sidebar {
+    scrollbar-width: thin;
+    position: fixed;
+    background-color: mintcream;
+    height: 100%;
+  }
+
+  .series-sidebar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .series-sidebar::-webkit-scrollbar-thumb {
+    background-color: var(--color-accent/20);
+    border-radius: 2px;
+  }
+</style>

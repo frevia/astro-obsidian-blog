@@ -9,13 +9,14 @@ import EditPost from "@/components/EditPost.astro";
 import ShareLinks from "@/components/ShareLinks.astro";
 import BackButton from "@/components/BackButton.astro";
 import BackToTopButton from "@/components/BackToTopButton.astro";
+import SeriesSidebar from "@/components/SeriesSidebar.astro";
 import { getPath } from "@/utils/getPath";
 import { slugifyStr } from "@/utils/slugify";
 import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
 import IconChevronRight from "@/assets/icons/IconChevronRight.svg";
 import { SITE } from "@/config";
 import MediaCard from "../components/MediaCard.astro";
-import Comments from "@/components/Comments.tsx";
+import Comments from "@/components/Comments";
 
 export interface Props {
   post: CollectionEntry<"blog">;
@@ -90,6 +91,7 @@ const nextPost =
 <Layout {...layoutProps}>
   <Header />
   <BackButton />
+  <SeriesSidebar currentPost={post} allPosts={posts} />
   <main
     id="main-content"
     class:list={[
