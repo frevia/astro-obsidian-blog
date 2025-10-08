@@ -13,8 +13,8 @@ const { currentPost, allPosts } = Astro.props;
 // 获取当前文章所属的系列（假设系列信息存储在frontmatter的series字段中）
 const currentSeries = currentPost.data.series;
 
-// 如果没有系列信息，则不显示侧边栏
-if (!currentSeries) {
+// 加强检查：如果series不存在、为空字符串或仅包含空白字符，则不显示侧边栏
+if (!currentSeries || typeof currentSeries !== 'string' || currentSeries.trim() === '') {
   return null;
 }
 
