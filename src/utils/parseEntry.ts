@@ -80,16 +80,54 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
   const date = entry.id.replace(".md", "");
 
   // 解析markdown内容，提取时间段和内容
-  const content = entry.body || "";
+  let content = entry.body || "";
   const timeBlocks = [];
+
+  // 首先处理文件开头可能存在的分割线
+  // 查找文件开头的分割线
+  const startDividerMatch = content.match(/^(?:\s*[-*_]{3,}\s*\n)+/);
+  if (startDividerMatch) {
+    // 创建一个特殊的时间块来显示文件开头的分割线
+    timeBlocks.push({
+      time: "00:00",
+      text: "<hr class='my-6 border-skin-muted/50 border-t border-dashed' />",
+      images: [],
+      htmlContent: "",
+      movieData: undefined,
+      tvData: undefined,
+      bookData: undefined,
+      musicData: undefined,
+    });
+    // 移除文件开头的分割线，避免重复处理
+    content = content.substring(startDividerMatch[0].length);
+  }
 
   // 使用正则表达式匹配时间块
   const timeRegex = /## (\d{2}:\d{2})([\s\S]*?)(?=## \d{2}:\d{2}|$)/g;
   let match;
+  let lastMatchEnd = 0;
 
   while ((match = timeRegex.exec(content)) !== null) {
     const time = match[1];
-    const blockContent = match[2];
+    let blockContent = match[2];
+    
+    // 检查当前时间块与上一个时间块之间是否有分割线
+    const contentBetweenBlocks = content.substring(lastMatchEnd, match.index);
+    if (contentBetweenBlocks.match(/(?:^|\n)\s*[-*_]{3,}\s*(?:\n|$)/)) {
+      // 如果有，添加一个特殊的时间块来显示分割线
+      timeBlocks.push({
+        time: "00:00",
+        text: "<hr class='my-6 border-skin-muted/50 border-t border-dashed' />",
+        images: [],
+        htmlContent: "",
+        movieData: undefined,
+        tvData: undefined,
+        bookData: undefined,
+        musicData: undefined,
+      });
+    }
+    
+    lastMatchEnd = match.index + match[0].length;
 
     // 提取文本内容（在```imgs、```html、```card-之前的部分）
     const textMatch = blockContent.match(
@@ -109,13 +147,27 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
       "<mark class='bg-accent/20 text-foreground px-0.5'>$1</mark>"
     );
 
+    // 解析 Markdown 斜体语法为 HTML em 标签
+    // 处理 *text* 格式
+    text = text.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    // 处理 _text_ 格式
+    text = text.replace(/_(.+?)_/g, "<em>$1</em>");
+
     // 解析 Markdown 链接为 HTML 链接，并处理相对路径
     text = text.replace(
       /\[([^\]]+)\]\(([^\)]+)\)/g,
       (match, linkText, href) => {
         const processedHref = processLink(href);
-        console.log(href, processedHref);
         return `<a href="${processedHref}" target="_blank" rel="noopener noreferrer" class="text-skin-accent font-semibold underline decoration-2 underline-offset-2 hover:decoration-4 hover:text-skin-accent-2 transition-all duration-200">${linkText}</a>`;
+      }
+    );
+
+    // 解析 Markdown 图片为 HTML img 标签
+    text = text.replace(
+      /!\[([^\]]*)\]\(([^\s)]+)(?:\s+"([^"]*)"|\s+'([^']*)')?\)/g,
+      (match, alt, src, title1, title2) => {
+        const title = title1 || title2 || "";
+        return `<img src="${src}" alt="${alt}" title="${title}" class="my-4 max-w-full h-auto rounded-lg shadow-md" />`;
       }
     );
 
@@ -143,6 +195,32 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
         .join("");
       return `<ol class="mt-1 mb-2 pl-2">${items}</ol>`;
     });
+
+    // 解析 Markdown 引用为 HTML blockquote
+    text = text.replace(/((?:^> .+(?:\n|$))+)/gm, match => {
+      const lines = match
+        .split("\n")
+        .filter(line => line.trim().startsWith("> "))
+        .map(line => line.substring(2).trim())
+        .join("\n");
+      return `<blockquote class="my-4 pl-4 border-l-2 border-[rgb(147,117,239)] bg-gray-50 rounded-r py-2">${lines}</blockquote>`;
+    });
+
+    // 解析 Markdown 行内代码为 HTML code
+    text = text.replace(/`([^`]+)`/g, "<code class='bg-skin-muted px-1.5 py-0.5 rounded text-sm font-mono'>$1</code>");
+
+    // 解析 Markdown 代码块为 HTML pre/code
+    text = text.replace(/```([\s\S]*?)```/g, (match, codeContent) => {
+      return `<pre class='my-4 bg-skin-muted p-4 rounded-lg overflow-x-auto'><code class='font-mono text-sm'>${codeContent}</code></pre>`;
+    });
+
+    // 解析 Markdown 分割线为 HTML hr 标签
+    text = text.replace(/(?:^|\n)\s*[-*_]{3,}\s*(?:\n|$)/g, "<hr class='my-6 border-skin-muted/50 border-t border-dashed' />");
+
+    // 额外处理前后没有空行的分割线
+    text = text.replace(/([^\n])\s*[-*_]{3,}\s*([^\n])/g, "$1<hr class='my-6 border-skin-muted/50 border-t border-dashed' />$2");
+    text = text.replace(/^\s*[-*_]{3,}\s*([^\n])/g, "<hr class='my-6 border-skin-muted/50 border-t border-dashed' />$1");
+    text = text.replace(/([^\n])\s*[-*_]{3,}\s*$/g, "$1<hr class='my-6 border-skin-muted/50 border-t border-dashed' />");
 
     // 提取图片并优化
     const images = [];
@@ -427,6 +505,21 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
         musicData,
       });
     }
+  }
+
+  // 处理文件结尾可能存在的分割线
+  const endDividerMatch = content.substring(lastMatchEnd).match(/\s*[-*_]{3,}\s*$/);
+  if (endDividerMatch) {
+    timeBlocks.push({
+      time: "23:59",
+      text: "<hr class='my-6 border-skin-muted/50 border-t border-dashed' />",
+      images: [],
+      htmlContent: "",
+      movieData: undefined,
+      tvData: undefined,
+      bookData: undefined,
+      musicData: undefined,
+    });
   }
 
   // 按时间倒序排列时间块（最新的时间在前）

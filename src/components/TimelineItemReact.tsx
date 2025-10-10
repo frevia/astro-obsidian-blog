@@ -233,7 +233,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
 
               {htmlContent && (
                 <div
-                  className="html-content mt-0 mb-4 max-w-none leading-[0]"
+                  className="html-content mt-0 mb-4 max-w-none leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: htmlContent }}
                   suppressHydrationWarning={true}
                   role="region"
