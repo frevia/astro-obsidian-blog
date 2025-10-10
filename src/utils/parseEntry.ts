@@ -109,13 +109,27 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
       "<mark class='bg-accent/20 text-foreground px-0.5'>$1</mark>"
     );
 
+    // 解析 Markdown 斜体语法为 HTML em 标签
+    // 处理 *text* 格式
+    text = text.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    // 处理 _text_ 格式
+    text = text.replace(/_(.+?)_/g, "<em>$1</em>");
+
     // 解析 Markdown 链接为 HTML 链接，并处理相对路径
     text = text.replace(
       /\[([^\]]+)\]\(([^\)]+)\)/g,
       (match, linkText, href) => {
         const processedHref = processLink(href);
-        console.log(href, processedHref);
         return `<a href="${processedHref}" target="_blank" rel="noopener noreferrer" class="text-skin-accent font-semibold underline decoration-2 underline-offset-2 hover:decoration-4 hover:text-skin-accent-2 transition-all duration-200">${linkText}</a>`;
+      }
+    );
+
+    // 解析 Markdown 图片为 HTML img 标签
+    text = text.replace(
+      /!\[([^\]]*)\]\(([^\s)]+)(?:\s+"([^"]*)"|\s+'([^']*)')?\)/g,
+      (match, alt, src, title1, title2) => {
+        const title = title1 || title2 || "";
+        return `<img src="${src}" alt="${alt}" title="${title}" class="my-4 max-w-full h-auto rounded-lg shadow-md" />`;
       }
     );
 
@@ -143,6 +157,27 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
         .join("");
       return `<ol class="mt-1 mb-2 pl-2">${items}</ol>`;
     });
+
+    // 解析 Markdown 引用为 HTML blockquote
+    text = text.replace(/((?:^> .+(?:\n|$))+)/gm, match => {
+      const lines = match
+        .split("\n")
+        .filter(line => line.trim().startsWith("> "))
+        .map(line => line.substring(2).trim())
+        .join("\n");
+      return `<blockquote class="my-4 pl-4 border-l-2 border-[rgb(147,117,239)] bg-gray-50 rounded-r py-2">${lines}</blockquote>`;
+    });
+
+    // 解析 Markdown 行内代码为 HTML code
+    text = text.replace(/`([^`]+)`/g, "<code class='bg-skin-muted px-1.5 py-0.5 rounded text-sm font-mono'>$1</code>");
+
+    // 解析 Markdown 代码块为 HTML pre/code
+    text = text.replace(/```([\s\S]*?)```/g, (match, codeContent) => {
+      return `<pre class='my-4 bg-skin-muted p-4 rounded-lg overflow-x-auto'><code class='font-mono text-sm'>${codeContent}</code></pre>`;
+    });
+
+    // 解析 Markdown 分割线为 HTML hr 标签
+    text = text.replace(/^[-*_]{3,}\s*$/gm, "<hr class='my-6 border-skin-muted/50 border-t border-dashed' />");
 
     // 提取图片并优化
     const images = [];
