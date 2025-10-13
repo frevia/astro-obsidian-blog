@@ -21,11 +21,9 @@ if (!currentSeries || typeof currentSeries !== 'string' || currentSeries.trim() 
 // 获取同系列的所有文章
 const seriesPosts = allPosts.filter(post => post.data.series === currentSeries);
 
-// 按发布时间排序
+// 按文件名排序
 const sortedSeriesPosts = seriesPosts.sort(
-  (a, b) =>
-    new Date(a.data.pubDatetime).getTime() -
-    new Date(b.data.pubDatetime).getTime()
+  (a, b) => a.id.localeCompare(b.id)
 );
 ---
 
