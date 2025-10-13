@@ -2,3 +2,4 @@
 	path = src/data
 	url = git@github.com:0xfinn/blog-data.git
 	branch = main
+	ignore = dirty
