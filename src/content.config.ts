@@ -13,8 +13,13 @@ const blog = defineCollection({
       featured: z.boolean().optional(),
       draft: z.boolean().optional(),
       tags: z.array(z.string()).default(["其他"]),
+      // 分类，前端用于生成分类页面
+      categories: z.array(z.string()).default([]),
+      toc: z.boolean().default(true),
       ogImage: image().or(z.string()).optional(),
       description: z.string(),
+      // 是否显示目录（tocbot 生成的目录）
+      toc: z.boolean().default(true),
       canonicalURL: z.string().optional(),
       hideEditPost: z.boolean().optional(),
       timezone: z.string().optional(),

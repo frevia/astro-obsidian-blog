@@ -1,0 +1,90 @@
+---
+/**
+ * 年度进度条组件
+ * 
+ * @fileoverview 显示当前年份的进度条，从1月1日到12月31日
+ */
+
+/**
+ * 计算年度进度
+ */
+function getYearProgress() {
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+  
+  const totalDays = endOfYear.getTime() - startOfYear.getTime();
+  const elapsedDays = now.getTime() - startOfYear.getTime();
+  
+  return (elapsedDays / totalDays) * 100;
+}
+
+const progress = getYearProgress();
+const progressPercentage = progress.toFixed(1);
+const currentYear = new Date().getFullYear();
+// 计算 tooltip 位置：如果进度超过 90%，则显示在进度条中间位置，否则显示在末尾
+const tooltipPosition = progress > 90 ? 'center' : 'end';
+---
+
+<!-- 年度进度条 -->
+<div class="year-progress">
+  <div class="year-progress-bar" style={`width: ${progress}%`}>
+    <div class={`year-progress-tooltip ${tooltipPosition}`}>
+      {currentYear}年已走完 {progressPercentage}%
+    </div>
+  </div>
+</div>
+
+<style>
+  .year-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--border);
+    overflow: visible;
+    cursor: pointer;
+  }
+  
+  .year-progress-bar {
+    position: relative;
+    height: 100%;
+    background-color: #d97706; /* 棕色 */
+    transition: width 0.3s ease;
+  }
+  
+  .year-progress-tooltip {
+    position: absolute;
+    top: 50%;
+    background-color: transparent;
+    color: var(--foreground);
+    padding: 0.25rem 0.5rem;
+    border: none;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    pointer-events: none;
+    z-index: 100;
+  }
+  
+  /* 显示在进度条末尾 */
+  .year-progress-tooltip.end {
+    left: 100%;
+    transform: translateY(-50%);
+  }
+  
+  /* 显示在进度条中间 */
+  .year-progress-tooltip.center {
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  .year-progress:hover .year-progress-tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+</style>
