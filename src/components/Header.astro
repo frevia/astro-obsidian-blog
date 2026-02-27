@@ -1,5 +1,6 @@
 ---
 import Hr from "./Hr.astro";
+import YearProgress from "./YearProgress.astro";
 import IconX from "@/assets/icons/IconX.svg";
 import IconMoon from "@/assets/icons/IconMoon.svg";
 import IconSearch from "@/assets/icons/IconSearch.svg";
@@ -65,6 +66,17 @@ const isActive = (path: string) => {
               ]}
             >
               文章
+            </a>
+          </li>
+          <li>
+            <a
+              href="/categories"
+              class:list={[
+                "px-3 py-2 text-base font-medium transition-colors hover:text-accent",
+                { "active-nav": isActive("/categories") },
+              ]}
+            >
+              分类
             </a>
           </li>
           <li>
@@ -178,6 +190,11 @@ const isActive = (path: string) => {
           </a>
         </li>
         <li class="col-span-6">
+          <a href="/categories" class:list={{ "active-nav": isActive("/categories") }}>
+            分类
+          </a>
+        </li>
+        <li class="col-span-6">
           <a href="/about" class:list={{ "active-nav": isActive("/about") }}>
             关于
           </a>
@@ -247,7 +264,8 @@ const isActive = (path: string) => {
       </ul>
     </nav>
   </div>
-  <Hr classNames="sm:hidden" />
+  <!-- <Hr classNames="sm:hidden" /> -->
+  <YearProgress />
 </header>
 
 <script>

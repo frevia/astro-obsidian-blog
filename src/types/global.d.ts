@@ -1,4 +1,6 @@
-declare module 'rehype-figure';
+// custom global declarations
+
+export {};
 
 declare global {
   interface Window {

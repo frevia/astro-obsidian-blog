@@ -23,6 +23,8 @@ html[data-theme="light"] {
   --accent: #006658;
   --muted: #c5ced0;
   --border: #c6d7d8;
+  /* TOC link color */
+  --toc-top-text-color: #666666;
 }
 
 html[data-theme="dark"] {
@@ -31,6 +33,7 @@ html[data-theme="dark"] {
   --accent: #78fff6;
   --muted: #55716a;
   --border: #43868663;
+  --toc-top-text-color: #cccccc;
 }
 
 @theme inline {
@@ -147,6 +150,85 @@ h6 {
         &.active {
           @apply text-accent;
         }
+      }
+    }
+  }
+}
+
+/* tocbot styles */
+.toc-title {
+  @apply text-base font-semibold;
+}
+
+/* basic item reset */
+.toc-list-item {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0; /* vertical spacing between entries */
+  color: var(--toc-top-text-color);
+}
+.toc-link {
+  color: var(--toc-top-text-color);
+  text-decoration: none;
+}
+.toc-link.is-active-link {
+  @apply text-accent;
+}
+.toc-link::before {
+  @apply !hidden;
+  content: "";
+}
+
+/* indent nested levels to match screenshot */
+.toc-level-2 {
+  padding-left: 1rem;
+}
+.toc-level-3 {
+  padding-left: 1.75rem;
+}
+
+@media (max-width: 1023px) {
+  .toc-list-item {
+    @apply my-4;
+  }
+}
+
+/* when there's no TOC, adjust sidebar position */
+#sidebar.no-toc {
+  @apply top-150;
+}
+
+@layer utilities {
+  /* basic sidebar container used for tocbot */
+  #sidebar {
+    @apply fixed z-40 transform overflow-y-auto bg-background text-sm;
+  }
+
+  /* Mobile styles */
+  @media (max-width: 1023px) {
+    #sidebar {
+      @apply fixed top-0 right-0 bottom-0 left-auto flex h-full max-h-none w-4/5 max-w-70 translate-x-full flex-col justify-end rounded-none p-6 pb-8;
+    }
+
+    #sidebar.mobile-open {
+      @apply translate-x-0;
+    }
+  }
+
+  /* Desktop styles */
+  @media (min-width: 1300px) {
+    #sidebar {
+      @apply top-36 right-10 m-2 max-h-[calc(100vh-12rem)] w-32 translate-x-0 rounded-none bg-transparent p-0 shadow-none;
+    }
+
+    #sidebar.no-toc {
+      @apply top-150;
+    }
+
+    /* xl breakpoint */
+    @media (min-width: 1280px) {
+      #sidebar {
+        @apply w-53;
       }
     }
   }

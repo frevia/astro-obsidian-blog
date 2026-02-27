@@ -10,7 +10,7 @@ export const SITE = {
   ogImage: "og.jpg",
   lightAndDarkMode: true,
   postPerIndex: 5,
-  postPerPage: 4,
+  postPerPage: 10,
   scheduledPostMargin: 15 * 60 * 1000, // 15 minutes
   showArchives: true,
   showBackButton: true, // show back button in post detail
@@ -23,6 +23,11 @@ export const SITE = {
     enabled: false, // 启用评论功能
   },
   dynamicOgImage: false,
+  // 分类排序设置（仅在手动模式下使用）
+  categoryOrder: {
+    manual: false,
+    order: [] as const,
+  },
   dir: "ltr", // "rtl" | "auto"
   lang: "zh-CN", // html lang code. Set this empty and default will be "en"
   timezone: "Asia/Shanghai", // Default global timezone (IANA format) https://en.wikipedia.org/wiki/List_of_tz_database_time_zones

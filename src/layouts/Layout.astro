@@ -17,6 +17,7 @@ export interface Props {
   pubDatetime?: Date;
   modDatetime?: Date | null;
   scrollSmooth?: boolean;
+  toc?: boolean; // whether to render table of contents
 }
 
 const {
@@ -29,6 +30,7 @@ const {
   pubDatetime,
   modDatetime,
   scrollSmooth = false,
+  toc = false,
 } = Astro.props;
 
 const socialImageURL = new URL(ogImage, Astro.url);
@@ -132,6 +134,16 @@ const structuredData = {
     }
 
     <ClientRouter />
+
+    <!-- TOC style (tocbot) -->
+    {toc && (
+      <link
+        rel="stylesheet"
+        href="/tocbot/tocbot.min.css"
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+      />
+    )}
 
     <script is:inline src="/app-controls.js"></script>
   </head>

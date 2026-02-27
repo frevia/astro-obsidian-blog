@@ -25,6 +25,9 @@ export interface Props {
 
 const { post, posts } = Astro.props;
 
+// Table of contents flag from frontmatter (default true)
+const tocEnabled = (post.data as any).toc ?? true;
+
 const {
   title,
   author,
@@ -71,6 +74,7 @@ const layoutProps = {
   canonicalURL,
   ogImage,
   scrollSmooth: true,
+  toc: tocEnabled,
 };
 
 /* ========== Prev/Next Posts ========== */
@@ -157,7 +161,7 @@ const nextPost =
 
     <article
       id="article"
-      class="app-prose relative mx-auto mt-8 max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
+      class="js-toc-content app-prose relative mx-auto mt-8 max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
     >
       <Content components={{ MediaCard }} />
     </article>
@@ -179,6 +183,21 @@ const nextPost =
     />
 
     <BackToTopButton />
+
+    <!-- 目录侧边栏 -->
+    <aside
+      id="sidebar"
+      class:list={["sidebar", "hidden lg:block", { "no-toc": !tocEnabled }]}
+    >
+      {
+        tocEnabled && (
+          <>
+            <div class="toc-title mb-2 text-sm font-medium">目录</div>
+            <div id="toc-container" class="js-toc" />
+          </>
+        )
+      }
+    </aside>
 
     <!-- Previous/Next Post Buttons -->
     <div data-pagefind-ignore class="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -359,42 +378,30 @@ const nextPost =
     updateScrollProgress();
     addCopyButtons();
 
-    const tocLinks: (HTMLAnchorElement & { urlHash: string })[] = Array.from(
-      document.querySelectorAll(".article-toc-nav a")
-    );
-    if (tocLinks.length === 0) return;
-
-    tocLinks[0].classList.add("active");
-    tocLinks.forEach(a => (a.urlHash = new URL(a.href).hash));
-
-    const sections = tocLinks
-      .map(link => {
-        const id = decodeURIComponent(
-          (link.getAttribute("href") || "").slice(1)
-        );
-        return document.getElementById(id);
-      })
-      .filter(Boolean);
-
-    // IntersectionObserver
-    const io = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            tocLinks.forEach(a => a.classList.remove("active"));
-            const id = entry.target.id;
-            tocLinks
-              .find(a => a.urlHash === `#${encodeURIComponent(id)}`)
-              ?.classList.add("active");
-          }
+    // initialize tocbot if sidebar exists
+    if (document.getElementById("toc-container")) {
+      const scrollSmoothOffset = 0;
+      function initTocbot() {
+        window.tocbot.init({
+          tocSelector: ".js-toc",
+          contentSelector: ".js-toc-content",
+          headingSelector: "h2, h3, h4",
+          hasInnerContainers: true,
+          scrollSmoothDuration: 300,
+          scrollSmoothOffset,
         });
-      },
-      {
-        rootMargin: `0px 0px -89% 0px`,
-        threshold: 0,
       }
-    );
 
-    sections.forEach(sec => sec && io.observe(sec));
+      if (window.tocbot) {
+        initTocbot();
+      } else {
+        const script = document.createElement("script");
+        script.src = "/tocbot/tocbot.min.js";
+        script.crossOrigin = "anonymous";
+        script.referrerPolicy = "no-referrer";
+        script.onload = initTocbot;
+        document.body.appendChild(script);
+      }
+    }
   });
 </script>
