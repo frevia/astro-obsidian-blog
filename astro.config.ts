@@ -21,6 +21,7 @@ import rehypeHeadingLinks from "./src/utils/rehypeHeadingLinks";
 import { remarkMediaCard } from "./src/utils/remarkMediaCard";
 import { remarkLinkProcessor } from "./src/utils/remarkLinkProcessor";
 import pagefind from "astro-pagefind";
+import photosuite from "photosuite";
 
 import compress from "astro-compress";
 
@@ -37,6 +38,9 @@ export default defineConfig({
     }),
     react(),
     pagefind(),
+    photosuite({
+      scope: "#article",
+    }),
     compress({
       CSS: true,
       HTML: {
