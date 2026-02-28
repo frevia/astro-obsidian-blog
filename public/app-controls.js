@@ -63,30 +63,80 @@
     // set on load so screen readers can get the latest value on the button
     reflectPreference();
 
-    // Helper function to add theme toggle functionality
-    function addThemeToggle(selector) {
-      const btn = document.querySelector(selector);
-      if (btn) {
-        // Add cursor pointer style for iOS Safari compatibility
-        btn.style.cursor = "pointer";
-
-        const toggleTheme = () => {
-          themeValue = themeValue === "light" ? "dark" : "light";
-          setPreference();
-        };
-
-        // Add click event listener
-        btn.addEventListener("click", toggleTheme);
-
-        // Add touchend event listener for iOS Safari compatibility
-        btn.addEventListener("touchend", e => {
-          e.preventDefault();
-          toggleTheme();
-        });
-      }
+    function runThemeToggle() {
+      themeValue = themeValue === "light" ? "dark" : "light";
+      setPreference();
     }
 
-    // Add theme toggle functionality to both buttons
+    // Helper function to add theme toggle functionality（含 View Transition 切换动画）
+    function addThemeToggle(selector) {
+      const btn = document.querySelector(selector);
+      if (!btn) return;
+
+      if (btn._themeClickHandler) {
+        btn.removeEventListener("click", btn._themeClickHandler);
+        btn.removeEventListener("touchend", btn._themeTouchendHandler);
+      }
+
+      btn.style.cursor = "pointer";
+
+      const themeClickHandler = () => {
+        const useTransition =
+          typeof document.startViewTransition === "function" &&
+          !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        if (!useTransition) {
+          runThemeToggle();
+          return;
+        }
+
+        const transition = document.startViewTransition(() => {
+          runThemeToggle();
+        });
+
+        transition.ready.then(() => {
+          const style = document.createElement("style");
+          style.setAttribute("data-theme-transition", "1");
+          style.innerHTML = `
+            ::view-transition-old(root),
+            ::view-transition-new(root) {
+              animation: none;
+              mix-blend-mode: normal;
+            }
+          `;
+          document.head.appendChild(style);
+
+          document.documentElement.animate(
+            {
+              clipPath: ["inset(0 0 100% 0)", "inset(0 0 0 0)"],
+            },
+            {
+              duration: 600,
+              easing: "ease-out",
+              pseudoElement: "::view-transition-new(root)",
+            }
+          );
+        });
+
+        transition.finished.finally(() => {
+          const styleEl = document.querySelector(
+            "style[data-theme-transition]"
+          );
+          if (styleEl) styleEl.remove();
+        });
+      };
+
+      const touchendHandler = (e) => {
+        e.preventDefault();
+        themeClickHandler();
+      };
+
+      btn._themeClickHandler = themeClickHandler;
+      btn._themeTouchendHandler = touchendHandler;
+      btn.addEventListener("click", themeClickHandler);
+      btn.addEventListener("touchend", touchendHandler);
+    }
+
     addThemeToggle("#theme-btn");
     addThemeToggle("#theme-btn-mobile");
   }

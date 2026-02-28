@@ -17,7 +17,7 @@ let categories = getUniqueCategories(posts);
 
 const categoryLatestPost = new Map<string, string>();
 categories.forEach(({ categoryName }) => {
-  const latestPost = sortedPosts.find(post => post.data.categories.includes(categoryName));
+  const latestPost = sortedPosts.find(post => (post.data as any).categories?.includes(categoryName));
   if (latestPost) {
     categoryLatestPost.set(categoryName, latestPost.data.title);
   }
@@ -32,18 +32,18 @@ categories.forEach(({ categoryName }) => {
         {
           categories.map(({ category, categoryName, count }, i) => (
             <li class={`categories-item ${i >= SITE.postPerIndex ? 'hidden' : ''}`}>
-              <a href={`/categories/${category}`} aria-label={`查看 ${categoryName} 分类`} class="group block overflow-hidden relative">
-                <div class="w-full overflow-hidden" style="aspect-ratio: 16 / 9;">
+              <a href={`/categories/${category}`} aria-label={`查看 ${categoryName} 分类`} class="group block overflow-hidden relative rounded-xl">
+                <div class="w-full overflow-hidden rounded-xl" style="aspect-ratio: 16 / 9;">
                   {
                     (getCategoryImageUrl(category) || getCategoryImageUrl(categoryName)) ? (
                       <img
                         src={getCategoryImageUrl(category) || getCategoryImageUrl(categoryName)}
                         alt={`${categoryName} 封面图`}
                         loading="lazy"
-                        class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        class="w-full h-full object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
                       />
                     ) : (
-                      <div class="w-full h-full bg-foreground/20" />
+                      <div class="w-full h-full rounded-xl bg-foreground/20" />
                     )
                   }
                 </div>

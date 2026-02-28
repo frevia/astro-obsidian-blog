@@ -1,4 +1,5 @@
 ---
+import "tocbot/dist/tocbot.css";
 import { render, type CollectionEntry } from "astro:content";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
@@ -243,6 +244,8 @@ const nextPost =
 </script>
 
 <script>
+  import tocbot from "tocbot";
+
   document.addEventListener("astro:page-load", () => {
     /** Create a progress indicator
      *  at the top */
@@ -381,28 +384,14 @@ const nextPost =
 
     // initialize tocbot if sidebar exists
     if (document.getElementById("toc-container")) {
-      const scrollSmoothOffset = 0;
-      function initTocbot() {
-        window.tocbot.init({
-          tocSelector: ".js-toc",
-          contentSelector: ".js-toc-content",
-          headingSelector: "h2, h3, h4",
-          hasInnerContainers: true,
-          scrollSmoothDuration: 300,
-          scrollSmoothOffset,
-        });
-      }
-
-      if (window.tocbot) {
-        initTocbot();
-      } else {
-        const script = document.createElement("script");
-        script.src = "/tocbot/tocbot.min.js";
-        script.crossOrigin = "anonymous";
-        script.referrerPolicy = "no-referrer";
-        script.onload = initTocbot;
-        document.body.appendChild(script);
-      }
+      tocbot.init({
+        tocSelector: ".js-toc",
+        contentSelector: ".js-toc-content",
+        headingSelector: "h2, h3, h4",
+        hasInnerContainers: true,
+        scrollSmoothDuration: 300,
+        scrollSmoothOffset: 0,
+      });
     }
   });
 </script>

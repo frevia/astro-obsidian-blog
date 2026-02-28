@@ -20,7 +20,7 @@ export const SITE = {
     url: "https://github.com/0xfinn/obsidian-blog-data",
   },
   comments: {
-    enabled: false, // 启用评论功能
+    enabled: true, // 启用评论功能
   },
   dynamicOgImage: false,
   // 分类排序设置（仅在手动模式下使用）

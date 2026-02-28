@@ -3,7 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import { remarkMark } from "remark-mark-highlight";
-import remarkToc from "remark-toc";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeFigure from "rehype-figure";
 import rehypeSlug from "rehype-slug";
 
@@ -16,8 +16,6 @@ import { transformerFileName } from "./src/utils/transformers/fileName";
 import { SITE } from "./src/config";
 
 import react from "@astrojs/react";
-import remarkWrap from "./src/utils/remarkWrap";
-import rehypeHeadingLinks from "./src/utils/rehypeHeadingLinks";
 import { remarkMediaCard } from "./src/utils/remarkMediaCard";
 import { remarkLinkProcessor } from "./src/utils/remarkLinkProcessor";
 import pagefind from "astro-pagefind";
@@ -67,11 +65,13 @@ export default defineConfig({
     remarkPlugins: [
       [remarkLinkProcessor, { enableDebug: false }],
       [remarkMediaCard, { enableDebug: false }],
-      [remarkToc, { heading: "目录" }],
       remarkMark,
-      [remarkWrap, { className: "article-toc-nav" }],
     ],
-    rehypePlugins: [rehypeSlug, rehypeFigure, rehypeHeadingLinks],
+    rehypePlugins: [
+      rehypeSlug,
+      [rehypeAutolinkHeadings, { behavior: "append" }],
+      rehypeFigure,
+    ],
     shikiConfig: {
       // For more themes, visit https://shiki.style/themes
       themes: { light: "min-light", dark: "night-owl" },

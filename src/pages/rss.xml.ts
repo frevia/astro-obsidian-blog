@@ -9,9 +9,7 @@ import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
-import remarkWrap from "../../src/utils/remarkWrap";
 import { remarkRssMediaCard } from "../../src/utils/remarkRssMediaCard";
-import remarkToc from "remark-toc";
 import rehypeFigure from "rehype-figure";
 import rehypeSlug from "rehype-slug";
 
@@ -20,8 +18,6 @@ const renderMarkdown = async (markdown: string) => {
     .use(remarkRssMediaCard)
     .use(remarkParse)
     .use(remarkRehype)
-    .use(remarkWrap)
-    .use(remarkToc)
     .use(rehypeSlug)
     .use(rehypeFigure)
     .use(rehypeStringify)
@@ -38,12 +34,6 @@ async function processHtmlImages(
   if (!content) return content;
 
   const $ = cheerio.load(content);
-
-  // 去除目录部分
-  const tocHeading = $("#目录");
-  const nextDiv = tocHeading.next("div.article-toc-nav");
-  nextDiv.remove();
-  tocHeading.remove();
 
   // 删除所有 link 标签
   $("link").remove();
