@@ -17,7 +17,7 @@ export const SITE = {
   editPost: {
     enabled: false,
     text: "Edit page",
-    url: "https://github.com/0xfinn/obsidian-blog-data",
+    url: "https://github.com/frevia/obsidian-blog-data",
   },
   comments: {
     enabled: true, // 启用评论功能
