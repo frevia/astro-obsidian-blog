@@ -16,7 +16,7 @@ export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
   const categories = getUniqueCategories(posts);
   return categories.flatMap(({ category, categoryName }) => {
     const categoryPosts = getSortedPosts(
-      posts.filter(post => post.data.categories.includes(categoryName))
+      posts.filter(post => (post.data as any).categories?.includes(categoryName))
     );
     return paginate(categoryPosts, {
       params: { category },
@@ -39,9 +39,9 @@ const { page, categoryName } = Astro.props;
         page.data.map((data, i) => (
           <Card
             {...data}
+            /* lazy-list helpers */
             itemClass="category-post-item"
             hidden={i >= SITE.postPerIndex}
-            showCommentCount={i < SITE.postPerIndex}
           />
         ))
       }

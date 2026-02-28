@@ -108,13 +108,14 @@ html[data-theme="dark"] {
   @apply bg-background;
 }
 
-/* DisintegrationImg component styles */
+/* About 页图片入场：由 GSAP 做淡入+微缩放+去模糊，此处仅初始隐藏 */
 .disintegration-img {
   opacity: 0;
+  will-change: opacity, transform, filter;
 }
 
 .disintegration-img.loaded {
-  opacity: 1;
+  will-change: auto;
 }
 
 h1,
@@ -128,31 +129,18 @@ h6 {
   }
 }
 
-#目录 {
-  @apply hidden;
-
-  & + .article-toc-nav {
-    @apply absolute left-full hidden h-[calc(100%-var(--spacing)*14*3)] w-[calc((100vw-var(--container-3xl))/2)] xl:block;
-
-    & > ul {
-      @apply sticky top-[calc(var(--spacing)*14*2)] my-0 h-[calc(100vh-var(--spacing)*14*3)] overflow-y-auto;
-
-      &:before {
-        content: "目录";
-        @apply top-0 left-0 w-full bg-background text-foreground;
-      }
-    }
-
-    li {
-      @apply list-none pl-0 text-sm;
-      a {
-        @apply no-underline;
-        &.active {
-          @apply text-accent;
-        }
-      }
-    }
-  }
+/* rehype-autolink-headings：标题旁 # 用伪元素显示，不写入 DOM，避免 tocbot 侧边栏多出 # */
+.icon-link::before {
+  @apply ml-1 inline-block text-accent opacity-0 transition-opacity duration-200;
+  content: "#";
+}
+h1:hover .icon-link::before,
+h2:hover .icon-link::before,
+h3:hover .icon-link::before,
+h4:hover .icon-link::before,
+h5:hover .icon-link::before,
+h6:hover .icon-link::before {
+  @apply opacity-100;
 }
 
 /* tocbot styles */

@@ -1,22 +1,45 @@
 import { slugifyStr } from "./slugify";
 
-export type CategoryImageMap = Record<string, string>;
+import jsImg from "@/assets/images/catgories/js.jpg";
+import shImg from "@/assets/images/catgories/sh.jpg";
+import yyImg from "@/assets/images/catgories/yy.jpg";
+import syImg from "@/assets/images/catgories/sy.jpg";
+import tbImg from "@/assets/images/catgories/tb.jpg";
+import lyImg from "@/assets/images/catgories/ly.jpg";
+import ydImg from "@/assets/images/catgories/yd.jpg";
 
-export const CATEGORY_IMAGE_URLS: CategoryImageMap = {
-  "技术": "https://cos.lhasa.icu/dist/images/categories/3ca.jpg",
-  "生活": "https://cos.lhasa.icu/dist/images/categories/c7a.jpg",
-  "骑行": "https://cos.lhasa.icu/dist/images/categories/008.jpg",
-  "摄影": "https://cos.lhasa.icu/dist/images/categories/d50.jpg",
-  "徒步": "https://cos.lhasa.icu/dist/images/categories/4e7.jpg",
-  "跑步": "https://cos.lhasa.icu/dist/images/categories/e08.jpg",
-  "阅读": "https://cos.lhasa.icu/dist/images/categories/f70.jpg",
-  "野钓": "https://cos.lhasa.icu/dist/images/categories/8f5.jpg",
-  "年报": "https://cos.lhasa.icu/dist/images/categories/afb.jpg",
-  "创业": "https://cos.lhasa.icu/dist/images/categories/a20.jpg",
+const images = {
+  js: jsImg,
+  sh: shImg,
+  yy: yyImg,
+  sy: syImg,
+  tb: tbImg,
+  ly: lyImg,
+  yd: ydImg,
+} as const;
+
+/** 分类名或 slug -> 本地图片文件名 */
+const CATEGORY_TO_FILE: Record<string, keyof typeof images> = {
+  技术: "js",
+  生活: "sh",
+  音乐: "yy",
+  摄影: "sy",
+  徒步: "tb",
+  四季: "ly",
+  阅读: "yd",
+  "ji-shu": "js",
+  "sheng-huo": "sh",
+  "yin-yue": "yy",
+  "she-ying": "sy",
+  "tu-bu": "tb",
+  "lv-you": "ly",
+  "yue-du": "yd",
 };
 
 export function getCategoryImageUrl(nameOrSlug?: string): string | undefined {
   if (!nameOrSlug) return undefined;
-  const slug = slugifyStr(nameOrSlug);
-  return CATEGORY_IMAGE_URLS[slug] || CATEGORY_IMAGE_URLS[nameOrSlug];
+  const key =
+    CATEGORY_TO_FILE[nameOrSlug] ?? CATEGORY_TO_FILE[slugifyStr(nameOrSlug)];
+  if (!key) return undefined;
+  return images[key].src;
 }
