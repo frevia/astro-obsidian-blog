@@ -1,7 +1,7 @@
 ---
 /**
  * 年度进度条组件
- * 
+ *
  * @fileoverview 显示当前年份的进度条，从1月1日到12月31日
  */
 
@@ -12,10 +12,10 @@ function getYearProgress() {
   const now = new Date();
   const startOfYear = new Date(now.getFullYear(), 0, 1);
   const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
-  
+
   const totalDays = endOfYear.getTime() - startOfYear.getTime();
   const elapsedDays = now.getTime() - startOfYear.getTime();
-  
+
   return (elapsedDays / totalDays) * 100;
 }
 
@@ -23,7 +23,7 @@ const progress = getYearProgress();
 const progressPercentage = progress.toFixed(1);
 const currentYear = new Date().getFullYear();
 // 计算 tooltip 位置：如果进度超过 90%，则显示在进度条中间位置，否则显示在末尾
-const tooltipPosition = progress > 90 ? 'center' : 'end';
+const tooltipPosition = progress > 90 ? "center" : "end";
 ---
 
 <!-- 年度进度条 -->
@@ -33,6 +33,12 @@ const tooltipPosition = progress > 90 ? 'center' : 'end';
       {currentYear}年已走完 {progressPercentage}%
     </div>
   </div>
+  <img
+    src="/src/assets/images/progress.webp"
+    alt="Progress"
+    class="year-progress-image"
+    style={`left: ${progress}%`}
+  />
 </div>
 
 <style>
@@ -46,14 +52,24 @@ const tooltipPosition = progress > 90 ? 'center' : 'end';
     overflow: visible;
     cursor: pointer;
   }
-  
+
   .year-progress-bar {
     position: relative;
     height: 100%;
     background-color: #d97706; /* 棕色 */
     transition: width 0.3s ease;
   }
-  
+
+  .year-progress-image {
+    position: absolute;
+    top: -20px;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    z-index: 99;
+  }
+
   .year-progress-tooltip {
     position: absolute;
     top: 50%;
@@ -66,23 +82,25 @@ const tooltipPosition = progress > 90 ? 'center' : 'end';
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
+    transition:
+      opacity 0.2s ease,
+      visibility 0.2s ease;
     pointer-events: none;
     z-index: 100;
   }
-  
+
   /* 显示在进度条末尾 */
   .year-progress-tooltip.end {
     left: 100%;
     transform: translateY(-50%);
   }
-  
+
   /* 显示在进度条中间 */
   .year-progress-tooltip.center {
     left: 50%;
     transform: translate(-50%, -50%);
   }
-  
+
   .year-progress:hover .year-progress-tooltip {
     opacity: 1;
     visibility: visible;
