@@ -1,5 +1,5 @@
 [submodule "src/data"]
 	path = src/data
-	url = git@github.com:0xfinn/blog-data.git
+	url = git@github.com:frevia/blog-data.git
 	branch = main
 	ignore = dirty
