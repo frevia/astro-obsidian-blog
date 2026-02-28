@@ -7,9 +7,11 @@ import { Image } from "astro:assets";
 
 export interface Props extends CollectionEntry<"blog"> {
   variant?: "h2" | "h3";
+  itemClass?: string;
+  hidden?: boolean;
 }
 
-const { variant = "h2", data, id, filePath } = Astro.props;
+const { variant = "h2", itemClass, hidden, data, id, filePath } = Astro.props;
 
 const { title, description, pubDatetime, modDatetime, timezone } = data;
 
@@ -19,7 +21,7 @@ const headerProps = {
 };
 ---
 
-<li class="my-6">
+<li class:list={["my-6", itemClass]} hidden={hidden}>
   <div class="flex flex-col md:flex-row md:gap-4">
     <div
       class="hidden md:mb-0 md:block md:h-[100px] md:w-[100px] md:flex-shrink-0"

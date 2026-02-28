@@ -1,9 +1,9 @@
 import type { Props } from "astro";
-import IconMail from "@/assets/icons/IconMail.svg";
-import IconGitHub from "@/assets/icons/IconGitHub.svg";
+//import IconMail from "@/assets/icons/IconMail.svg";
+//import IconGitHub from "@/assets/icons/IconGitHub.svg";
 // import IconBrandX from "@/assets/icons/IconBrandX.svg";
 // import IconLinkedin from "@/assets/icons/IconLinkedin.svg";
-import IconBili from "@/assets/icons/IconBilibili.svg";
+//import IconBili from "@/assets/icons/IconBilibili.svg";
 
 // import IconWeibo from "@/assets/icons/IconTelegram.svg";
 // import IconWhatsapp from "@/assets/icons/IconWhatsapp.svg";

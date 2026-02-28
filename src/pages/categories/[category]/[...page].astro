@@ -39,7 +39,6 @@ const { page, categoryName } = Astro.props;
         page.data.map((data, i) => (
           <Card
             {...data}
-            /* lazy-list helpers */
             itemClass="category-post-item"
             hidden={i >= SITE.postPerIndex}
           />
