@@ -203,7 +203,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
         .filter(line => line.trim().startsWith("> "))
         .map(line => line.substring(2).trim())
         .join("\n");
-      return `<blockquote class="my-4 pl-4 border-l-2 border-[rgb(147,117,239)] bg-gray-50 rounded-r py-2">${lines}</blockquote>`;
+      return `<blockquote class="my-4 rounded-r-md border-l-2 border-accent/70 bg-muted/25 px-4 py-2 text-foreground/90">${lines}</blockquote>`;
     });
 
     // 解析 Markdown 行内代码为 HTML code

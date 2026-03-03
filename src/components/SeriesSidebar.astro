@@ -30,9 +30,9 @@ const sortedSeriesPosts = seriesPosts.sort((a, b) => a.id.localeCompare(b.id));
 ---
 
 <aside
-  class="series-sidebar sticky top-20 hidden max-h-[calc(100vh-5rem)] w-64 overflow-y-auto pr-8 pl-4 lg:block"
+  class="series-sidebar sticky top-20 hidden max-h-[calc(100vh-5rem)] w-64 overflow-y-auto pr-8 pl-4 lg:block bg-background/70 backdrop-blur-md"
 >
-  <h3 class="mb-4 text-lg font-bold text-gray-800 dark:text-gray-200">
+  <h3 class="mb-4 text-lg font-bold text-foreground">
     {currentSeries}
   </h3>
   <ul class="space-y-1">
@@ -46,7 +46,7 @@ const sortedSeriesPosts = seriesPosts.sort((a, b) => a.id.localeCompare(b.id));
               {
                 "bg-accent/10 font-medium text-accent":
                   post.id === currentPost.id,
-                "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800":
+                "text-foreground/80 hover:bg-muted/40 hover:text-foreground":
                   post.id !== currentPost.id,
               },
             ]}
@@ -62,9 +62,6 @@ const sortedSeriesPosts = seriesPosts.sort((a, b) => a.id.localeCompare(b.id));
 <style>
   .series-sidebar {
     scrollbar-width: thin;
-    position: fixed;
-    background-color: mintcream;
-    height: 100%;
   }
 
   .series-sidebar::-webkit-scrollbar {
@@ -72,7 +69,7 @@ const sortedSeriesPosts = seriesPosts.sort((a, b) => a.id.localeCompare(b.id));
   }
 
   .series-sidebar::-webkit-scrollbar-thumb {
-    background-color: var(--color-accent/20);
+    background-color: var(--color-muted);
     border-radius: 2px;
   }
 </style>
