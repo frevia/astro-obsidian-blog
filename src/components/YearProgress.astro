@@ -1,45 +1,115 @@
 ---
-/**
- * 年度进度条组件
- *
- * @fileoverview 显示当前年份的进度条，从1月1日到12月31日
- */
 
-/**
- * 计算年度进度
- */
-function getYearProgress() {
-  const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 1);
-  const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
-
-  const totalDays = endOfYear.getTime() - startOfYear.getTime();
-  const elapsedDays = now.getTime() - startOfYear.getTime();
-
-  return (elapsedDays / totalDays) * 100;
-}
-
-const progress = getYearProgress();
-const progressPercentage = progress.toFixed(1);
-const currentYear = new Date().getFullYear();
-// 计算 tooltip 位置：如果进度超过 90%，则显示在进度条中间位置，否则显示在末尾
-const tooltipPosition = progress > 90 ? "center" : "end";
 ---
 
-<!-- 年度进度条 -->
+<!-- 年度进度条（客户端计算并自动更新） -->
 <div class="year-progress">
-  <div class="year-progress-bar" style={`width: ${progress}%`}>
-    <div class={`year-progress-tooltip ${tooltipPosition}`}>
-      {currentYear}年已走完 {progressPercentage}%
-    </div>
+  <div class="year-progress-bar" style="width: 0%">
+    <div class="year-progress-tooltip end">0%</div>
   </div>
   <img
     src="/progress.webp"
     alt="Progress"
     class="year-progress-image"
-    style={`left: ${progress}%`}
+    style="left: 0%"
   />
 </div>
+
+<script type="module">
+  function getYearProgress() {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+
+    const total = endOfYear.getTime() - startOfYear.getTime();
+    const elapsed = now.getTime() - startOfYear.getTime();
+    return (elapsed / total) * 100;
+  }
+
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  let animationId = null;
+  let animating = false;
+
+  function animateTo(target, duration = 900) {
+    duration = 2200;
+    const bar = document.querySelector(".year-progress-bar");
+    const tooltip = document.querySelector(".year-progress-tooltip");
+    const img = document.querySelector(".year-progress-image");
+    if (!bar || !tooltip || !img) return;
+
+    const startLeft = parseFloat(bar.style.width) || 0;
+    const from = Math.min(Math.max(startLeft, 0), 100);
+    const to = Math.min(Math.max(target, 0), 100);
+    const start = performance.now();
+    animating = true;
+    tooltip.classList.add("visible");
+    if (animationId) cancelAnimationFrame(animationId);
+
+    function frame(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = easeOutCubic(t);
+      const current = from + (to - from) * eased;
+
+      bar.style.width = current + "%";
+      img.style.left = current + "%";
+      const year = new Date().getFullYear();
+      tooltip.textContent = `${year}年已走完 ${current.toFixed(1)}%`;
+
+      tooltip.classList.remove("end", "center");
+      tooltip.classList.add(current > 90 ? "center" : "end");
+
+      if (t < 1) {
+        animationId = requestAnimationFrame(frame);
+      } else {
+        animating = false;
+        animationId = null;
+        setTimeout(() => {
+          tooltip.classList.remove("visible");
+        }, 3500);
+      }
+    }
+
+    animationId = requestAnimationFrame(frame);
+  }
+
+  function updateToCurrent(animate = true) {
+    const progress = getYearProgress();
+    if (animate) animateTo(progress);
+    else {
+      const bar = document.querySelector(".year-progress-bar");
+      const tooltip = document.querySelector(".year-progress-tooltip");
+      const img = document.querySelector(".year-progress-image");
+      if (!bar || !tooltip || !img) return;
+      bar.style.width = progress + "%";
+      img.style.left = progress + "%";
+      const year = new Date().getFullYear();
+      tooltip.textContent = `${year}年已走完 ${progress.toFixed(1)}%`;
+      tooltip.classList.remove("end", "center");
+      tooltip.classList.add(progress > 90 ? "center" : "end");
+    }
+  }
+
+  // 页面首次打开动画从 0 到当前进度
+  document.addEventListener("DOMContentLoaded", () => {
+    const bar = document.querySelector(".year-progress-bar");
+    const tooltip = document.querySelector(".year-progress-tooltip");
+    const img = document.querySelector(".year-progress-image");
+    if (bar && tooltip && img) {
+      bar.style.width = "0%";
+      img.style.left = "0%";
+      tooltip.textContent = `0%`;
+      updateToCurrent(true);
+    }
+  });
+
+  // 每分钟检查并平滑更新（如果用户长时间打开页面）
+  setInterval(() => {
+    if (!animating) updateToCurrent(true);
+  }, 60 * 1000);
+</script>
 
 <style>
   .year-progress {
@@ -57,7 +127,6 @@ const tooltipPosition = progress > 90 ? "center" : "end";
     position: relative;
     height: 100%;
     background-color: #d97706; /* 棕色 */
-    transition: width 0.3s ease;
   }
 
   .year-progress-image {
@@ -87,6 +156,12 @@ const tooltipPosition = progress > 90 ? "center" : "end";
       visibility 0.2s ease;
     pointer-events: none;
     z-index: 100;
+  }
+
+  /* 在动画或 JS 显示时使用 */
+  .year-progress-tooltip.visible {
+    opacity: 1;
+    visibility: visible;
   }
 
   /* 显示在进度条末尾 */
