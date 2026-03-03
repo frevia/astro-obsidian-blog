@@ -25,7 +25,7 @@ const CATEGORY_TO_FILE: Record<string, keyof typeof images> = {
   音乐: "yy",
   摄影: "sy",
   徒步: "tb",
-  四季: "ly",
+  旅行: "ly",
   阅读: "yd",
   "ji-shu": "js",
   "sheng-huo": "sh",
