@@ -127,16 +127,47 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
       aria-label={`${time} 时间段的记录`}
     >
       <div className="content group transition-all duration-300">
-        {/* 时间和内容整合显示 */}
-        <div className="flex items-start gap-3">
+        {/* 时间和内容整合显示：移动端上下排布，桌面端左右排布 */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
           {/* 时间标签 - 使用h3标题以便Pagefind识别为子结果 */}
           <h3
             id={date ? `diary-${date}-${time.replace(/:/g, "-")}` : undefined}
-            className="text-skin-base/60 m-0 flex-shrink-0 pr-2 pl-0 text-base font-medium"
+            className="text-skin-base/60 m-0 flex-none border-b border-dashed border-border/40 pb-1 text-sm font-medium sm:flex sm:items-center sm:gap-1 sm:border-none sm:pb-0 sm:pr-2 sm:pl-0 sm:text-base"
             aria-label={`${time} 时间段的记录`}
           >
             <span className="sr-only">{date}</span>
-            <time dateTime={date ? `${date}T${time}` : time}>{time}</time>
+            <span className="inline-flex items-center gap-1">
+              <span
+                className="h-4 w-4 flex-none text-skin-base/60 sm:hidden"
+                aria-hidden="true"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="9"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M12 7v5l3 2"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <time dateTime={date ? `${date}T${time}` : time}>{time}</time>
+            </span>
           </h3>
           {/* 内容区域 */}
           <div className="min-w-0 flex-1">
