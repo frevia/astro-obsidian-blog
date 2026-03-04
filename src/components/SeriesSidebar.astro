@@ -30,7 +30,7 @@ const sortedSeriesPosts = seriesPosts.sort((a, b) => a.id.localeCompare(b.id));
 ---
 
 <aside
-  class="series-sidebar sticky top-20 hidden max-h-[calc(100vh-5rem)] w-64 overflow-y-auto pr-8 pl-4 lg:block bg-background/70 backdrop-blur-md"
+  class="series-sidebar fixed top-20 left-10 z-40 hidden max-h-[calc(100vh-5rem)] w-64 overflow-y-auto bg-background/70 pr-8 pl-4 backdrop-blur-md lg:block"
 >
   <h3 class="mb-4 text-lg font-bold text-foreground">
     {currentSeries}
