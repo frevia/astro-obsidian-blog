@@ -110,7 +110,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
   while ((match = timeRegex.exec(content)) !== null) {
     const time = match[1];
     let blockContent = match[2];
-    
+
     // 检查当前时间块与上一个时间块之间是否有分割线
     const contentBetweenBlocks = content.substring(lastMatchEnd, match.index);
     if (contentBetweenBlocks.match(/(?:^|\n)\s*[-*_]{3,}\s*(?:\n|$)/)) {
@@ -126,7 +126,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
         musicData: undefined,
       });
     }
-    
+
     lastMatchEnd = match.index + match[0].length;
 
     // 提取文本内容（在```imgs、```html、```card-之前的部分）
@@ -207,7 +207,10 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
     });
 
     // 解析 Markdown 行内代码为 HTML code
-    text = text.replace(/`([^`]+)`/g, "<code class='bg-skin-muted px-1.5 py-0.5 rounded text-sm font-mono'>$1</code>");
+    text = text.replace(
+      /`([^`]+)`/g,
+      "<code class='bg-skin-muted px-1.5 py-0.5 rounded text-sm font-mono'>$1</code>"
+    );
 
     // 解析 Markdown 代码块为 HTML pre/code
     text = text.replace(/```([\s\S]*?)```/g, (match, codeContent) => {
@@ -215,12 +218,84 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
     });
 
     // 解析 Markdown 分割线为 HTML hr 标签
-    text = text.replace(/(?:^|\n)\s*[-*_]{3,}\s*(?:\n|$)/g, "<hr class='my-6 border-skin-muted/50 border-t border-dashed' />");
+    text = text.replace(
+      /(?:^|\n)\s*[-*_]{3,}\s*(?:\n|$)/g,
+      "<hr class='my-6 border-skin-muted/50 border-t border-dashed' />"
+    );
 
     // 额外处理前后没有空行的分割线
-    text = text.replace(/([^\n])\s*[-*_]{3,}\s*([^\n])/g, "$1<hr class='my-6 border-skin-muted/50 border-t border-dashed' />$2");
-    text = text.replace(/^\s*[-*_]{3,}\s*([^\n])/g, "<hr class='my-6 border-skin-muted/50 border-t border-dashed' />$1");
-    text = text.replace(/([^\n])\s*[-*_]{3,}\s*$/g, "$1<hr class='my-6 border-skin-muted/50 border-t border-dashed' />");
+    text = text.replace(
+      /([^\n])\s*[-*_]{3,}\s*([^\n])/g,
+      "$1<hr class='my-6 border-skin-muted/50 border-t border-dashed' />$2"
+    );
+    text = text.replace(
+      /^\s*[-*_]{3,}\s*([^\n])/g,
+      "<hr class='my-6 border-skin-muted/50 border-t border-dashed' />$1"
+    );
+    text = text.replace(
+      /([^\n])\s*[-*_]{3,}\s*$/g,
+      "$1<hr class='my-6 border-skin-muted/50 border-t border-dashed' />"
+    );
+
+    // 解析 Markdown 角标引用（脚注）
+    // 注意：diary 页面会把多个 md 汇总到同一页；必须为每个时间块命名空间，避免不同文档里重复的 [^1] 冲突。
+    const footnotes: Record<string, string> = {};
+    const fnScope = `d-${date}-t-${time}`.replace(/[^a-zA-Z0-9_-]/g, "-");
+    let footnoteHtml = "";
+
+    const escapeHtml = (s: string) =>
+      s
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+    const htmlToPlainText = (s: string) =>
+      s
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/p>\s*<p>/gi, "\n")
+        .replace(/<[^>]+>/g, "")
+        .replace(/&nbsp;/g, " ")
+        .replace(/[ \t]+\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+
+    // 提取角标定义
+    text = text.replace(
+      /\[\^(\d+)\]:\s*([\s\S]*?)(?=\[\^\d+\]:|$)/g,
+      (match, id, content) => {
+        footnotes[id] = content.trim();
+        return "";
+      }
+    );
+
+    // 替换角标引用
+    text = text.replace(/\[\^(\d+)\]/g, (match, id) => {
+      const refId = `fnref-${fnScope}-${id}`;
+      const noteId = `fn-${fnScope}-${id}`;
+      const tipId = `fntip-${fnScope}-${id}`;
+      const rawTip = footnotes[id] ? htmlToPlainText(footnotes[id]) : "";
+      const tip = rawTip.length > 240 ? rawTip.slice(0, 240) + "…" : rawTip;
+      const tooltipHtml = tip
+        ? `<span id="${tipId}" role="tooltip" class="footnote-tooltip">${escapeHtml(tip)}</span>`
+        : "";
+      const describedBy = tip ? ` aria-describedby="${tipId}"` : "";
+      return `<sup id="${refId}" class="footnote-ref inline-block align-super text-sm"><a href="#${noteId}" class="text-skin-accent hover:underline px-0.5"${describedBy}>${id}</a>${tooltipHtml}</sup>`;
+    });
+
+    // 角标定义 HTML：延后到段落拆分后再 append，避免被 <p> 包裹破坏结构
+    if (Object.keys(footnotes).length > 0) {
+      footnoteHtml =
+        '<div class="footnotes mt-6 pt-4 border-t border-skin-muted/50 text-sm text-skin-base/80">';
+      Object.entries(footnotes).forEach(([id, content]) => {
+        const noteId = `fn-${fnScope}-${id}`;
+        const refId = `fnref-${fnScope}-${id}`;
+        const safeContent = content.replace(/\n+/g, "<br />");
+        footnoteHtml += `<div id="${noteId}" class="footnote-item flex items-start gap-2 py-2 first:pt-0"><span class="footnote-id flex-none w-4 text-right">${id}.</span><span class="footnote-content flex-1">${safeContent}</span><a href="#${refId}" class="footnote-backref flex-none text-skin-accent hover:underline ml-2">↩</a></div>`;
+      });
+      footnoteHtml += "</div>";
+    }
 
     // 提取图片并优化
     const images = [];
@@ -485,6 +560,11 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
       text = text.replace(`__HTML_BLOCK_${index}__`, block);
     });
 
+    // 追加脚注定义（放在段落处理之后）
+    if (footnoteHtml) {
+      text += footnoteHtml;
+    }
+
     if (
       text ||
       images.length > 0 ||
@@ -508,7 +588,9 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
   }
 
   // 处理文件结尾可能存在的分割线
-  const endDividerMatch = content.substring(lastMatchEnd).match(/\s*[-*_]{3,}\s*$/);
+  const endDividerMatch = content
+    .substring(lastMatchEnd)
+    .match(/\s*[-*_]{3,}\s*$/);
   if (endDividerMatch) {
     timeBlocks.push({
       time: "23:59",
