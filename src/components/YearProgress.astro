@@ -1,18 +1,19 @@
 ---
-
+import IconRocket from "@/assets/icons/IconRocket.svg";
 ---
 
-<!-- 年度进度条（客户端计算并自动更新） -->
-<div class="year-progress" data-ready="0">
+<!-- 年度进度条（客户端计算并自动更新）：用单层 linear-gradient 画进度，避免 PC 端双元素高度错位 -->
+<div class="year-progress" data-ready="0" style="--year-progress: 0%">
   <div class="year-progress-bar" style="width: 0%">
     <div class="year-progress-tooltip end">0%</div>
   </div>
-  <img
+  <!-- <img
     src="/progress.webp"
     alt="Progress"
     class="year-progress-image"
     style="left: 0%"
-  />
+  /> -->
+  <IconRocket class="year-progress-image" />
 </div>
 
 <script type="module">
@@ -48,7 +49,7 @@
     duration = 2200;
     const els = getElements();
     if (!els) return;
-    const { bar, tooltip, img } = els;
+    const { root, bar, tooltip, img } = els;
 
     const startLeft = parseFloat(bar.style.width) || 0;
     const from = Math.min(Math.max(startLeft, 0), 100);
@@ -64,6 +65,7 @@
       const current = from + (to - from) * eased;
 
       bar.style.width = current + "%";
+      root.style.setProperty("--year-progress", current + "%");
       img.style.left = current + "%";
       const year = new Date().getFullYear();
       tooltip.textContent = `${year}年已走完 ${current.toFixed(1)}%`;
@@ -91,8 +93,9 @@
     else {
       const els = getElements();
       if (!els) return;
-      const { bar, tooltip, img } = els;
+      const { root, bar, tooltip, img } = els;
       bar.style.width = progress + "%";
+      root.style.setProperty("--year-progress", progress + "%");
       img.style.left = progress + "%";
       const year = new Date().getFullYear();
       tooltip.textContent = `${year}年已走完 ${progress.toFixed(1)}%`;
@@ -113,6 +116,7 @@
     // 首次进入/刷新：从 0 动画到当前进度（但先隐藏，避免 0% 闪一下）
     if (!hasAnimated) {
       bar.style.width = "0%";
+      root.style.setProperty("--year-progress", "0%");
       img.style.left = "0%";
       tooltip.textContent = "0%";
       window[GLOBAL_FLAG] = true;
@@ -127,7 +131,9 @@
   // 初次加载 + Astro ClientRouter（视图切换）都会触发
   document.addEventListener("astro:page-load", initYearProgress);
   // 兜底：如果未启用 ClientRouter，也能正常初始化
-  document.addEventListener("DOMContentLoaded", initYearProgress, { once: true });
+  document.addEventListener("DOMContentLoaded", initYearProgress, {
+    once: true,
+  });
 
   // 每分钟检查并平滑更新（如果用户长时间打开页面）
   setInterval(() => {
@@ -138,15 +144,29 @@
 <style>
   .year-progress {
     position: absolute;
-    bottom: 0;
     left: 0;
     right: 0;
-    height: 2px;
-    background-color: var(--border);
+    /* 4px 更抗亚像素舍入；bottom: -1px 盖住 header 的 sm:border-b，避免 PC 端出现“上细下粗/偏上” */
+    bottom: -1px;
+    height: 4px;
+    /* 单层渐变：已走/未走同属一个 background */
+    background: linear-gradient(
+      to right,
+      #d97706 0%,
+      #d97706 var(--year-progress, 0%),
+      var(--border) var(--year-progress, 0%),
+      var(--border) 100%
+    );
+    background-origin: border-box;
+    background-clip: border-box;
     overflow: visible;
     cursor: pointer;
     opacity: 0;
     transition: opacity 120ms ease;
+    box-sizing: border-box;
+    /* 独立层 + 不参与 flex 拉伸，减少 PC 端渲染差异 */
+    transform: translateZ(0);
+    flex-shrink: 0;
   }
 
   .year-progress[data-ready="1"] {
@@ -154,16 +174,22 @@
   }
 
   .year-progress-bar {
-    position: relative;
-    height: 100%;
-    background-color: #d97706; /* 棕色 */
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 0%;
+    background: none;
+    box-sizing: border-box;
+    display: block;
+    pointer-events: none;
   }
 
   .year-progress-image {
     position: absolute;
-    top: -20px;
-    transform: translateX(-50%);
-    height: 20px;
+    top: -13px;
+    transform: translateX(-57%);
+    height: 30px;
     object-fit: contain;
     z-index: 99;
   }

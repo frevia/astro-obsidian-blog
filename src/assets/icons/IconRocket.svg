@@ -1,0 +1,53 @@
+<svg width="200" height="90" viewBox="0 0 200 90" xmlns="http://www.w3.org/2000/svg">
+
+  <g>
+
+    <!-- 火箭透明度动画 -->
+    <animate attributeName="opacity"
+      values="0;0;1;1;0;0"
+      keyTimes="0;0.25;0.375;0.625;0.75;1"
+      dur="8s"
+      repeatCount="indefinite"/>
+
+        <!-- 轻微飞行 -->
+    <animateTransform
+      attributeName="transform"
+      type="translate"
+      values="0 0; 10 0; 0 0"
+      dur="4s"
+      repeatCount="indefinite"/>
+
+    <!-- 火焰 -->
+    <polygon points="20,45 40,30 40,60" fill="#ff7a00">
+
+      <!-- 火焰闪烁 -->
+      <animate attributeName="opacity"
+        values="0.4;1;0.4"
+        dur="1.2s"
+        repeatCount="indefinite"/>
+
+      <!-- 火焰形状 -->
+      <animate attributeName="points"
+        values="20,45 40,30 40,60;
+                25,45 40,35 40,55;
+                20,45 40,30 40,60"
+        dur="1.2s"
+        repeatCount="indefinite"/>
+    </polygon>
+
+    <!-- 主体 -->
+    <rect x="40" y="35" width="90" height="20" rx="10" fill="#e6e6e6"/>
+
+    <!-- 机头 -->
+    <polygon points="130,35 160,45 130,55" fill="#ff4d4f"/>
+
+    <!-- 窗口 -->
+    <circle cx="80" cy="45" r="6" fill="#4da6ff"/>
+
+    <!-- 翼 -->
+    <polygon points="70,35 55,15 95,35" fill="#ff4d4f"/>
+    <polygon points="70,55 55,75 95,55" fill="#ff4d4f"/>
+
+  </g>
+
+</svg>
