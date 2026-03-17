@@ -1,0 +1,23 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import CalendarWidget from "@/components/CalendarWidget.astro";
+import { SITE } from "@/config";
+---
+
+<Layout title={`日历 | ${SITE.title}`}>
+  <Header />
+  <main
+    id="main-content"
+    class="mx-auto mt-4 w-full max-w-app px-4 pb-12"
+    data-pagefind-body
+  >
+    <h1 class="text-2xl font-bold text-accent sm:text-3xl">日历</h1>
+    <p class="text-skin-base mt-2 mb-8">
+      点击有标记的日期可跳转到当天的日记或文章
+    </p>
+    <CalendarWidget />
+  </main>
+  <Footer />
+</Layout>
