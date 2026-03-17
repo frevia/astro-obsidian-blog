@@ -116,7 +116,7 @@
   }
 
   // 处理日历按钮点击
-  function handleCalendarClick(e) {
+  function handleCalendarClick(e: Event) {
     // 阻止默认跳转
     e.preventDefault();
     // 显示模态框
@@ -124,12 +124,12 @@
   }
 
   // 处理模态框点击
-  function handleModalClick(e) {
+  function handleModalClick(_e: Event) {
     // 由于移除了背景遮罩，不再需要点击外部关闭的逻辑
   }
 
   // 处理 ESC 键
-  function handleEscKey(e) {
+  function handleEscKey(e: KeyboardEvent) {
     if (e.key === "Escape") {
       hideCalendarModal();
     }
