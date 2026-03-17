@@ -30,6 +30,7 @@
     "@vercel/speed-insights": "^1.2.0",
     "astro": "^5.12.0",
     "astro-pagefind": "^1.8.3",
+    "chinese-days": "^1.5.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",

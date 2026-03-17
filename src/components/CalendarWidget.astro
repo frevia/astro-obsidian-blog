@@ -1,0 +1,32 @@
+---
+/**
+ * 日历组件/插件：聚合 blog 与 diary 的日期事件，支持 chinese-days 节假日/节气/农历。
+ * 可在日历页、首页侧边栏等任意位置使用。
+ *
+ * 使用示例：
+ *   // 独立页（完整版）
+ *   <CalendarWidget />
+ *
+ *   // 侧边栏（紧凑版）
+ *   <CalendarWidget compact />
+ */
+import Calendar from "./Calendar.tsx";
+import { getCollection } from "astro:content";
+import { getCalendarEventsByDate } from "@/utils/getCalendarEvents";
+
+interface Props {
+  /** 紧凑模式，适合侧边栏等窄区域：隐藏图例与下方事件列表，缩小格子与字体 */
+  compact?: boolean;
+}
+
+const { compact = false } = Astro.props;
+
+const blogEntries = await getCollection("blog");
+const diaryEntries = await getCollection("diary");
+const byDate = getCalendarEventsByDate(blogEntries, diaryEntries);
+const eventsByDate = Object.fromEntries(byDate);
+---
+
+<div class="calendar-widget">
+  <Calendar client:load eventsByDate={eventsByDate} compact={compact} />
+</div>

@@ -8,6 +8,7 @@ import IconArchive from "@/assets/icons/IconArchive.svg";
 import IconSunHigh from "@/assets/icons/IconSunHigh.svg";
 import IconMenuDeep from "@/assets/icons/IconMenuDeep.svg";
 import IconRss from "@/assets/icons/IconRss.svg";
+import IconCalendar from "@/assets/icons/IconCalendar.svg";
 import LinkButton from "./LinkButton.astro";
 import { SITE } from "@/config";
 
@@ -126,6 +127,27 @@ const isActive = (path: string) => {
             </LinkButton>
           )
         }
+        <!-- 分隔线 -->
+        <div class="h-4 w-px bg-border"></div>
+        {
+          SITE.showCalendar && (
+            <LinkButton
+              href="/calendar"
+              class:list={[
+                "focus-outline flex p-3",
+                {
+                  "active-nav [&>svg]:stroke-accent": isActive("/calendar"),
+                },
+              ]}
+              ariaLabel="calendar"
+              title="Calendar"
+            >
+              <IconCalendar class="h-4 w-4" />
+            </LinkButton>
+          )
+        }
+        <!-- 分隔线 -->
+        <div class="h-4 w-px bg-border"></div>
         <LinkButton
           href="/search"
           class:list={[
@@ -217,6 +239,18 @@ const isActive = (path: string) => {
             收藏
           </a>
         </li>
+        {
+          SITE.showCalendar && (
+            <li class="col-span-6">
+              <a
+                href="/calendar"
+                class:list={{ "active-nav": isActive("/calendar") }}
+              >
+                日历
+              </a>
+            </li>
+          )
+        }
         <li class="col-span-6">
           <a href="/about" class:list={{ "active-nav": isActive("/about") }}>
             关于
