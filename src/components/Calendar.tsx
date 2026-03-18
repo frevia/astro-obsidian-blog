@@ -458,85 +458,158 @@ const Calendar: React.FC<CalendarProps> = ({
       </div>
 
       <div
-        className={["mt-3", compact ? "" : "mt-6"].join(" ")}
+        className={[
+          compact ? "mt-3" : "mt-6",
+          compact && selected
+            ? "max-h-[min(52vh,28rem)] overflow-y-auto overscroll-y-contain pr-1 [scrollbar-gutter:stable]"
+            : "",
+        ].join(" ")}
         aria-label="选中日期的内容"
       >
         {selected ? (
           <>
-            {/* 日期标题 */}
-            <div className="text-skin-base mb-2 font-medium">
-              {selected.dateKey}
-            </div>
-
-            {/* 农历、节气、节假日详情 - 横向两栏排版 */}
-            <div className="bg-skin-muted/10 dark:bg-skin-muted/20 mb-3 rounded-lg p-2">
-              {chineseDaysInfo[selected.dateKey] && (
-                <div className="flex flex-row flex-nowrap items-stretch gap-4 text-xs">
-                  {/* 左侧：农历、节假日 */}
-                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    {chineseDaysInfo[selected.dateKey].lunar && (
-                      <div className="text-skin-muted leading-tight">
-                        {chineseDaysInfo[selected.dateKey].lunar}
-                      </div>
-                    )}
-                    {chineseDaysInfo[selected.dateKey].holidayName && (
-                      <div className="leading-tight text-red-600 dark:text-red-400">
-                        {chineseDaysInfo[selected.dateKey].holidayName}
-                      </div>
-                    )}
-                  </div>
-                  {/* 右侧：节气、工作/休息文案 */}
-                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    {chineseDaysInfo[selected.dateKey].solarTerm && (
-                      <div className="leading-tight text-amber-600 dark:text-amber-400">
-                        今天是 {chineseDaysInfo[selected.dateKey].solarTerm}{" "}
-                        节气。
-                      </div>
-                    )}
+            {/* 左：公历一行 + 农历月日·周几 | 右：节气（若有）+ 工作日/休息 */}
+            <div
+              className={[
+                "bg-skin-muted/10 dark:bg-skin-muted/20 mb-3 rounded-lg",
+                compact ? "p-2" : "p-3",
+              ].join(" ")}
+            >
+              {(() => {
+                const [y, m, d] = selected.dateKey.split("-");
+                const yi = Number(y);
+                const mi = Number(m);
+                const di = Number(d);
+                const weekCn =
+                  WEEKDAYS[(new Date(yi, mi - 1, di).getDay() + 6) % 7];
+                const info = chineseDaysInfo[selected.dateKey];
+                const lunarLine =
+                  info?.lunar != null && info.lunar !== ""
+                    ? `${info.lunar}　周${weekCn}`
+                    : `周${weekCn}`;
+                return (
+                  <div
+                    className={[
+                      "flex items-start",
+                      compact
+                        ? "flex-col gap-2 sm:flex-row sm:gap-4"
+                        : "flex-row flex-nowrap gap-4 sm:gap-5",
+                    ].join(" ")}
+                  >
                     <div
                       className={[
-                        "leading-tight",
-                        chineseDaysInfo[selected.dateKey].work
-                          ? "text-skin-base"
-                          : "text-red-600 dark:text-red-400",
+                        "border-skin-muted/25 text-skin-base shrink-0",
+                        compact
+                          ? "w-full border-b pb-2 sm:w-auto sm:border-b-0 sm:border-r sm:pb-0 sm:pr-4"
+                          : "border-r pr-4",
                       ].join(" ")}
                     >
-                      {chineseDaysInfo[selected.dateKey].work
-                        ? "又是需要工作的一天！😩"
-                        : "又是休息的一天！🎉"}
+                      <div
+                        className={[
+                          "font-semibold tabular-nums",
+                          compact ? "text-base" : "text-lg sm:text-xl",
+                        ].join(" ")}
+                      >
+                        {y}年{mi}月{di}日
+                      </div>
+                      <div className="text-skin-muted mt-0.5 text-xs leading-snug">
+                        {lunarLine}
+                      </div>
+                    </div>
+                    <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 text-xs">
+                      {info ? (
+                        <>
+                          {info.solarTerm ? (
+                            <div className="text-amber-800 leading-snug font-medium dark:text-amber-400">
+                              {info.solarTerm}
+                            </div>
+                          ) : null}
+                          <div
+                            className={[
+                              "leading-snug",
+                              info.work
+                                ? "text-skin-muted"
+                                : "text-red-600 dark:text-red-400",
+                            ].join(" ")}
+                          >
+                            {info.work
+                              ? "又是需要工作的一天！😩"
+                              : "又是休息的一天！🎉"}
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-skin-muted leading-snug">
+                          暂无该日信息
+                        </p>
+                      )}
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
 
-            {/* 事件列表 */}
-            <div>
-              <div className="text-skin-base mb-2 text-xs font-medium">
+            {/* 当日内容 */}
+            <div
+              className={
+                compact
+                  ? "border-skin-muted/20 mt-3 border-t pt-2"
+                  : "border-skin-muted/20 mt-4 border-t pt-3"
+              }
+            >
+              <div className="text-skin-muted mb-2 flex items-center gap-2 text-[11px] font-medium tracking-wide uppercase">
+                <span
+                  className="bg-accent/15 text-accent inline-block h-1 w-4 rounded-full"
+                  aria-hidden
+                />
                 当日内容
               </div>
               {selected.events.length > 0 ? (
-                <div className="space-y-1">
-                  {selected.events.map((ev, idx) => (
-                    <a
-                      key={idx}
-                      href={ev.url}
-                      className="text-skin-base hover:bg-skin-muted/20 block flex items-center gap-2 rounded px-2 py-1.5 text-xs transition-colors"
-                    >
-                      {ev.type === "diary" && <span>📝</span>}
-                      {ev.type === "blog" && <span>📄</span>}
-                      {ev.type === "blog" && ev.title
+                <ul className="flex flex-col gap-1.5" role="list">
+                  {selected.events.map((ev, idx) => {
+                    const isDiary = ev.type === "diary";
+                    const label = isDiary
+                      ? "日记"
+                      : ev.type === "blog" && ev.title
                         ? ev.title
-                        : ev.type === "diary"
-                          ? "日记"
-                          : "文章"}
-                    </a>
-                  ))}
-                </div>
+                        : "文章";
+                    return (
+                      <li key={idx}>
+                        <a
+                          href={ev.url}
+                          className={[
+                            "group border-skin-muted/15 bg-skin-muted/5 hover:border-accent/25 hover:bg-skin-muted/15 dark:bg-skin-muted/10 dark:hover:bg-skin-muted/20 flex items-start gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors",
+                            compact ? "py-1.5" : "",
+                          ].join(" ")}
+                          title={label}
+                        >
+                          <span
+                            className={[
+                              "mt-0.5 shrink-0 rounded px-1 py-0.5 text-[10px] leading-none font-medium",
+                              isDiary
+                                ? "bg-violet-500/15 text-violet-700 dark:text-violet-300"
+                                : "bg-sky-500/15 text-sky-800 dark:text-sky-300",
+                            ].join(" ")}
+                          >
+                            {isDiary ? "日记" : "文章"}
+                          </span>
+                          <span className="text-skin-base min-w-0 flex-1 text-xs leading-snug group-hover:text-accent">
+                            {isDiary ? "当日日记" : label}
+                          </span>
+                          <span
+                            className="text-skin-muted shrink-0 text-[10px] opacity-0 transition-opacity group-hover:opacity-100"
+                            aria-hidden
+                          >
+                            →
+                          </span>
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ul>
               ) : (
-                <p className="text-skin-muted px-2 py-2 text-xs">
+                <div className="bg-skin-muted/5 text-skin-muted dark:bg-skin-muted/10 rounded-lg border border-dashed border-skin-muted/25 px-3 py-4 text-center text-xs leading-relaxed">
                   该日暂无日记或文章
-                </p>
+                </div>
               )}
             </div>
           </>

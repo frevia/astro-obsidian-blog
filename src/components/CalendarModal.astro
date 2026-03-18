@@ -6,39 +6,43 @@
 
 <div
   id="calendar-modal"
-  class="fixed top-20 right-4 z-50 hidden w-[320px] max-w-[90vw] rounded-lg border bg-white p-4 shadow-2xl dark:bg-slate-900"
+  class="fixed top-20 right-4 z-50 flex hidden max-h-[min(90vh,calc(100vh-4.5rem))] w-[320px] max-w-[90vw] flex-col overflow-hidden rounded-lg border bg-white shadow-2xl dark:bg-slate-900"
 >
   <!-- 头部：标题和按钮 -->
-  <div class="mb-4 flex items-center justify-between">
-    <h3 class="text-lg font-semibold">日历</h3>
-    <div class="flex items-center gap-2">
-      <!-- 关闭按钮 -->
-      <button
-        id="close-calendar-modal"
-        class="text-skin-muted hover:bg-skin-muted/20 hover:text-skin-base rounded p-1.5 transition-colors"
-        aria-label="关闭日历"
-        title="关闭"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+  <div class="border-skin-muted/15 shrink-0 border-b px-4 pt-4 pb-3">
+    <div class="flex items-center justify-between">
+      <h3 class="text-lg font-semibold">日历</h3>
+      <div class="flex items-center gap-2">
+        <!-- 关闭按钮 -->
+        <button
+          id="close-calendar-modal"
+          class="text-skin-muted hover:bg-skin-muted/20 hover:text-skin-base rounded p-1.5 transition-colors"
+          aria-label="关闭日历"
+          title="关闭"
         >
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- 日历内容 -->
-  <div>
+  <!-- 日历内容（可滚动，避免当日内容过多被裁切） -->
+  <div
+    class="calendar-modal-body min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-4 pt-2 pb-4"
+  >
     <slot />
   </div>
 </div>
@@ -100,7 +104,7 @@
   }
 
   // 处理模态框点击
-  function handleModalClick(_e: Event) {
+  function handleModalClick() {
     // 由于移除了背景遮罩，不再需要点击外部关闭的逻辑
   }
 

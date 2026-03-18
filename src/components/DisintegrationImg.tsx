@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 
 interface Props {
@@ -13,7 +13,6 @@ interface Props {
 const DisintegrationImg: React.FC<Props> = ({ image }) => {
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
   const hasPlayedRef = useRef(false);
 
   useEffect(() => {
@@ -23,7 +22,6 @@ const DisintegrationImg: React.FC<Props> = ({ image }) => {
     const run = () => {
       if (hasPlayedRef.current) {
         img.classList.add("loaded");
-        setIsLoaded(true);
         return;
       }
       hasPlayedRef.current = true;
@@ -43,7 +41,6 @@ const DisintegrationImg: React.FC<Props> = ({ image }) => {
           ease: "power2.out",
           onComplete: () => {
             img.classList.add("loaded");
-            setIsLoaded(true);
           },
         }
       );

@@ -10,7 +10,6 @@ import type { Props } from "astro";
 // import IconFacebook from "@/assets/icons/IconFacebook.svg";
 // import IconTelegram from "@/assets/icons/IconTelegram.svg";
 // import IconPinterest from "@/assets/icons/IconPinterest.svg";
-import { SITE } from "@/config";
 
 interface Social {
   name: string;

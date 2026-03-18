@@ -25,7 +25,7 @@ try {
     lunarMonth = info.lunarMonCN;
     lunarDay = info.lunarDayCN;
   }
-} catch (error) {
+} catch {
   // 忽略错误
 }
 
@@ -42,8 +42,7 @@ const workdayClass = isWorkday
   <div class="chime-sway-primary flex flex-col items-center">
     <span
       class="chime-ring border-accent/55 bg-background shadow-sm"
-      aria-hidden="true"
-    ></span>
+      aria-hidden="true"></span>
     <div class="chime-rope chime-rope--top"></div>
 
     <div

@@ -109,7 +109,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
 
   while ((match = timeRegex.exec(content)) !== null) {
     const time = match[1];
-    let blockContent = match[2];
+    const blockContent = match[2];
 
     // 检查当前时间块与上一个时间块之间是否有分割线
     const contentBetweenBlocks = content.substring(lastMatchEnd, match.index);
@@ -154,18 +154,15 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
     text = text.replace(/_(.+?)_/g, "<em>$1</em>");
 
     // 解析 Markdown 链接为 HTML 链接，并处理相对路径
-    text = text.replace(
-      /\[([^\]]+)\]\(([^\)]+)\)/g,
-      (match, linkText, href) => {
-        const processedHref = processLink(href);
-        return `<a href="${processedHref}" target="_blank" rel="noopener noreferrer" class="text-skin-accent font-semibold underline decoration-2 underline-offset-2 hover:decoration-4 hover:text-skin-accent-2 transition-all duration-200">${linkText}</a>`;
-      }
-    );
+    text = text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (_, linkText, href) => {
+      const processedHref = processLink(href);
+      return `<a href="${processedHref}" target="_blank" rel="noopener noreferrer" class="text-skin-accent font-semibold underline decoration-2 underline-offset-2 hover:decoration-4 hover:text-skin-accent-2 transition-all duration-200">${linkText}</a>`;
+    });
 
     // 解析 Markdown 图片为 HTML img 标签
     text = text.replace(
       /!\[([^\]]*)\]\(([^\s)]+)(?:\s+"([^"]*)"|\s+'([^']*)')?\)/g,
-      (match, alt, src, title1, title2) => {
+      (_, alt, src, title1, title2) => {
         const title = title1 || title2 || "";
         return `<img src="${src}" alt="${alt}" title="${title}" class="my-4 max-w-full h-auto rounded-lg shadow-md" />`;
       }
@@ -213,7 +210,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
     );
 
     // 解析 Markdown 代码块为 HTML pre/code
-    text = text.replace(/```([\s\S]*?)```/g, (match, codeContent) => {
+    text = text.replace(/```([\s\S]*?)```/g, (_, codeContent) => {
       return `<pre class='my-4 bg-skin-muted p-4 rounded-lg overflow-x-auto'><code class='font-mono text-sm'>${codeContent}</code></pre>`;
     });
 
@@ -264,14 +261,14 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
     // 提取角标定义
     text = text.replace(
       /\[\^(\d+)\]:\s*([\s\S]*?)(?=\[\^\d+\]:|$)/g,
-      (match, id, content) => {
+      (_, id, content) => {
         footnotes[id] = content.trim();
         return "";
       }
     );
 
     // 替换角标引用
-    text = text.replace(/\[\^(\d+)\]/g, (match, id) => {
+    text = text.replace(/\[\^(\d+)\]/g, (_, id) => {
       const refId = `fnref-${fnScope}-${id}`;
       const noteId = `fn-${fnScope}-${id}`;
       const tipId = `fntip-${fnScope}-${id}`;
