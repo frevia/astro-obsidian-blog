@@ -144,7 +144,7 @@ export function processMarkdownLinks(
   text: string,
   currentFilePath?: string
 ): string {
-  return text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (match, linkText, href) => {
+  return text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (_, linkText, href) => {
     const processedHref = processLink(href, currentFilePath);
     return `[${linkText}](${processedHref})`;
   });
