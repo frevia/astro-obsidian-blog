@@ -63,6 +63,8 @@ export type DayTagType = "rest" | "makeup" | "inLieu" | null;
 
 export interface DayExtraInfo {
   lunar: string;
+  lunarMonth: string;
+  lunarDay: string;
   solarTerm?: string;
   holidayName?: string;
   isInLieu: boolean;
@@ -89,6 +91,8 @@ function useChineseDaysForMonth(
       for (const item of lunarList) {
         result[item.date] = {
           lunar: `${item.lunarMonCN}${item.lunarDayCN}`,
+          lunarMonth: item.lunarMonCN,
+          lunarDay: item.lunarDayCN,
           isInLieu: false,
           work: true,
           dayTag: null,
@@ -105,6 +109,8 @@ function useChineseDaysForMonth(
           if (!result[st.date])
             result[st.date] = {
               lunar: "",
+              lunarMonth: "",
+              lunarDay: "",
               isInLieu: false,
               work: true,
               dayTag: null,
@@ -137,6 +143,8 @@ function useChineseDaysForMonth(
         if (!result[dateKey])
           result[dateKey] = {
             lunar: "",
+            lunarMonth: "",
+            lunarDay: "",
             isInLieu: false,
             work: true,
             dayTag: null,
@@ -385,7 +393,7 @@ const Calendar: React.FC<CalendarProps> = ({
                 </span>
               )}
               <span className="leading-tight">{day}</span>
-              {extra?.lunar && (
+              {extra?.lunarDay && (
                 <span
                   className={[
                     "max-w-full truncate leading-none",
@@ -399,7 +407,7 @@ const Calendar: React.FC<CalendarProps> = ({
                           : "text-skin-muted",
                   ].join(" ")}
                 >
-                  {extra.lunar}
+                  {extra.lunarDay}
                 </span>
               )}
               {extra?.holidayName && (
@@ -472,7 +480,7 @@ const Calendar: React.FC<CalendarProps> = ({
                       </div>
                     )}
                     {chineseDaysInfo[selected.dateKey].holidayName && (
-                      <div className="text-red-600 dark:text-red-400 leading-tight">
+                      <div className="leading-tight text-red-600 dark:text-red-400">
                         {chineseDaysInfo[selected.dateKey].holidayName}
                       </div>
                     )}
@@ -480,7 +488,7 @@ const Calendar: React.FC<CalendarProps> = ({
                   {/* 右侧：节气、工作/休息文案 */}
                   <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                     {chineseDaysInfo[selected.dateKey].solarTerm && (
-                      <div className="text-amber-600 dark:text-amber-400 leading-tight">
+                      <div className="leading-tight text-amber-600 dark:text-amber-400">
                         今天是 {chineseDaysInfo[selected.dateKey].solarTerm}{" "}
                         节气。
                       </div>

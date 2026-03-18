@@ -4,12 +4,12 @@ import YearProgress from "./YearProgress.astro";
 import IconX from "@/assets/icons/IconX.svg";
 import IconMoon from "@/assets/icons/IconMoon.svg";
 import IconSearch from "@/assets/icons/IconSearch.svg";
-import IconArchive from "@/assets/icons/IconArchive.svg";
 import IconSunHigh from "@/assets/icons/IconSunHigh.svg";
 import IconMenuDeep from "@/assets/icons/IconMenuDeep.svg";
 import IconRss from "@/assets/icons/IconRss.svg";
 import IconCalendar from "@/assets/icons/IconCalendar.svg";
 import LinkButton from "./LinkButton.astro";
+import DateDisplay from "./DateDisplay.astro";
 import { SITE } from "@/config";
 
 const { pathname } = Astro.url;
@@ -123,29 +123,11 @@ const isActive = (path: string) => {
               ariaLabel="archives"
               title="Archives"
             >
-              <IconArchive class="h-4 w-4" />
-            </LinkButton>
-          )
-        }
-        <!-- 分隔线 -->
-        <div class="h-4 w-px bg-border"></div>
-        {
-          SITE.showCalendar && (
-            <LinkButton
-              href="/calendar"
-              class:list={[
-                "focus-outline flex p-3",
-                {
-                  "active-nav [&>svg]:stroke-accent": isActive("/calendar"),
-                },
-              ]}
-              ariaLabel="calendar"
-              title="Calendar"
-            >
               <IconCalendar class="h-4 w-4" />
             </LinkButton>
           )
         }
+
         <!-- 分隔线 -->
         <div class="h-4 w-px bg-border"></div>
         <LinkButton
@@ -239,18 +221,7 @@ const isActive = (path: string) => {
             收藏
           </a>
         </li>
-        {
-          SITE.showCalendar && (
-            <li class="col-span-6">
-              <a
-                href="/calendar"
-                class:list={{ "active-nav": isActive("/calendar") }}
-              >
-                日历
-              </a>
-            </li>
-          )
-        }
+
         <li class="col-span-6">
           <a href="/about" class:list={{ "active-nav": isActive("/about") }}>
             关于
@@ -270,7 +241,7 @@ const isActive = (path: string) => {
                 ariaLabel="archives"
                 title="Archives"
               >
-                <IconArchive class="hidden w-8 sm:inline-block" />
+                <IconCalendar class="hidden w-8 sm:inline-block" />
                 <span class="sm:sr-only">收集箱</span>
               </LinkButton>
             </li>
@@ -322,7 +293,18 @@ const isActive = (path: string) => {
     </nav>
   </div>
   <!-- <Hr classNames="sm:hidden" /> -->
-  <YearProgress />
+  <div class="relative">
+    <YearProgress />
+  </div>
+  {
+    SITE.showCalendar && (
+      <div
+        class="calendar-chime-on-progress pointer-events-none absolute top-full right-30 z-[96] hidden -translate-y-4 sm:block [&_.date-chime-root]:pointer-events-auto"
+      >
+        <DateDisplay />
+      </div>
+    )
+  }
 </header>
 
 <script>
