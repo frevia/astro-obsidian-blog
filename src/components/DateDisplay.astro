@@ -169,15 +169,26 @@ const workdayClass = isWorkday
 </style>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
+  // 添加日期显示挂件的点击事件监听器
+  function addDateDisplayListener() {
     const dateDisplayBtn = document.getElementById("date-display-btn");
     if (dateDisplayBtn) {
-      dateDisplayBtn.addEventListener("click", function () {
-        const calendarModal = document.getElementById("calendar-modal");
-        if (calendarModal) {
-          calendarModal.classList.remove("hidden");
-        }
-      });
+      // 先移除可能存在的事件监听器，避免重复添加
+      dateDisplayBtn.removeEventListener("click", handleDateDisplayClick);
+      dateDisplayBtn.addEventListener("click", handleDateDisplayClick);
     }
-  });
+  }
+
+  // 处理日期显示挂件点击
+  function handleDateDisplayClick() {
+    const calendarModal = document.getElementById("calendar-modal");
+    if (calendarModal) {
+      calendarModal.classList.remove("hidden");
+    }
+  }
+
+  // 在 DOMContentLoaded、pageshow 和 astro:after-swap 事件中添加事件监听器
+  document.addEventListener("DOMContentLoaded", addDateDisplayListener);
+  window.addEventListener("pageshow", addDateDisplayListener);
+  document.addEventListener("astro:after-swap", addDateDisplayListener);
 </script>
