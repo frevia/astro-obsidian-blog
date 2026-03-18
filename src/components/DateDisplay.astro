@@ -1,0 +1,184 @@
+---
+import chineseDays from "chinese-days";
+
+// 获取当前日期
+const now = new Date();
+const year = now.getFullYear();
+const month = now.getMonth() + 1;
+const day = now.getDate();
+const weekday = now.getDay();
+
+// 星期几的中文表示
+const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+const weekdayText = weekdays[weekday];
+
+// 格式化日期为 YYYY-MM-DD
+const dateKey = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+// 获取农历信息
+let lunarMonth = "";
+let lunarDay = "";
+try {
+  const lunarInfo = chineseDays.getLunarDatesInRange(dateKey, dateKey);
+  if (lunarInfo && lunarInfo.length > 0) {
+    const info = lunarInfo[0];
+    lunarMonth = info.lunarMonCN;
+    lunarDay = info.lunarDayCN;
+  }
+} catch (error) {
+  // 忽略错误
+}
+
+// 判断是否为工作日
+const isWorkday = weekday >= 1 && weekday <= 5;
+const workdayText = isWorkday ? "工作日" : "休息啦";
+const workdayClass = isWorkday
+  ? "text-green-600 dark:text-green-400"
+  : "text-red-600 dark:text-red-400";
+---
+
+<!-- 整颗风铃：顶环 → 绳 → 主牌 → 绳 → 坠 -->
+<div class="date-chime-root inline-flex flex-col items-center">
+  <div class="chime-sway-primary flex flex-col items-center">
+    <span
+      class="chime-ring border-accent/55 bg-background shadow-sm"
+      aria-hidden="true"
+    ></span>
+    <div class="chime-rope chime-rope--top"></div>
+
+    <div
+      class="hover:bg-skin-muted/20 flex cursor-pointer flex-col items-center justify-center rounded-lg border bg-background p-3 shadow-sm transition-colors"
+      id="date-display-btn"
+    >
+      <div class="flex flex-col items-center justify-center">
+        <div class="flex items-center gap-1 text-sm">
+          <span class="font-medium text-red-600 dark:text-red-400"
+            >{weekdayText}</span
+          >
+          <span class="text-skin-muted">{month}月</span>
+        </div>
+        <div class="text-2xl font-bold">{day}</div>
+        {
+          lunarMonth && lunarDay && (
+            <div class="text-skin-muted text-xs">
+              {lunarMonth}
+              {lunarDay}
+            </div>
+          )
+        }
+      </div>
+    </div>
+
+    <div class="chime-sway-secondary flex flex-col items-center">
+      <div class="chime-rope chime-rope--mid"></div>
+      <div
+        class="min-w-[4.5rem] rounded-full border bg-background px-2 py-1 text-center shadow-sm"
+      >
+        <span class={`text-xs font-medium ${workdayClass}`}>{workdayText}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .chime-ring {
+    display: block;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 9999px;
+    border-width: 2px;
+    transform-origin: top center;
+  }
+
+  .chime-rope {
+    width: 2px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 1px;
+    background: color-mix(in oklab, var(--color-accent, #888) 32%, transparent);
+  }
+
+  .chime-rope--top {
+    height: 0.65rem;
+  }
+
+  .chime-rope--mid {
+    height: 1.75rem;
+  }
+
+  /* 整颗挂件绕顶环摆动 */
+  @keyframes chime-primary {
+    0%,
+    100% {
+      transform: rotate(-1.4deg);
+    }
+    19% {
+      transform: rotate(2.6deg);
+    }
+    41% {
+      transform: rotate(-2.1deg);
+    }
+    63% {
+      transform: rotate(1.7deg);
+    }
+    82% {
+      transform: rotate(-1deg);
+    }
+  }
+
+  /* 下摆相对主牌额外晃动，像多节风铃 */
+  @keyframes chime-secondary {
+    0%,
+    100% {
+      transform: rotate(-2deg);
+    }
+    14% {
+      transform: rotate(4.2deg);
+    }
+    31% {
+      transform: rotate(-3.6deg);
+    }
+    49% {
+      transform: rotate(3deg);
+    }
+    66% {
+      transform: rotate(-2.8deg);
+    }
+    84% {
+      transform: rotate(1.5deg);
+    }
+  }
+
+  .chime-sway-primary {
+    transform-origin: top center;
+    animation: chime-primary 5.5s cubic-bezier(0.4, 0.06, 0.6, 0.94) infinite;
+    animation-delay: -0.9s;
+  }
+
+  .chime-sway-secondary {
+    transform-origin: top center;
+    animation: chime-secondary 7.1s cubic-bezier(0.36, 0.1, 0.64, 0.9) infinite;
+    animation-delay: -3.2s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chime-sway-primary,
+    .chime-sway-secondary {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const dateDisplayBtn = document.getElementById("date-display-btn");
+    if (dateDisplayBtn) {
+      dateDisplayBtn.addEventListener("click", function () {
+        const calendarModal = document.getElementById("calendar-modal");
+        if (calendarModal) {
+          calendarModal.classList.remove("hidden");
+        }
+      });
+    }
+  });
+</script>
