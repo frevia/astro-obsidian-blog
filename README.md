@@ -24,6 +24,8 @@
 - 🖼️ **EXIF 信息** - 显示图片的 EXIF 信息
 - 🖼️ **路径补全** - 自动补全图片路径，支持相对路径和绝对路径
 - 🖼️ **拼图功能** - 支持将图片拼接成大图片
+- 📅 **日历功能** - 支持农历、节气、工作日/节假日显示，悬浮日历效果，顶部日期挂件，点击弹窗查看详细日历
+- 🎐 **风铃效果** - 顶部日期挂件下方显示工作日/休息日，带有风铃飘动动画
 
 ## 🚀 项目结构
 
@@ -78,7 +80,7 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/vsme/astro-obsidian-blog.git
+git clone https://github.com/frevia/astro-obsidian-blog.git
 cd astro-obsidian-blog
 
 # 安装依赖
@@ -109,6 +111,7 @@ pnpm preview
 - 主题设置
 - 分页设置
 - 功能开关
+- 日历功能配置（通过 `showCalendar` 控制是否显示日历功能）
 - 表情功能配置参考 [EMOJI_REACTIONS_SETUP](./EMOJI_REACTIONS_SETUP.md)
 
 ## 📝 添加内容
@@ -167,7 +170,6 @@ title: 电影标题
 - 其他媒体卡片组件，具体查看[obsidian-card-viewer](https://github.com/vsme/obsidian-card-viewer)。
 
 卡片建议搭配 Obsidian 使用（PS:需要自己写抓取脚本）：
-
 https://github.com/user-attachments/assets/fab12904-d1db-41c2-83bf-fd26013910f1
 
 ## 🎨 自定义样式
@@ -178,24 +180,43 @@ https://github.com/user-attachments/assets/fab12904-d1db-41c2-83bf-fd26013910f1
 2. 在组件中使用 TailwindCSS 类名
 3. 通过 CSS 变量自定义主题颜色
 
+## 📝 Obsidian 插件推荐
+
+以下是在 Obsidian 中使用本项目时推荐的插件：
+
+| 插件名称                  | 功能描述   | 与项目配合                                                         |
+| ------------------------- | ---------- | ------------------------------------------------------------------ |
+| **Attachment Management** | 附件管理   | 可重命名目录中的媒体文件                                           |
+| **BRAT**                  | 测试插件   | 可以用于测试 Obsidian 插件的 beta 版本                             |
+| **Card Viewer**           | 卡片查看器 | 与项目中的媒体卡片功能配合，支持在 Obsidian 中预览电影、书籍等卡片 |
+| **Dataview**              | 数据视图   | 可以在 Obsidian 中创建基于日记数据的视图和查询                     |
+| **Git**                   | 版本控制   | 用于管理 Obsidian 笔记的版本，与项目的 Git 工作流配合              |
+| **Iconize**               | 图标管理   | 为笔记添加图标，增强视觉识别                                       |
+| **Linter**                | 代码检查   | 保持 Markdown 文件的格式一致性，与项目的 ESLint 配合               |
+| **Templater**             | 模板管理   | 创建和使用笔记模板，提高内容创建效率                               |
+| **Terminal**              | 终端集成   | 在 Obsidian 中执行命令，方便与项目的构建和部署流程配合             |
+
+这些插件可以帮助你在 Obsidian 中更高效地管理和编辑内容，然后通过本项目的构建流程生成美观的静态网站。
+
 ## 📄 许可证
 
 本项目基于 MIT 许可证开源。
 
 ## 🙏 致谢
 
-本项目基于 [satnaing/astro-paper](https://github.com/satnaing/astro-paper) 开发，感谢原作者 [Sat Naing](https://github.com/satnaing) 创建了这个优秀的 Astro 博客主题，为本项目提供了坚实的基础。
+本项目基于以下开源项目进行开发，在此表示诚挚的感谢：
 
-另参考了:
+- **[vsme/astro-obsidian-blog](https://github.com/vsme/astro-obsidian-blog)** - 提供了项目的基础架构和核心功能，为本项目提供了重要的灵感和代码参考
+- **[satnaing/astro-paper](https://github.com/satnaing/astro-paper)** - 由 [Sat Naing](https://github.com/satnaing) 创建的优秀 Astro 博客主题，为本项目提供了坚实的基础
+- **[achuanya/astro-lhasa](https://github.com/achuanya/astro-lhasa)** - 提供了进度条、分类、灯箱以及数据统计方面的设计灵感
 
-1.[vsme/astro-obsidian-blog](https://github.com/vsme/astro-obsidian-blog) 项目，感谢其提供的灵感和代码。2.[achuanya/astro-lhasa](https://github.com/achuanya/astro-lhasa) 项目，感谢其提供的图片管理工具，年度百分比时间线等代码。
+特别感谢以下开源工具和库：
 
-特别感谢：
-
-- [Astro](https://astro.build/) - 现代化的静态站点生成器
-- [TailwindCSS](https://tailwindcss.com/) - 实用优先的 CSS 框架
-- [Pagefind](https://pagefind.app/) - 静态搜索解决方案
-- [Photosuite](https://photosuite.lhasa.icu/) - 图片管理工具
+- **[Astro](https://astro.build/)** - 现代化的静态站点生成器，为项目提供了高效的构建和渲染能力
+- **[TailwindCSS](https://tailwindcss.com/)** - 实用优先的 CSS 框架，使样式开发更加高效和一致
+- **[Pagefind](https://pagefind.app/)** - 静态搜索解决方案，为网站提供了快速的搜索功能
+- **[Photosuite](https://photosuite.lhasa.icu/)** - 显示图片exif、内容排版、图片灯箱等功能，为图片展示提供了丰富的功能
+- **[Chinese Days](https://github.com/vsme/chinese-days)** - 中国农历日期/节气/节假日工具，为日历功能提供了核心支持
 
 ---
 
