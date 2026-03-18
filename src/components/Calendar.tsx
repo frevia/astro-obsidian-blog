@@ -39,23 +39,23 @@ function toYMD(d: Date): string {
 }
 
 /** 周一为一周第一天，返回的 grid 从左到右为 一…日 */
-function getMonthDays(year: number, month: number): (number | null)[] {
+function getCalendarGridDates(year: number, month: number): Date[] {
   const first = new Date(year, month, 1);
-  const last = new Date(year, month + 1, 0);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstWeekday = first.getDay(); // 0=日 1=一 … 6=六
-  const daysInMonth = last.getDate();
-  const grid: (number | null)[] = [];
   const offset = (firstWeekday + 6) % 7; // 使周一为第一列
-  for (let i = 0; i < offset; i++) grid.push(null);
-  for (let d = 1; d <= daysInMonth; d++) grid.push(d);
-  return grid;
-}
 
-/** 获取当月第一天和最后一天的 YYYY-MM-DD */
-function getMonthRange(year: number, month: number): [string, string] {
-  const first = new Date(year, month, 1);
-  const last = new Date(year, month + 1, 0);
-  return [toYMD(first), toYMD(last)];
+  const gridStart = new Date(year, month, 1 - offset);
+  const total = offset + daysInMonth;
+  const totalCells = Math.ceil(total / 7) * 7;
+
+  const dates: Date[] = [];
+  for (let i = 0; i < totalCells; i++) {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
+    dates.push(d);
+  }
+  return dates;
 }
 
 /** 休=休息日 班=补班 调=调休日 */
@@ -76,10 +76,13 @@ export interface DayExtraInfo {
 
 function useChineseDaysForMonth(
   year: number,
-  month: number
+  month: number,
+  rangeStart?: string,
+  rangeEnd?: string
 ): Record<string, DayExtraInfo> {
   return useMemo(() => {
-    const [start, end] = getMonthRange(year, month);
+    const start = rangeStart ?? toYMD(new Date(year, month, 1));
+    const end = rangeEnd ?? toYMD(new Date(year, month + 1, 0));
     const result: Record<string, DayExtraInfo> = {};
 
     try {
@@ -119,13 +122,18 @@ function useChineseDaysForMonth(
         }
       }
 
-      const lastDay = new Date(year, month + 1, 0).getDate();
-      const y = year;
-      const m = String(month + 1).padStart(2, "0");
-      for (let d = 1; d <= lastDay; d++) {
-        const day = String(d).padStart(2, "0");
-        const dateKey = `${y}-${m}-${day}`;
-        const weekday = new Date(y, month, d).getDay();
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
+
+      for (
+        const cur = new Date(startDate);
+        cur.getTime() <= endDate.getTime();
+        cur.setDate(cur.getDate() + 1)
+      ) {
+        const dateKey = toYMD(cur);
+        const weekday = cur.getDay();
         const isWeekend = weekday === 0 || weekday === 6;
 
         const isInLieu = chineseDays.isInLieu(dateKey);
@@ -134,11 +142,6 @@ function useChineseDaysForMonth(
           work?: boolean;
         };
         const work = detail?.work ?? true;
-
-        let dayTag: DayTagType = null;
-        if (isInLieu) dayTag = "inLieu";
-        else if (!work) dayTag = "rest";
-        else if (isWeekend) dayTag = "makeup";
 
         if (!result[dateKey])
           result[dateKey] = {
@@ -151,7 +154,6 @@ function useChineseDaysForMonth(
           };
         result[dateKey].isInLieu = isInLieu;
         result[dateKey].work = work;
-        result[dateKey].dayTag = dayTag;
 
         const rawName = detail?.name?.trim();
         const isRealHoliday =
@@ -162,13 +164,22 @@ function useChineseDaysForMonth(
         if (isRealHoliday) {
           result[dateKey].holidayName = getChineseHolidayName(rawName);
         }
+
+        // 只对“特殊日”打标签：调休、节假日休、周末补班。
+        // 普通周六周日（chinese-days 往往标记为 work=false 且 name=周末/weekday）不打标签，
+        // 这样不会出现角标/背景色块。
+        let dayTag: DayTagType = null;
+        if (isInLieu) dayTag = "inLieu";
+        else if (!work && isRealHoliday) dayTag = "rest";
+        else if (work && isWeekend) dayTag = "makeup";
+        result[dateKey].dayTag = dayTag;
       }
     } catch {
       // 日期超出 chinese-days 支持范围时忽略
     }
 
     return result;
-  }, [year, month]);
+  }, [year, month, rangeStart, rangeEnd]);
 }
 
 const Calendar: React.FC<CalendarProps> = ({
@@ -185,12 +196,32 @@ const Calendar: React.FC<CalendarProps> = ({
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
   const monthLabel = `${year}年${month + 1}月`;
-  const grid = useMemo(() => getMonthDays(year, month), [year, month]);
-  const chineseDaysInfo = useChineseDaysForMonth(year, month);
+  const gridDates = useMemo(
+    () => getCalendarGridDates(year, month),
+    [year, month]
+  );
+  const gridRange = useMemo(() => {
+    if (gridDates.length === 0) return null;
+    return [
+      toYMD(gridDates[0]),
+      toYMD(gridDates[gridDates.length - 1]),
+    ] as const;
+  }, [gridDates]);
+  const chineseDaysInfo = useChineseDaysForMonth(
+    year,
+    month,
+    gridRange?.[0],
+    gridRange?.[1]
+  );
 
   const goPrev = () => setViewDate(new Date(year, month - 1));
   const goNext = () => setViewDate(new Date(year, month + 1));
-  const goToday = () => setViewDate(new Date());
+  const goToday = () => {
+    const now = new Date();
+    const todayKey = toYMD(now);
+    setViewDate(now);
+    setSelected({ dateKey: todayKey, events: eventsByDate[todayKey] ?? [] });
+  };
 
   // 当 eventsByDate 变化时，更新选中日期的事件
   React.useEffect(() => {
@@ -298,11 +329,11 @@ const Calendar: React.FC<CalendarProps> = ({
             {w}
           </div>
         ))}
-        {grid.map((day, i) => {
-          if (day === null) {
-            return <div key={`empty-${i}`} className={cellMinH} />;
-          }
-          const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        {gridDates.map(d => {
+          const dateKey = toYMD(d);
+          const day = d.getDate();
+          const inCurrentMonth =
+            d.getFullYear() === year && d.getMonth() === month;
           const events = eventsByDate[dateKey] ?? [];
           const extra = chineseDaysInfo[dateKey];
           const isToday = toYMD(new Date()) === dateKey;
@@ -315,21 +346,19 @@ const Calendar: React.FC<CalendarProps> = ({
                 : tag === "inLieu"
                   ? "调"
                   : null;
-          const weekday = new Date(year, month, day).getDay();
+          const weekday = d.getDay();
           const isWeekend = weekday === 0 || weekday === 6;
 
           const dayBg =
             isToday && !tag
               ? "bg-[#5268FF] dark:bg-[#5268FF]"
               : tag === "rest"
-                ? "bg-red-500/20 dark:bg-red-500/25"
+                ? "bg-rose-50 dark:bg-rose-500/15"
                 : tag === "makeup"
                   ? "bg-sky-500/15 dark:bg-sky-500/20"
                   : tag === "inLieu"
-                    ? "bg-amber-500/25 dark:bg-amber-500/30"
-                    : isWeekend
-                      ? "bg-skin-muted/30 dark:bg-skin-muted/25"
-                      : "hover:bg-skin-muted/30";
+                    ? "bg-rose-50 dark:bg-rose-500/15"
+                    : "hover:bg-skin-muted/30";
           const dayText =
             isToday && !tag
               ? "text-white font-medium"
@@ -338,26 +367,52 @@ const Calendar: React.FC<CalendarProps> = ({
                 : tag === "makeup"
                   ? "text-sky-800 dark:text-sky-300"
                   : isWeekend
-                    ? "text-skin-muted"
+                    ? "text-red-600 dark:text-red-400"
                     : "text-skin-base";
+
+          const primarySubLabel: null | {
+            type: "solarTerm" | "holiday" | "lunar";
+            text: string;
+            title?: string;
+          } = extra?.solarTerm
+            ? {
+                type: "solarTerm",
+                text: extra.solarTerm,
+                title: extra.solarTerm,
+              }
+            : extra?.holidayName
+              ? {
+                  type: "holiday",
+                  text: extra.holidayName,
+                  title: extra.holidayName,
+                }
+              : extra?.lunarDay
+                ? { type: "lunar", text: extra.lunarDay }
+                : null;
 
           return (
             <button
               key={dateKey}
               type="button"
               onClick={() => handleDayClick(dateKey, events)}
+              disabled={!inCurrentMonth}
               className={[
                 "relative flex flex-col items-center justify-start overflow-visible rounded-lg text-sm transition-colors",
                 cellMinH,
                 cellPadding,
                 compact && "text-xs",
                 dayBg,
-                events.length > 0 && !tag && !isToday && "hover:bg-accent/15",
+                inCurrentMonth &&
+                  events.length > 0 &&
+                  !tag &&
+                  !isToday &&
+                  "hover:bg-accent/15",
                 dayText,
                 events.length > 0 &&
                   !tag &&
                   !isToday &&
                   "font-medium text-accent",
+                !inCurrentMonth && "cursor-default opacity-45 saturate-0",
               ].join(" ")}
               aria-label={
                 [
@@ -370,20 +425,21 @@ const Calendar: React.FC<CalendarProps> = ({
                   .filter(Boolean)
                   .join("，") || dateKey
               }
+              aria-disabled={!inCurrentMonth}
             >
               {(tagLabel || isToday) && (
                 <span
                   className={[
                     "absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 rounded leading-none font-medium shadow-sm",
                     compact
-                      ? "px-0.5 py-0.5 text-[8px]"
-                      : "px-0.5 py-0.5 text-[10px]",
+                      ? "px-0.5 py-[1px] text-[9px]"
+                      : "px-0.5 py-[1px] text-[10px]",
                     tag === "rest" &&
-                      "bg-red-500/30 text-red-700 dark:text-red-300",
+                      "bg-red-500 text-white dark:bg-red-500 dark:text-white",
                     tag === "makeup" &&
                       "bg-sky-500/30 text-sky-800 dark:text-sky-200",
                     tag === "inLieu" &&
-                      "bg-amber-500/40 text-amber-800 dark:text-amber-200",
+                      "bg-red-500 text-white dark:bg-red-500 dark:text-white",
                     isToday &&
                       !tagLabel &&
                       "bg-[#8B99FF] text-white dark:bg-[#8B99FF] dark:text-white",
@@ -393,62 +449,60 @@ const Calendar: React.FC<CalendarProps> = ({
                 </span>
               )}
               <span className="leading-tight">{day}</span>
-              {extra?.lunarDay && (
-                <span
-                  className={[
-                    "max-w-full truncate leading-none",
-                    compact ? "mt-0.5 text-[9px]" : "mt-1 text-[10px]",
-                    isToday && !tag
-                      ? "text-white/90"
-                      : tag === "rest" || tag === "inLieu"
-                        ? "text-red-600/90 dark:text-red-400/90"
-                        : isWeekend && !tag
-                          ? "text-skin-muted/80"
-                          : "text-skin-muted",
-                  ].join(" ")}
-                >
-                  {extra.lunarDay}
-                </span>
-              )}
-              {extra?.holidayName && (
-                <span
-                  className={[
-                    "max-w-full truncate rounded px-0.5 leading-none",
-                    compact ? "mt-0.5 text-[9px]" : "mt-1 text-[10px]",
-                    isToday && !tag
-                      ? "text-white/90"
-                      : tag === "rest"
-                        ? "text-red-700 dark:text-red-300"
-                        : tag === "inLieu"
-                          ? "text-amber-800 dark:text-amber-200"
-                          : tag === "makeup"
-                            ? "text-sky-700 dark:text-sky-300"
-                            : isWeekend && !tag
-                              ? "text-skin-muted/80"
-                              : "text-skin-muted",
-                  ].join(" ")}
-                  title={extra.holidayName}
-                >
-                  {extra.holidayName}
-                </span>
-              )}
-              {extra?.solarTerm && (
-                <span
-                  className={[
-                    "max-w-full truncate rounded px-0.5 leading-none",
-                    compact ? "mt-0.5 text-[9px]" : "mt-1 text-[10px]",
-                    isToday && !tag
-                      ? "bg-white/20 text-white"
-                      : "bg-amber-500/20 text-amber-800 dark:text-amber-200",
-                  ].join(" ")}
-                  title={extra.solarTerm}
-                >
-                  {extra.solarTerm}
-                </span>
-              )}
+              <span
+                className={[
+                  "max-w-full",
+                  compact ? "mt-1 h-4 text-[9px]" : "mt-1.5 h-4 text-[10px]",
+                  "flex items-center justify-center",
+                ].join(" ")}
+              >
+                {primarySubLabel ? (
+                  <span
+                    className={[
+                      primarySubLabel.type === "lunar"
+                        ? "max-w-full truncate leading-none"
+                        : "max-w-full truncate rounded-sm leading-none",
+                      primarySubLabel.type === "solarTerm"
+                        ? isToday && !tag
+                          ? "border border-white/60 bg-white/15 px-1 py-0.5 text-white"
+                          : "border border-amber-500/40 bg-amber-500/15 px-1 py-0.5 text-amber-800 dark:border-amber-400/35 dark:text-amber-200"
+                        : primarySubLabel.type === "holiday"
+                          ? isToday && !tag
+                            ? "px-0.5 text-white/90"
+                            : tag === "rest"
+                              ? "px-0.5 text-red-700 dark:text-red-300"
+                              : tag === "inLieu"
+                                ? "px-0.5 text-amber-800 dark:text-amber-200"
+                                : tag === "makeup"
+                                  ? "px-0.5 text-sky-700 dark:text-sky-300"
+                                  : isWeekend && !tag
+                                    ? "px-0.5 text-red-600/75 dark:text-red-400/75"
+                                    : "text-skin-muted px-0.5"
+                          : // lunar
+                            isToday && !tag
+                            ? "text-white/90"
+                            : tag === "rest" || tag === "inLieu"
+                              ? "text-red-600/90 dark:text-red-400/90"
+                              : isWeekend && !tag
+                                ? "text-red-600/75 dark:text-red-400/75"
+                                : "text-skin-muted",
+                    ].join(" ")}
+                    title={primarySubLabel.title}
+                  >
+                    {primarySubLabel.text}
+                  </span>
+                ) : (
+                  // 占位，保证所有格子的副标题在同一水平线
+                  <span className="opacity-0">空</span>
+                )}
+              </span>
               {events.length > 0 && (
                 <span
-                  className="absolute bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-accent"
+                  className={[
+                    // 用布局占位，避免与农历/节气行重叠
+                    "mt-auto rounded-full bg-accent",
+                    compact ? "mb-0.5 h-1 w-1" : "mb-1 h-1.5 w-1.5",
+                  ].join(" ")}
                   aria-hidden
                 />
               )}
@@ -488,60 +542,123 @@ const Calendar: React.FC<CalendarProps> = ({
                     ? `${info.lunar}　周${weekCn}`
                     : `周${weekCn}`;
                 return (
-                  <div
-                    className={[
-                      "flex items-start",
-                      compact
-                        ? "flex-col gap-2 sm:flex-row sm:gap-4"
-                        : "flex-row flex-nowrap gap-4 sm:gap-5",
-                    ].join(" ")}
-                  >
+                  <div className="flex flex-col gap-3">
                     <div
                       className={[
-                        "border-skin-muted/25 text-skin-base shrink-0",
+                        "flex items-start",
                         compact
-                          ? "w-full border-b pb-2 sm:w-auto sm:border-b-0 sm:border-r sm:pb-0 sm:pr-4"
-                          : "border-r pr-4",
+                          ? "flex-col gap-2 sm:flex-row sm:gap-4"
+                          : "flex-row flex-nowrap gap-4 sm:gap-5",
                       ].join(" ")}
                     >
                       <div
                         className={[
-                          "font-semibold tabular-nums",
-                          compact ? "text-base" : "text-lg sm:text-xl",
+                          "border-skin-muted/25 text-skin-base shrink-0",
+                          compact
+                            ? "w-full border-b pb-2 sm:w-auto sm:border-r sm:border-b-0 sm:pr-4 sm:pb-0"
+                            : "border-r pr-4",
                         ].join(" ")}
                       >
-                        {y}年{mi}月{di}日
+                        <div
+                          className={[
+                            "font-semibold tabular-nums",
+                            compact ? "text-base" : "text-lg sm:text-xl",
+                          ].join(" ")}
+                        >
+                          {y}年{mi}月{di}日
+                        </div>
+                        <div className="text-skin-muted mt-0.5 text-xs leading-snug">
+                          {lunarLine}
+                        </div>
                       </div>
-                      <div className="text-skin-muted mt-0.5 text-xs leading-snug">
-                        {lunarLine}
+                      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 text-xs">
+                        {info ? (
+                          <>
+                            {info.solarTerm ? (
+                              <div className="leading-snug font-medium text-amber-800 dark:text-amber-400">
+                                {info.solarTerm}
+                              </div>
+                            ) : null}
+                            <div
+                              className={[
+                                "leading-snug",
+                                info.work
+                                  ? "text-skin-muted"
+                                  : "text-red-600 dark:text-red-400",
+                              ].join(" ")}
+                            >
+                              {info.work
+                                ? "又是需要工作的一天！😩"
+                                : "又是休息的一天！🎉"}
+                            </div>
+                          </>
+                        ) : (
+                          <p className="text-skin-muted leading-snug">
+                            暂无该日信息
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 text-xs">
-                      {info ? (
-                        <>
-                          {info.solarTerm ? (
-                            <div className="text-amber-800 leading-snug font-medium dark:text-amber-400">
-                              {info.solarTerm}
-                            </div>
-                          ) : null}
-                          <div
-                            className={[
-                              "leading-snug",
-                              info.work
-                                ? "text-skin-muted"
-                                : "text-red-600 dark:text-red-400",
-                            ].join(" ")}
-                          >
-                            {info.work
-                              ? "又是需要工作的一天！😩"
-                              : "又是休息的一天！🎉"}
-                          </div>
-                        </>
-                      ) : (
-                        <p className="text-skin-muted leading-snug">
-                          暂无该日信息
-                        </p>
-                      )}
+                    {/* 距离现在多少天 - 另起一行 */}
+                    <div
+                      className={[
+                        "text-skin-muted border-skin-muted/20 flex items-center gap-2 border-t pt-2 leading-snug",
+                        // 与外层卡片的 padding 对齐，避免分隔线长短不一
+                        compact ? "-mx-2" : "-mx-3",
+                      ].join(" ")}
+                    >
+                      <span className="inline-block h-4 w-4">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="9"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M12 6v6l4 2"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </span>
+                      <span className="text-xs">
+                        {(() => {
+                          const [y, m, d] = selected.dateKey.split("-");
+                          const selectedDate = new Date(
+                            Number(y),
+                            Number(m) - 1,
+                            Number(d)
+                          );
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          selectedDate.setHours(0, 0, 0, 0);
+                          const diffTime =
+                            today.getTime() - selectedDate.getTime();
+                          const diffDays = Math.floor(
+                            diffTime / (1000 * 60 * 60 * 24)
+                          );
+                          if (diffDays === 0) {
+                            return "今天";
+                          } else if (diffDays > 0) {
+                            return `距离 ${y}年${m}月${d}日 已经过去${diffDays}天`;
+                          } else {
+                            const absDays = Math.abs(diffDays);
+                            return `距离 ${y}年${m}月${d}日 还有${absDays}天`;
+                          }
+                        })()}
+                      </span>
                     </div>
                   </div>
                 );
@@ -558,7 +675,7 @@ const Calendar: React.FC<CalendarProps> = ({
             >
               <div className="text-skin-muted mb-2 flex items-center gap-2 text-[11px] font-medium tracking-wide uppercase">
                 <span
-                  className="bg-accent/15 text-accent inline-block h-1 w-4 rounded-full"
+                  className="inline-block h-1 w-4 rounded-full bg-accent/15 text-accent"
                   aria-hidden
                 />
                 当日内容
@@ -577,7 +694,7 @@ const Calendar: React.FC<CalendarProps> = ({
                         <a
                           href={ev.url}
                           className={[
-                            "group border-skin-muted/15 bg-skin-muted/5 hover:border-accent/25 hover:bg-skin-muted/15 dark:bg-skin-muted/10 dark:hover:bg-skin-muted/20 flex items-start gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors",
+                            "group border-skin-muted/15 bg-skin-muted/5 hover:bg-skin-muted/15 dark:bg-skin-muted/10 dark:hover:bg-skin-muted/20 flex items-start gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors hover:border-accent/25",
                             compact ? "py-1.5" : "",
                           ].join(" ")}
                           title={label}
@@ -607,7 +724,7 @@ const Calendar: React.FC<CalendarProps> = ({
                   })}
                 </ul>
               ) : (
-                <div className="bg-skin-muted/5 text-skin-muted dark:bg-skin-muted/10 rounded-lg border border-dashed border-skin-muted/25 px-3 py-4 text-center text-xs leading-relaxed">
+                <div className="bg-skin-muted/5 text-skin-muted dark:bg-skin-muted/10 border-skin-muted/25 rounded-lg border border-dashed px-3 py-4 text-center text-xs leading-relaxed">
                   该日暂无日记或文章
                 </div>
               )}
