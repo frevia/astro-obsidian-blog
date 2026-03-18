@@ -25,6 +25,7 @@ export interface TimelineItemProps {
   tvData?: MediaCardData;
   bookData?: MediaCardData;
   musicData?: MediaCardData;
+  footnoteHtml?: string;
 }
 
 const TimelineItemReact: React.FC<TimelineItemProps> = ({
@@ -37,6 +38,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
   tvData,
   bookData,
   musicData,
+  footnoteHtml,
 }) => {
   const galleryRef = useRef<HTMLDivElement>(null);
   const lightGalleryRef = useRef<{ destroy: () => void } | null>(null);
@@ -132,13 +134,13 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
           {/* 时间标签 - 使用h3标题以便Pagefind识别为子结果 */}
           <h3
             id={date ? `diary-${date}-${time.replace(/:/g, "-")}` : undefined}
-            className="text-skin-base/60 m-0 flex-none border-b border-dashed border-border/40 pb-1 text-sm font-medium sm:flex sm:items-center sm:gap-1 sm:border-none sm:pb-0 sm:pr-2 sm:pl-0 sm:text-base"
+            className="text-skin-base/60 m-0 flex-none border-b border-dashed border-border/40 pb-1 text-sm font-medium sm:flex sm:items-center sm:gap-1 sm:border-none sm:pr-2 sm:pb-0 sm:pl-0 sm:text-base"
             aria-label={`${time} 时间段的记录`}
           >
             <span className="sr-only">{date}</span>
             <span className="inline-flex items-center gap-1">
               <span
-                className="h-4 w-4 flex-none text-skin-base/60 sm:hidden"
+                className="text-skin-base/60 h-4 w-4 flex-none sm:hidden"
                 aria-hidden="true"
               >
                 <svg
@@ -312,6 +314,14 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
               {SUPABASE_URL && SUPABASE_KEY && (
                 <EmojiReactions
                   id={`emoji-reactions-${date}-${time.replace(":", "-")}`}
+                />
+              )}
+
+              {/* 脚注 */}
+              {footnoteHtml && (
+                <div
+                  className="footnotes-container mt-4"
+                  dangerouslySetInnerHTML={{ __html: footnoteHtml }}
                 />
               )}
             </div>

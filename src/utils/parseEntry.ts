@@ -135,6 +135,9 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
     );
     let text = textMatch ? textMatch[1].trim() : blockContent.trim();
 
+    // 保存原始blockContent用于提取脚注定义
+    const originalBlockContent = blockContent;
+
     // 移除代码块标识
     text = text.replace(/```(imgs|html|card-[\s\S]*?)[\s\S]*?```/g, "").trim();
 
@@ -258,14 +261,28 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
         .replace(/\n{3,}/g, "\n\n")
         .trim();
 
+    // 从原始blockContent中提取角标定义，而不仅仅是text部分
+    // 这样可以处理脚注定义在代码块之后的情况
+    let contentForFootnotes = originalBlockContent;
+    // 移除代码块内容，只保留代码块标识
+    contentForFootnotes = contentForFootnotes.replace(
+      /```(imgs|html|card-[\s\S]*?)[\s\S]*?```/g,
+      "```$1```"
+    );
+
     // 提取角标定义
-    text = text.replace(
+    contentForFootnotes.replace(
       /\[\^(\d+)\]:\s*([\s\S]*?)(?=\[\^\d+\]:|$)/g,
       (_, id, content) => {
         footnotes[id] = content.trim();
         return "";
       }
     );
+
+    // 从text中移除脚注定义（如果有的话）
+    text = text
+      .replace(/\[\^(\d+)\]:\s*([\s\S]*?)(?=\[\^\d+\]:|$)/g, "")
+      .trim();
 
     // 替换角标引用
     text = text.replace(/\[\^(\d+)\]/g, (_, id) => {
@@ -288,7 +305,13 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
       Object.entries(footnotes).forEach(([id, content]) => {
         const noteId = `fn-${fnScope}-${id}`;
         const refId = `fnref-${fnScope}-${id}`;
-        const safeContent = content.replace(/\n+/g, "<br />");
+        // 处理脚注内容中的链接
+        const safeContent = content
+          .replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (_, linkText, href) => {
+            const processedHref = processLink(href);
+            return `<a href="${processedHref}" target="_blank" rel="noopener noreferrer" class="text-skin-accent font-semibold underline decoration-2 underline-offset-2 hover:decoration-4 hover:text-skin-accent-2 transition-all duration-200">${linkText}</a>`;
+          })
+          .replace(/\n+/g, "<br />");
         footnoteHtml += `<div id="${noteId}" class="footnote-item flex items-start gap-2 py-2 first:pt-0"><span class="footnote-id flex-none w-4 text-right">${id}.</span><span class="footnote-content flex-1">${safeContent}</span><a href="#${refId}" class="footnote-backref flex-none text-skin-accent hover:underline ml-2">↩</a></div>`;
       });
       footnoteHtml += "</div>";
@@ -557,11 +580,6 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
       text = text.replace(`__HTML_BLOCK_${index}__`, block);
     });
 
-    // 追加脚注定义（放在段落处理之后）
-    if (footnoteHtml) {
-      text += footnoteHtml;
-    }
-
     if (
       text ||
       images.length > 0 ||
@@ -569,7 +587,8 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
       movieData ||
       tvData ||
       bookData ||
-      musicData
+      musicData ||
+      footnoteHtml
     ) {
       timeBlocks.push({
         time,
@@ -580,6 +599,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
         tvData,
         bookData,
         musicData,
+        footnoteHtml,
       });
     }
   }

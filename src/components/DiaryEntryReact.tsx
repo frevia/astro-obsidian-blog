@@ -64,6 +64,7 @@ export interface TimeBlock {
   tvData?: LocalTVData;
   bookData?: LocalBookData;
   musicData?: LocalMusicData;
+  footnoteHtml?: string;
 }
 
 export interface DiaryEntryProps {
@@ -186,6 +187,7 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
             tvData={block.tvData}
             bookData={block.bookData}
             musicData={block.musicData}
+            footnoteHtml={block.footnoteHtml}
           />
         ))}
       </div>
