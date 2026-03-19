@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   PUBLIC_TWIKOO_ENABLED,
   PUBLIC_TWIKOO_ENV_ID,
@@ -144,6 +144,7 @@ export default function TwikooThread({
   path,
   collapsedWhenEmpty = false,
 }: TwikooThreadProps) {
+  const envId = PUBLIC_TWIKOO_ENV_ID;
   const [expanded, setExpanded] = useState(!collapsedWhenEmpty);
   const [avatarSrc, setAvatarSrc] = useState(DEFAULT_AVATAR);
 
@@ -169,7 +170,7 @@ export default function TwikooThread({
   useEffect(() => {
     if (
       PUBLIC_TWIKOO_ENABLED !== "true" ||
-      !PUBLIC_TWIKOO_ENV_ID ||
+      !envId ||
       !collapsedWhenEmpty
     )
       return;
@@ -180,7 +181,7 @@ export default function TwikooThread({
         await ensureTwikooScript();
         if (!window.twikoo?.getCommentsCount) return;
         const opts: TwikooGetCommentsCountOptions = {
-          envId: PUBLIC_TWIKOO_ENV_ID,
+          envId,
           urls: [path],
           includeReply: false,
         };
@@ -204,7 +205,7 @@ export default function TwikooThread({
   }, [path, collapsedWhenEmpty]);
 
   useEffect(() => {
-    if (PUBLIC_TWIKOO_ENABLED !== "true" || !PUBLIC_TWIKOO_ENV_ID) return;
+    if (PUBLIC_TWIKOO_ENABLED !== "true" || !envId) return;
     if (!expanded) return;
 
     const init = async () => {
@@ -216,7 +217,7 @@ export default function TwikooThread({
         if (root) root.innerHTML = "";
 
         const options: TwikooInitOptions = {
-          envId: PUBLIC_TWIKOO_ENV_ID,
+          envId,
           el: `#${threadKey}`,
           path,
           lang: PUBLIC_TWIKOO_LANG || "zh-CN",
@@ -283,7 +284,7 @@ export default function TwikooThread({
     };
   }, [expanded, threadKey]);
 
-  if (PUBLIC_TWIKOO_ENABLED !== "true" || !PUBLIC_TWIKOO_ENV_ID) {
+  if (PUBLIC_TWIKOO_ENABLED !== "true" || !envId) {
     return null;
   }
 
