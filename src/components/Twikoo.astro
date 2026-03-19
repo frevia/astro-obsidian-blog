@@ -1,0 +1,92 @@
+---
+/**
+ * Twikoo 评论组件
+ * 参考：https://www.iamlm.com/blog/170.Astro%20%E6%B7%BB%E5%8A%A0%20Twikoo%20%E8%AF%84%E8%AE%BA/
+ * 官方 CDN：https://twikoo.js.org/frontend.html#%E9%80%9A%E8%BF%87-cdn-%E5%BC%95%E5%85%A5
+ */
+import {
+  PUBLIC_TWIKOO_ENV_ID,
+  PUBLIC_TWIKOO_REGION,
+  PUBLIC_TWIKOO_LANG,
+} from "astro:env/client";
+---
+
+<div id="tcomment" class="mt-8"></div>
+
+<script
+  define:vars={{
+    envId: PUBLIC_TWIKOO_ENV_ID ?? "",
+    region: PUBLIC_TWIKOO_REGION ?? "",
+    lang: PUBLIC_TWIKOO_LANG ?? "zh-CN",
+  }}
+>
+  const TWIKOO_CDN =
+    "https://cdn.jsdelivr.net/npm/twikoo@1.7.3/dist/twikoo.min.js";
+  const TWIKOO_CSS =
+    "https://cdn.jsdelivr.net/npm/twikoo@1.7.3/dist/twikoo.css";
+  const HANDLER_KEY = "__twikooPageLoadHandler";
+  const SCRIPT_PROMISE_KEY = "__twikooScriptPromise";
+
+  function ensureStyle() {
+    if (typeof document === "undefined") return;
+    if (document.querySelector('link[data-twikoo-style="1"]')) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = TWIKOO_CSS;
+    link.setAttribute("data-twikoo-style", "1");
+    document.head.appendChild(link);
+  }
+
+  function ensureScript() {
+    if (typeof window === "undefined") return Promise.resolve();
+    if (typeof twikoo !== "undefined") return Promise.resolve();
+    if (window[SCRIPT_PROMISE_KEY]) return window[SCRIPT_PROMISE_KEY];
+
+    window[SCRIPT_PROMISE_KEY] = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = TWIKOO_CDN;
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Failed to load Twikoo script"));
+      document.body.appendChild(script);
+    });
+
+    return window[SCRIPT_PROMISE_KEY];
+  }
+
+  async function loadTwikoo() {
+    if (!envId) return;
+
+    const container = document.getElementById("tcomment");
+    if (!container) return;
+
+    try {
+      ensureStyle();
+      await ensureScript();
+      if (typeof twikoo === "undefined") return;
+
+      // 路由切换时清理旧挂载，避免重复 init 导致评论区尺寸异常
+      container.innerHTML = "";
+
+      const options = {
+        envId,
+        el: "#tcomment",
+        path: location.pathname,
+        lang: lang || "zh-CN",
+      };
+      if (region && (region === "ap-shanghai" || region === "ap-guangzhou")) {
+        options.region = region;
+      }
+      twikoo.init(options);
+    } catch {
+      // ignore
+    }
+  }
+
+  // 避免视图切换后重复绑定事件
+  if (window[HANDLER_KEY]) {
+    document.removeEventListener("astro:page-load", window[HANDLER_KEY]);
+  }
+  window[HANDLER_KEY] = loadTwikoo;
+  document.addEventListener("astro:page-load", window[HANDLER_KEY]);
+</script>

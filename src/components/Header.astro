@@ -27,7 +27,8 @@ const isActive = (path: string) => {
 ---
 
 <header
-  class="sticky top-0 z-50 w-full bg-transparent backdrop-blur-2xl backdrop-saturate-150 sm:border-b"
+  id="site-header"
+  class="fixed top-0 right-0 left-0 z-50 w-full bg-transparent backdrop-blur-2xl backdrop-saturate-150 sm:border-b"
 >
   <a
     id="skip-to-content"
@@ -285,6 +286,24 @@ const isActive = (path: string) => {
 </header>
 
 <script>
+  function syncHeaderOffset() {
+    const header = document.querySelector("#site-header");
+    if (!(header instanceof HTMLElement)) return;
+    const h = header.offsetHeight || 0;
+    document.documentElement.style.setProperty("--site-header-height", `${h}px`);
+  }
+
+  function enforceFixedHeader() {
+    const header = document.querySelector("#site-header");
+    if (!(header instanceof HTMLElement)) return;
+    header.style.setProperty("position", "fixed", "important");
+    header.style.setProperty("top", "0", "important");
+    header.style.setProperty("left", "0", "important");
+    header.style.setProperty("right", "0", "important");
+    header.style.setProperty("z-index", "50", "important");
+    syncHeaderOffset();
+  }
+
   function toggleNav() {
     const menuBtn = document.querySelector("#menu-btn");
     const menuItems = document.querySelector("#menu-items");
@@ -305,8 +324,12 @@ const isActive = (path: string) => {
     });
   }
 
+  enforceFixedHeader();
   toggleNav();
 
   // Runs on view transitions navigation
+  document.addEventListener("astro:page-load", enforceFixedHeader);
+  document.addEventListener("astro:after-swap", enforceFixedHeader);
   document.addEventListener("astro:after-swap", toggleNav);
+  window.addEventListener("resize", syncHeaderOffset);
 </script>

@@ -57,10 +57,11 @@ html[data-theme="dark"] {
   }
 
   html {
-    @apply overflow-y-scroll scroll-smooth leading-7;
+    @apply overflow-x-hidden overflow-y-scroll scroll-smooth leading-7;
   }
   body {
-    @apply flex min-h-svh flex-col bg-background font-serif text-foreground selection:bg-accent/75 selection:text-background;
+    @apply flex min-h-svh flex-col overflow-x-hidden bg-background font-serif text-foreground selection:bg-accent/75 selection:text-background;
+    padding-top: var(--site-header-height, 0px);
   }
   a,
   button {
@@ -429,4 +430,31 @@ video {
 
 .media-card {
   @apply mb-5;
+}
+
+/* Twikoo 评论：评论列表与输入框左对齐（覆盖 Twikoo 动态注入的样式） */
+#tcomment .tk-comments-container,
+.twikoo .tk-comments-container {
+  margin-left: 55px !important;
+}
+
+/* 隐藏 Twikoo 底部 footer */
+#tcomment .tk-footer,
+.twikoo .tk-footer {
+  display: none !important;
+}
+
+/* 隐藏 Twikoo 提交区操作图标（保留 OwO 表情按钮） */
+#tcomment .tk-submit-action-icon:not(.OwO),
+.twikoo .tk-submit-action-icon:not(.OwO) {
+  display: none !important;
+}
+
+/* 兜底：确保站点头部导航始终固定在顶部，不被第三方样式覆盖 */
+#site-header {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 50 !important;
 }

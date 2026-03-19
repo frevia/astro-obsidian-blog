@@ -1,5 +1,6 @@
 import React from "react";
 import TimelineItemReact from "./TimelineItemReact";
+import TwikooThread from "./TwikooThread";
 import { SITE } from "../config";
 
 // 本地电影数据接口
@@ -96,6 +97,9 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
   hideYear = false,
   timeBlocks,
 }) => {
+  const threadKey = `twikoo-diary-${date}`;
+  const threadPath = `/diary/${date}`;
+
   // 1) 先准备稳定的 SSR 文案：绝对日期 (MM/DD) + 固定时区的星期/年份
   const entryDateUTC = ymdToUTC(date);
 
@@ -190,6 +194,20 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
             footnoteHtml={block.footnoteHtml}
           />
         ))}
+      </div>
+      {/* 评论与正文对齐：与时间线同结构，sm 下左侧留出与时间标签等宽的空位 */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:gap-3">
+        <div
+          className="hidden sm:block sm:w-0 sm:flex-shrink-0"
+          aria-hidden="true"
+        />
+        <div className="min-w-0 w-full flex-1">
+          <TwikooThread
+            threadKey={threadKey}
+            path={threadPath}
+            collapsedWhenEmpty
+          />
+        </div>
       </div>
     </div>
   );
