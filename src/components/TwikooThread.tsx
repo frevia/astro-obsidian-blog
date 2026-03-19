@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  PUBLIC_TWIKOO_ENABLED,
   PUBLIC_TWIKOO_ENV_ID,
   PUBLIC_TWIKOO_REGION,
   PUBLIC_TWIKOO_LANG,
 } from "astro:env/client";
+import { SITE } from "@/config";
 
 type TwikooInitOptions = {
   envId: string;
@@ -144,7 +144,9 @@ export default function TwikooThread({
   path,
   collapsedWhenEmpty = false,
 }: TwikooThreadProps) {
-  const envId = PUBLIC_TWIKOO_ENV_ID;
+  const commentsEnabled = SITE.comments.enabled;
+  const envId = PUBLIC_TWIKOO_ENV_ID?.trim();
+  const hasRequiredEnv = Boolean(envId);
   const [expanded, setExpanded] = useState(!collapsedWhenEmpty);
   const [avatarSrc, setAvatarSrc] = useState(DEFAULT_AVATAR);
 
@@ -169,11 +171,13 @@ export default function TwikooThread({
   // 有评论时默认展开：调用 getCommentsCount（无需先 init）
   useEffect(() => {
     if (
-      PUBLIC_TWIKOO_ENABLED !== "true" ||
-      !envId ||
+      !commentsEnabled ||
+      !hasRequiredEnv ||
       !collapsedWhenEmpty
     )
       return;
+    const resolvedEnvId = envId;
+    if (!resolvedEnvId) return;
 
     const checkCount = async () => {
       try {
@@ -181,7 +185,7 @@ export default function TwikooThread({
         await ensureTwikooScript();
         if (!window.twikoo?.getCommentsCount) return;
         const opts: TwikooGetCommentsCountOptions = {
-          envId,
+          envId: resolvedEnvId,
           urls: [path],
           includeReply: false,
         };
@@ -205,8 +209,10 @@ export default function TwikooThread({
   }, [path, collapsedWhenEmpty]);
 
   useEffect(() => {
-    if (PUBLIC_TWIKOO_ENABLED !== "true" || !envId) return;
+    if (!commentsEnabled || !hasRequiredEnv) return;
     if (!expanded) return;
+    const resolvedEnvId = envId;
+    if (!resolvedEnvId) return;
 
     const init = async () => {
       try {
@@ -217,7 +223,7 @@ export default function TwikooThread({
         if (root) root.innerHTML = "";
 
         const options: TwikooInitOptions = {
-          envId,
+          envId: resolvedEnvId,
           el: `#${threadKey}`,
           path,
           lang: PUBLIC_TWIKOO_LANG || "zh-CN",
@@ -284,8 +290,20 @@ export default function TwikooThread({
     };
   }, [expanded, threadKey]);
 
-  if (PUBLIC_TWIKOO_ENABLED !== "true" || !envId) {
+  if (!commentsEnabled) {
     return null;
+  }
+
+  if (!hasRequiredEnv) {
+    return (
+      <div className="mt-6 rounded-xl border border-border/60 bg-muted/15 px-4 py-3 text-sm text-skin-base/80">
+        评论功能已开启，但尚未完成 Twikoo 配置。请在环境变量中设置
+        <code className="mx-1 rounded bg-muted/30 px-1.5 py-0.5 text-xs">
+          PUBLIC_TWIKOO_ENV_ID
+        </code>
+        后重新部署。
+      </div>
+    );
   }
 
   // diary 区折叠态：头像与输入框分开显示，点击框展开

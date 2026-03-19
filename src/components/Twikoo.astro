@@ -16,7 +16,7 @@ import {
 <script
   is:inline
   define:vars={{
-    envId: PUBLIC_TWIKOO_ENV_ID ?? "",
+    envId: (PUBLIC_TWIKOO_ENV_ID ?? "").trim(),
     region: PUBLIC_TWIKOO_REGION ?? "",
     lang: PUBLIC_TWIKOO_LANG ?? "zh-CN",
   }}
