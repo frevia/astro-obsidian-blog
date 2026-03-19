@@ -436,6 +436,7 @@ video {
 #tcomment .tk-comments-container,
 .twikoo .tk-comments-container {
   margin-left: 55px !important;
+  min-height: 2rem !important;
 }
 
 /* 隐藏 Twikoo 底部 footer */
