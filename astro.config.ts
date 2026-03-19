@@ -126,42 +126,22 @@ export default defineConfig({
         context: "client",
         optional: true,
       }),
-      SUPABASE_URL: envField.string({
+      PUBLIC_TWIKOO_ENABLED: envField.string({
         access: "public",
         context: "client",
         optional: true,
       }),
-      SUPABASE_KEY: envField.string({
+      PUBLIC_TWIKOO_ENV_ID: envField.string({
         access: "public",
         context: "client",
         optional: true,
       }),
-      PUBLIC_GISCUS_HOST: envField.string({
+      PUBLIC_TWIKOO_REGION: envField.string({
         access: "public",
         context: "client",
         optional: true,
       }),
-      PUBLIC_GISCUS_REPO: envField.string({
-        access: "public",
-        context: "client",
-        optional: true,
-      }),
-      PUBLIC_GISCUS_REPO_ID: envField.string({
-        access: "public",
-        context: "client",
-        optional: true,
-      }),
-      PUBLIC_GISCUS_CATEGORY: envField.string({
-        access: "public",
-        context: "client",
-        optional: true,
-      }),
-      PUBLIC_GISCUS_CATEGORY_ID: envField.string({
-        access: "public",
-        context: "client",
-        optional: true,
-      }),
-      PUBLIC_GISCUS_LANG: envField.string({
+      PUBLIC_TWIKOO_LANG: envField.string({
         access: "public",
         context: "client",
         optional: true,

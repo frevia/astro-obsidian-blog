@@ -17,8 +17,14 @@ import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
 import IconChevronRight from "@/assets/icons/IconChevronRight.svg";
 import { SITE } from "@/config";
 import MediaCard from "../components/MediaCard.astro";
-import Comments from "@/components/Comments";
+import Twikoo from "@/components/Twikoo.astro";
+import { PUBLIC_TWIKOO_ENABLED, PUBLIC_TWIKOO_ENV_ID } from "astro:env/client";
 import "photosuite/dist/photosuite.css";
+
+const useTwikoo =
+  SITE.comments.enabled &&
+  PUBLIC_TWIKOO_ENABLED === "true" &&
+  Boolean(PUBLIC_TWIKOO_ENV_ID);
 
 export interface Props {
   post: CollectionEntry<"blog">;
@@ -178,7 +184,7 @@ const nextPost =
 
     <ShareLinks />
 
-    {SITE.comments.enabled && <Comments client:only="react" />}
+    {useTwikoo && <Twikoo />}
 
     <hr
       class={`my-6 ${SITE.comments.enabled ? "border-none" : "border-dashed"}`}

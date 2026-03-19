@@ -42,12 +42,13 @@ const paginationInfo = {
 <Layout title={`时间档案 | ${SITE.title}`}>
   <Header />
 
-  <div>
+  <div class="min-w-0 w-full flex-1">
     <main
       id="main-content"
       data-pagefind-ignore
       role="main"
       aria-label="时间档案主要内容"
+      class="min-w-0 w-full"
     >
       <!-- 跳转到主要内容的链接 -->
       <a
@@ -59,7 +60,7 @@ const paginationInfo = {
 
       <section
         id="diary"
-        class="from-skin-fill via-skin-card to-skin-fill mx-auto min-h-screen max-w-app bg-gradient-to-br px-4 pt-4"
+        class="from-skin-fill via-skin-card to-skin-fill mx-auto min-h-screen min-w-0 w-full max-w-app bg-gradient-to-br px-4 pt-4"
         role="region"
         aria-labelledby="diary-heading"
       >
