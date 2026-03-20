@@ -12,6 +12,7 @@ const blog = defineCollection({
       title: z.string(),
       featured: z.boolean().optional(),
       draft: z.boolean().optional(),
+      hidden: z.boolean().optional().default(false),
       tags: z.array(z.string()).default(["其他"]),
       // 分类，前端用于生成分类页面
       categories: z.array(z.string()).default([]),
