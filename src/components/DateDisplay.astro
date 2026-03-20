@@ -29,6 +29,24 @@ try {
   // 忽略错误
 }
 
+// 获取节气信息（仅当日有节气时显示）
+let solarTerm = "";
+try {
+  const solarTerms = chineseDays.getSolarTermsInRange(dateKey, dateKey) as Array<{
+    date: string;
+    name: string;
+    index?: number;
+  }>;
+  const todaySolarTerm = solarTerms.find(
+    item => item.date === dateKey && item.index === 1
+  );
+  if (todaySolarTerm?.name) {
+    solarTerm = todaySolarTerm.name;
+  }
+} catch {
+  // 忽略错误
+}
+
 // 判断是否为工作日
 const isWorkday = weekday >= 1 && weekday <= 5;
 const workdayText = isWorkday ? "工作日" : "休息啦";
@@ -69,9 +87,50 @@ const workdayClass = isWorkday
     </div>
 
     <div class="chime-sway-secondary flex flex-col items-center">
-      <div class="chime-rope chime-rope--mid"></div>
+      {
+        solarTerm ? (
+          <div class="chime-solar-chain flex flex-col items-center">
+            <!-- 上绳 + 五边形 + 下绳：同一 SVG、同一坐标系，与顶点/底边中点严格对齐 -->
+            <div class="chime-solar-chain-inner relative w-[3.6rem] shrink-0">
+              <svg
+                class="chime-solar-chain-svg block overflow-visible"
+                viewBox="0 0 36 69"
+                width="3.6rem"
+                height="6.9rem"
+                aria-hidden="true"
+              >
+                <!-- 绳段高度 17.5 + 五边形高度 34 + 绳段 17.5 = 69（与原先 1.75rem+3.4rem+1.75rem 同比例） -->
+                <line
+                  class="chime-chain-stroke"
+                  x1="18"
+                  y1="0"
+                  x2="18"
+                  y2="17.5"
+                  stroke-linecap="butt"></line>
+                <polygon
+                  class="chime-chain-stroke chime-chain-pent"
+                  points="18,17.5 36,30.42 29.52,51.5 6.48,51.5 0,30.42"></polygon>
+                <line
+                  class="chime-chain-stroke"
+                  x1="18"
+                  y1="51.5"
+                  x2="18"
+                  y2="69"
+                  stroke-linecap="butt"></line>
+              </svg>
+              <span
+                class="text-xs font-medium text-amber-700 dark:text-amber-300 pointer-events-none absolute top-1/2 left-1/2 z-[1] max-w-[2.4rem] -translate-x-1/2 -translate-y-1/2 text-center leading-none"
+              >
+                {solarTerm}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div class="chime-rope chime-rope--mid"></div>
+        )
+      }
       <div
-        class="min-w-[4.5rem] rounded-full border bg-background px-2 py-1 text-center shadow-sm"
+        class="chime-workday-pill min-w-[4.5rem] rounded-full border bg-background px-2 py-1 text-center shadow-sm"
       >
         <span class={`text-xs font-medium ${workdayClass}`}>{workdayText}</span>
       </div>
@@ -103,6 +162,27 @@ const workdayClass = isWorkday
 
   .chime-rope--mid {
     height: 1.75rem;
+  }
+
+  /* 节气链底与工作日坠略贴紧（下绳已在 SVG 内，此处只收外层缝） */
+  .chime-solar-chain + .chime-workday-pill {
+    margin-top: -0.06rem;
+  }
+
+  /* 无节气时：主绳与工作日坠之间略收紧 */
+  .chime-sway-secondary > .chime-rope--mid + .chime-workday-pill {
+    margin-top: -0.08rem;
+  }
+
+  .chime-solar-chain-svg .chime-chain-stroke {
+    fill: none;
+    stroke: color-mix(in oklab, var(--color-accent, #888) 32%, transparent);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .chime-solar-chain-svg .chime-chain-pent {
+    stroke-linejoin: miter;
   }
 
   /* 整颗挂件绕顶环摆动 */
