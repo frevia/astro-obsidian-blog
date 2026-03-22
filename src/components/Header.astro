@@ -61,6 +61,17 @@ const isActive = (path: string) => {
         <ul class="flex items-center gap-x-2">
           <li>
             <a
+              href="/"
+              class:list={[
+                "px-3 py-2 text-base font-medium transition-colors hover:text-accent",
+                { "active-nav": isActive("/") },
+              ]}
+            >
+              说说
+            </a>
+          </li>
+          <li>
+            <a
               href="/posts"
               class:list={[
                 "px-3 py-2 text-base font-medium transition-colors hover:text-accent",
@@ -189,6 +200,11 @@ const isActive = (path: string) => {
           "hidden",
         ]}
       >
+        <li class="col-span-6">
+          <a href="/" class:list={{ "active-nav": isActive("/") }}>
+            说说
+          </a>
+        </li>
         <li class="col-span-6">
           <a href="/posts" class:list={{ "active-nav": isActive("/posts") }}>
             文章
