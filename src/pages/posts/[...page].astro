@@ -25,9 +25,9 @@ export const getStaticPaths = (async ({ paginate }) => {
 const { page } = Astro.props;
 ---
 
-<Layout title={`文章 | ${SITE.title}`}>
+<Layout title={`日志 | ${SITE.title}`}>
   <Header />
-  <Main pageTitle="全部文章" pageDesc="">
+  <Main pageTitle="全部日志" pageDesc="">
     <ul>
       {tags.map(({ tag, tagName }) => <Tag {tag} {tagName} size="lg" />)}
     </ul>

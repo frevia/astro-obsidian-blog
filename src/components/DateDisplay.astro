@@ -1,19 +1,27 @@
 ---
 import chineseDays from "chinese-days";
+import { SITE } from "@/config";
+import { toYMDInTimeZone } from "@/utils/calendarDate";
 
-// 获取当前日期
+// 与 config 中 SITE.timezone 一致，避免 Vercel(UTC) 下显示成“昨天”
 const now = new Date();
-const year = now.getFullYear();
-const month = now.getMonth() + 1;
-const day = now.getDate();
-const weekday = now.getDay();
+const dateKey = toYMDInTimeZone(now);
+const [ys, ms, ds] = dateKey.split("-");
+const year = Number(ys);
+const month = Number(ms);
+const day = Number(ds);
 
-// 星期几的中文表示
-const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
-const weekdayText = weekdays[weekday];
+const weekdayText = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: SITE.timezone,
+  weekday: "short",
+}).format(now);
 
-// 格式化日期为 YYYY-MM-DD
-const dateKey = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+const weekdayEn = new Intl.DateTimeFormat("en-US", {
+  timeZone: SITE.timezone,
+  weekday: "short",
+}).formatToParts(now)
+  .find(p => p.type === "weekday")?.value;
+const isWorkday = weekdayEn !== "Sat" && weekdayEn !== "Sun";
 
 // 获取农历信息
 let lunarMonth = "";
@@ -47,8 +55,6 @@ try {
   // 忽略错误
 }
 
-// 判断是否为工作日
-const isWorkday = weekday >= 1 && weekday <= 5;
 const workdayText = isWorkday ? "工作日" : "休息啦";
 const workdayClass = isWorkday
   ? "text-green-600 dark:text-green-400"

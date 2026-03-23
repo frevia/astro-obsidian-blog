@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import chineseDays from "chinese-days";
+import { toYMDInTimeZone, getYearMonthInTimeZone } from "@/utils/calendarDate";
 
 export interface CalendarProps {
   /** 按日期分组的事件，key 为 YYYY-MM-DD */
@@ -31,31 +32,37 @@ function getChineseHolidayName(name: string): string {
   return name;
 }
 
-function toYMD(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
+/** 月网格用 UTC 构造公历日，避免 Vercel(Node=UTC) 与用户浏览器本地时区不一致 */
+function toYMDUtc(d: Date): string {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
 
-/** 周一为一周第一天，返回的 grid 从左到右为 一…日 */
+/** 周一为一周第一天，返回的 grid 从左到右为 一…日（全 UTC，与站点时区的 YYYY-MM-DD 对齐） */
 function getCalendarGridDates(year: number, month: number): Date[] {
-  const first = new Date(year, month, 1);
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstWeekday = first.getDay(); // 0=日 1=一 … 6=六
-  const offset = (firstWeekday + 6) % 7; // 使周一为第一列
+  const first = new Date(Date.UTC(year, month, 1));
+  const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const firstWeekday = first.getUTCDay(); // 0=日 1=一 … 6=六
+  const offset = (firstWeekday + 6) % 7;
 
-  const gridStart = new Date(year, month, 1 - offset);
+  const gridStart = new Date(Date.UTC(year, month, 1 - offset));
   const total = offset + daysInMonth;
   const totalCells = Math.ceil(total / 7) * 7;
 
   const dates: Date[] = [];
   for (let i = 0; i < totalCells; i++) {
     const d = new Date(gridStart);
-    d.setDate(gridStart.getDate() + i);
+    d.setUTCDate(gridStart.getUTCDate() + i);
     dates.push(d);
   }
   return dates;
+}
+
+function ymdToUTC(ymd: string) {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d));
 }
 
 /** 休=休息日 班=补班 调=调休日 */
@@ -81,8 +88,10 @@ function useChineseDaysForMonth(
   rangeEnd?: string
 ): Record<string, DayExtraInfo> {
   return useMemo(() => {
-    const start = rangeStart ?? toYMD(new Date(year, month, 1));
-    const end = rangeEnd ?? toYMD(new Date(year, month + 1, 0));
+    const start =
+      rangeStart ?? toYMDUtc(new Date(Date.UTC(year, month, 1)));
+    const end =
+      rangeEnd ?? toYMDUtc(new Date(Date.UTC(year, month + 1, 0)));
     const result: Record<string, DayExtraInfo> = {};
 
     try {
@@ -122,18 +131,15 @@ function useChineseDaysForMonth(
         }
       }
 
-      const startDate = new Date(start);
-      const endDate = new Date(end);
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(0, 0, 0, 0);
+      const [sy, sm, sd] = start.split("-").map(Number);
+      const [ey, em, ed] = end.split("-").map(Number);
+      const startTs = Date.UTC(sy, sm - 1, sd);
+      const endTs = Date.UTC(ey, em - 1, ed);
 
-      for (
-        const cur = new Date(startDate);
-        cur.getTime() <= endDate.getTime();
-        cur.setDate(cur.getDate() + 1)
-      ) {
-        const dateKey = toYMD(cur);
-        const weekday = cur.getDay();
+      for (let t = startTs; t <= endTs; t += 86400000) {
+        const cur = new Date(t);
+        const dateKey = toYMDUtc(cur);
+        const weekday = cur.getUTCDay();
         const isWeekend = weekday === 0 || weekday === 6;
 
         const isInLieu = chineseDays.isInLieu(dateKey);
@@ -186,15 +192,16 @@ const Calendar: React.FC<CalendarProps> = ({
   eventsByDate,
   compact = false,
 }) => {
-  const [viewDate, setViewDate] = useState(() => new Date());
-  const today = toYMD(new Date());
+  const [viewYM, setViewYM] = useState(() =>
+    getYearMonthInTimeZone(new Date())
+  );
+  const todayKey = toYMDInTimeZone(new Date());
   const [selected, setSelected] = useState<{
     dateKey: string;
     events: { type: string; url: string; title?: string }[];
-  }>({ dateKey: today, events: eventsByDate[today] ?? [] });
+  }>({ dateKey: todayKey, events: eventsByDate[todayKey] ?? [] });
 
-  const year = viewDate.getFullYear();
-  const month = viewDate.getMonth();
+  const { year, monthIndex: month } = viewYM;
   const monthLabel = `${year}年${month + 1}月`;
   const gridDates = useMemo(
     () => getCalendarGridDates(year, month),
@@ -203,8 +210,8 @@ const Calendar: React.FC<CalendarProps> = ({
   const gridRange = useMemo(() => {
     if (gridDates.length === 0) return null;
     return [
-      toYMD(gridDates[0]),
-      toYMD(gridDates[gridDates.length - 1]),
+      toYMDUtc(gridDates[0]),
+      toYMDUtc(gridDates[gridDates.length - 1]),
     ] as const;
   }, [gridDates]);
   const chineseDaysInfo = useChineseDaysForMonth(
@@ -214,13 +221,19 @@ const Calendar: React.FC<CalendarProps> = ({
     gridRange?.[1]
   );
 
-  const goPrev = () => setViewDate(new Date(year, month - 1));
-  const goNext = () => setViewDate(new Date(year, month + 1));
+  const goPrev = () =>
+    setViewYM(({ year: y, monthIndex: m }) =>
+      m === 0 ? { year: y - 1, monthIndex: 11 } : { year: y, monthIndex: m - 1 }
+    );
+  const goNext = () =>
+    setViewYM(({ year: y, monthIndex: m }) =>
+      m === 11 ? { year: y + 1, monthIndex: 0 } : { year: y, monthIndex: m + 1 }
+    );
   const goToday = () => {
     const now = new Date();
-    const todayKey = toYMD(now);
-    setViewDate(now);
-    setSelected({ dateKey: todayKey, events: eventsByDate[todayKey] ?? [] });
+    const key = toYMDInTimeZone(now);
+    setViewYM(getYearMonthInTimeZone(now));
+    setSelected({ dateKey: key, events: eventsByDate[key] ?? [] });
   };
 
   // 当 eventsByDate 变化时，更新选中日期的事件
@@ -330,13 +343,13 @@ const Calendar: React.FC<CalendarProps> = ({
           </div>
         ))}
         {gridDates.map(d => {
-          const dateKey = toYMD(d);
-          const day = d.getDate();
+          const dateKey = toYMDUtc(d);
+          const day = d.getUTCDate();
           const inCurrentMonth =
-            d.getFullYear() === year && d.getMonth() === month;
+            d.getUTCFullYear() === year && d.getUTCMonth() === month;
           const events = eventsByDate[dateKey] ?? [];
           const extra = chineseDaysInfo[dateKey];
-          const isToday = toYMD(new Date()) === dateKey;
+          const isToday = todayKey === dateKey;
           const tag = extra?.dayTag;
           const tagLabel =
             tag === "rest"
@@ -346,7 +359,7 @@ const Calendar: React.FC<CalendarProps> = ({
                 : tag === "inLieu"
                   ? "调"
                   : null;
-          const weekday = d.getDay();
+          const weekday = d.getUTCDay();
           const isWeekend = weekday === 0 || weekday === 6;
 
           const dayBg =
@@ -535,7 +548,9 @@ const Calendar: React.FC<CalendarProps> = ({
                 const mi = Number(m);
                 const di = Number(d);
                 const weekCn =
-                  WEEKDAYS[(new Date(yi, mi - 1, di).getDay() + 6) % 7];
+                  WEEKDAYS[
+                    (new Date(Date.UTC(yi, mi - 1, di)).getUTCDay() + 6) % 7
+                  ];
                 const info = chineseDaysInfo[selected.dateKey];
                 const lunarLine =
                   info?.lunar != null && info.lunar !== ""
@@ -636,18 +651,11 @@ const Calendar: React.FC<CalendarProps> = ({
                       <span className="text-xs">
                         {(() => {
                           const [y, m, d] = selected.dateKey.split("-");
-                          const selectedDate = new Date(
-                            Number(y),
-                            Number(m) - 1,
-                            Number(d)
-                          );
-                          const today = new Date();
-                          today.setHours(0, 0, 0, 0);
-                          selectedDate.setHours(0, 0, 0, 0);
-                          const diffTime =
-                            today.getTime() - selectedDate.getTime();
+                          const todayYMD = toYMDInTimeZone(new Date());
                           const diffDays = Math.floor(
-                            diffTime / (1000 * 60 * 60 * 24)
+                            (ymdToUTC(todayYMD).getTime() -
+                              ymdToUTC(selected.dateKey).getTime()) /
+                              86400000
                           );
                           if (diffDays === 0) {
                             return "今天";
@@ -688,7 +696,7 @@ const Calendar: React.FC<CalendarProps> = ({
                       ? "日记"
                       : ev.type === "blog" && ev.title
                         ? ev.title
-                        : "文章";
+                        : "日志";
                     return (
                       <li key={idx}>
                         <a
@@ -707,7 +715,7 @@ const Calendar: React.FC<CalendarProps> = ({
                                 : "bg-sky-500/15 text-sky-800 dark:text-sky-300",
                             ].join(" ")}
                           >
-                            {isDiary ? "日记" : "文章"}
+                            {isDiary ? "日记" : "日志"}
                           </span>
                           <span className="text-skin-base min-w-0 flex-1 text-xs leading-snug group-hover:text-accent">
                             {isDiary ? "当日日记" : label}
@@ -725,7 +733,7 @@ const Calendar: React.FC<CalendarProps> = ({
                 </ul>
               ) : (
                 <div className="bg-skin-muted/5 text-skin-muted dark:bg-skin-muted/10 border-skin-muted/25 rounded-lg border border-dashed px-3 py-4 text-center text-xs leading-relaxed">
-                  该日暂无日记或文章
+                  该日暂无日记或日志
                 </div>
               )}
             </div>
