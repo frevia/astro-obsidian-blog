@@ -87,8 +87,23 @@
       }
     }
 
+    /* 收紧 markdown 列表默认间距（覆盖 tailwind typography 的宽松默认值） */
+    ul,
+    ol {
+      @apply my-3 pl-5;
+    }
+
     li {
-      @apply marker:text-accent;
+      @apply my-0.5 leading-7 marker:text-accent;
+    }
+
+    li > p {
+      @apply my-0;
+    }
+
+    li > ul,
+    li > ol {
+      @apply my-1;
     }
 
     hr {
