@@ -12,29 +12,55 @@ import { getPath } from "@/utils/getPath";
 const blogPosts = await getCollection("blog");
 const publishedPosts = blogPosts.filter(postFilter);
 
+function parseLocationText(text: string): { lng: number; lat: number } | null {
+  const [lngRaw, latRaw] = text.split(",").map(s => s.trim());
+  const lng = Number(lngRaw);
+  const lat = Number(latRaw);
+  if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null;
+  if (lng < -180 || lng > 180 || lat < -90 || lat > 90) return null;
+  return { lng, lat };
+}
+
+function toPlaceRecord(
+  post: (typeof publishedPosts)[number]
+): { name: string; lng: number; lat: number } | null {
+  const { location, place, title } = post.data;
+  if (!location) return null;
+
+  const parsed = parseLocationText(location);
+  if (!parsed) return null;
+  return {
+    name: (place || title).trim(),
+    lng: parsed.lng,
+    lat: parsed.lat,
+  };
+}
+
 const placesFromPosts = publishedPosts
-  .map(post => post.data.location)
-  .filter((loc): loc is NonNullable<(typeof publishedPosts)[number]["data"]["location"]> =>
-    Boolean(loc)
-  );
+  .map(post => toPlaceRecord(post))
+  .filter((loc): loc is NonNullable<ReturnType<typeof toPlaceRecord>> => Boolean(loc));
+
+type PostLocationRecord = {
+  title: string;
+  url: string;
+  name: string;
+  lng: number;
+  lat: number;
+};
 
 const postLocationRecords = publishedPosts
-  .filter(
-    (
-      post
-    ): post is typeof post & {
-      data: typeof post.data & {
-        location: NonNullable<(typeof post.data)["location"]>;
-      };
-    } => Boolean(post.data.location)
-  )
-  .map(post => ({
-    title: post.data.title,
-    url: getPath(post.id, post.filePath),
-    name: post.data.location.name,
-    lng: post.data.location.lng,
-    lat: post.data.location.lat,
-  }));
+  .map(post => {
+    const loc = toPlaceRecord(post);
+    if (!loc) return null;
+    return {
+      title: post.data.title,
+      url: getPath(post.id, post.filePath),
+      name: loc.name,
+      lng: loc.lng,
+      lat: loc.lat,
+    } satisfies PostLocationRecord;
+  })
+  .filter((item): item is PostLocationRecord => Boolean(item));
 
 const uniquePlaces = Array.from(
   new Map(
