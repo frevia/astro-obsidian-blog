@@ -70,6 +70,8 @@ if (breadcrumbList[0] === "posts" && !isNaN(Number(breadcrumbList[2]))) {
                         ? "搜索"
                         : breadcrumb === "categories"
                           ? "分类"
+                          : breadcrumb === "footprint"
+                            ? "足迹"
                             : decodeURIComponent(breadcrumb)}
             </span>
           </li>
@@ -88,6 +90,8 @@ if (breadcrumbList[0] === "posts" && !isNaN(Number(breadcrumbList[2]))) {
                         ? "搜索"
                         : breadcrumb === "categories"
                           ? "分类"
+                          : breadcrumb === "footprint"
+                            ? "足迹"
                           : breadcrumb === "favorites"
                             ? "收藏"
                               : decodeURIComponent(breadcrumb)}
