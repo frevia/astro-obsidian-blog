@@ -1,7 +1,12 @@
 import { useMemo, useState } from "react";
 import { geoContains, geoMercator, geoPath } from "d3-geo";
 import { ChinaData, ProvinceData } from "china-map-geojson";
-import type { FootprintPlace } from "@/data/footprint";
+
+interface FootprintPlace {
+  name: string;
+  lng: number;
+  lat: number;
+}
 
 export interface FootprintMapProps {
   places?: FootprintPlace[];
