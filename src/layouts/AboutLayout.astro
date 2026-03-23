@@ -27,10 +27,16 @@
 
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
+import Twikoo from "@/components/Twikoo.astro";
 // import Breadcrumb from "@/components/Breadcrumb.astro";
 import Layout from "./Layout.astro";
 import { SITE } from "@/config";
 import { getBlogMetrics } from "@/utils/getBlogMetrics";
+import {
+  PUBLIC_TWIKOO_ENABLED,
+  PUBLIC_TWIKOO_ENV_ID,
+  PUBLIC_TWIKOO_REGION,
+} from "astro:env/client";
 
 export interface Props {
   frontmatter: {
@@ -42,6 +48,10 @@ export interface Props {
 const { frontmatter } = Astro.props;
 // 获取博客统计数据
 const blogStats = await getBlogMetrics();
+const commentsEnabled = SITE.comments.enabled && PUBLIC_TWIKOO_ENABLED !== "false";
+const hasTwikooEnv =
+  (PUBLIC_TWIKOO_ENV_ID ?? "").trim().length > 0 &&
+  (PUBLIC_TWIKOO_REGION ?? "").trim().length > 0;
 
 // 解析博客创建日期
 const createdAt = new Date(SITE.createdAt);
@@ -72,6 +82,33 @@ const startDay = createdAt.getDate();
       </div>
       <!-- 插槽：页面内容 -->
       <slot />
+
+      {
+        commentsEnabled && (
+          <>
+            <hr class="my-8 border-dashed" />
+            <h2 class="mb-4 text-xl font-semibold">留言</h2>
+          </>
+        )
+      }
+
+      {commentsEnabled && hasTwikooEnv && <Twikoo />}
+
+      {
+        commentsEnabled && !hasTwikooEnv && (
+          <div class="mt-8 rounded-xl border border-border/60 bg-muted/15 px-4 py-3 text-sm text-foreground/80">
+            留言功能已开启，但尚未完成 Twikoo 配置。请在环境变量中设置
+            <code class="mx-1 rounded bg-muted/30 px-1.5 py-0.5 text-xs">
+              PUBLIC_TWIKOO_ENV_ID
+            </code>
+            与
+            <code class="mx-1 rounded bg-muted/30 px-1.5 py-0.5 text-xs">
+              PUBLIC_TWIKOO_REGION
+            </code>
+            后重新部署。
+          </div>
+        )
+      }
     </section>
   </main>
   <Footer />
