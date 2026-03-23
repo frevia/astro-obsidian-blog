@@ -6,8 +6,7 @@ import { toYMDInTimeZone } from "@/utils/calendarDate";
 // 与 config 中 SITE.timezone 一致，避免 Vercel(UTC) 下显示成“昨天”
 const now = new Date();
 const dateKey = toYMDInTimeZone(now);
-const [ys, ms, ds] = dateKey.split("-");
-const year = Number(ys);
+const [, ms, ds] = dateKey.split("-");
 const month = Number(ms);
 const day = Number(ds);
 
