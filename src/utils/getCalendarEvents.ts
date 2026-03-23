@@ -1,6 +1,7 @@
 import type { CollectionEntry } from "astro:content";
 import { getPath } from "@/utils/getPath";
 import postFilter from "@/utils/postFilter";
+import { toYMDInTimeZone } from "@/utils/calendarDate";
 
 export type CalendarEventType = "blog" | "diary";
 
@@ -31,11 +32,7 @@ export function getCalendarEvents(
   const publishedPosts = blogEntries.filter(postFilter);
   for (const post of publishedPosts) {
     const d = post.data.pubDatetime;
-    const dateStr = [
-      d.getFullYear(),
-      String(d.getMonth() + 1).padStart(2, "0"),
-      String(d.getDate()).padStart(2, "0"),
-    ].join("-");
+    const dateStr = toYMDInTimeZone(d);
     events.push({
       type: "blog",
       date: dateStr,
