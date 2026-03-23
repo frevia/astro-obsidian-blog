@@ -27,13 +27,9 @@ const blog = defineCollection({
       keywords: z.array(z.string()).optional(),
       mainPoints: z.array(z.string()).optional(),
       series: z.string().optional().nullable(),
-      location: z
-        .object({
-          name: z.string(),
-          lng: z.number(),
-          lat: z.number(),
-        })
-        .optional(),
+      place: z.string().optional(),
+      // 格式：location: "120.225636,30.189371"
+      location: z.string().optional(),
     }),
 });
 
