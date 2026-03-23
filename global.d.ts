@@ -1,5 +1,4 @@
 declare module 'rehype-figure';
-
 declare global {
   interface Window {
     tocbot?: any;

@@ -94,6 +94,17 @@ const isActive = (path: string) => {
           </li>
           <li>
             <a
+              href="/footprint"
+              class:list={[
+                "px-3 py-2 text-base font-medium transition-colors hover:text-accent",
+                { "active-nav": isActive("/footprint") },
+              ]}
+            >
+              足迹
+            </a>
+          </li>
+          <li>
+            <a
               href="/about"
               class:list={[
                 "px-3 py-2 text-base font-medium transition-colors hover:text-accent",
@@ -216,6 +227,14 @@ const isActive = (path: string) => {
             class:list={{ "active-nav": isActive("/categories") }}
           >
             分类
+          </a>
+        </li>
+        <li class="col-span-6">
+          <a
+            href="/footprint"
+            class:list={{ "active-nav": isActive("/footprint") }}
+          >
+            足迹
           </a>
         </li>
         <li class="col-span-6">

@@ -451,6 +451,28 @@ video {
   display: none !important;
 }
 
+/* Twikoo 头像：重置 prose 对 img 的影响，避免只显示一小块 */
+#tcomment .tk-avatar,
+.twikoo .tk-avatar {
+  overflow: hidden !important;
+  border-radius: 9999px !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+#tcomment .tk-avatar img,
+.twikoo .tk-avatar img {
+  display: block !important;
+  margin: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: cover !important;
+  border-radius: 9999px !important;
+}
+
 /* 兜底：确保站点头部导航始终固定在顶部，不被第三方样式覆盖 */
 #site-header {
   position: fixed !important;

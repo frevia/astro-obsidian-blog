@@ -1,0 +1,58 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Main from "@/layouts/Main.astro";
+import FootprintMap from "@/components/FootprintMap.tsx";
+import { SITE } from "@/config";
+import { getCollection } from "astro:content";
+import postFilter from "@/utils/postFilter";
+import { getPath } from "@/utils/getPath";
+
+const blogPosts = await getCollection("blog");
+const publishedPosts = blogPosts.filter(postFilter);
+
+const placesFromPosts = publishedPosts
+  .map(post => post.data.location)
+  .filter((loc): loc is NonNullable<(typeof publishedPosts)[number]["data"]["location"]> =>
+    Boolean(loc)
+  );
+
+const postLocationRecords = publishedPosts
+  .filter(
+    (
+      post
+    ): post is typeof post & {
+      data: typeof post.data & {
+        location: NonNullable<(typeof post.data)["location"]>;
+      };
+    } => Boolean(post.data.location)
+  )
+  .map(post => ({
+    title: post.data.title,
+    url: getPath(post.id, post.filePath),
+    name: post.data.location.name,
+    lng: post.data.location.lng,
+    lat: post.data.location.lat,
+  }));
+
+const uniquePlaces = Array.from(
+  new Map(
+    placesFromPosts.map(loc => [`${loc.name}:${loc.lng},${loc.lat}`, loc] as const)
+  ).values()
+);
+
+const places = uniquePlaces;
+const markedCount = places.length;
+---
+
+<Layout title={`足迹 | ${SITE.title}`}>
+  <Header />
+  <Main pageTitle="开发中……" pageDesc="「旅行是最热闹的孤独，是一场向着内心的出走； 旅行是一部电影，笑中带泪; 旅行是一首没有伴奏的歌，五音不全，旁人全听它不懂，只剩下垂垂暮年的你，独自蜷缩在摇椅上的毯子下面，露出不易察觉的最后一丝微笑。」" pageDescClass="text-justify">
+    <p class="text-skin-muted mb-4 text-sm">
+      当前已标注 <span class="font-semibold text-accent">{markedCount}</span> 个地点。
+    </p>
+    <FootprintMap client:load places={places} records={postLocationRecords} />
+  </Main>
+  <Footer />
+</Layout>
