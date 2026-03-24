@@ -398,15 +398,25 @@ const nextPost =
     updateScrollProgress();
     addCopyButtons();
 
+    // Match TOC calculations with the fixed header height.
+    function getTocOffset() {
+      const header = document.getElementById("site-header");
+      if (!(header instanceof HTMLElement)) return 0;
+      return header.offsetHeight + 8;
+    }
+
     // initialize tocbot if sidebar exists
     if (document.getElementById("toc-container")) {
+      const tocOffset = getTocOffset();
+      tocbot.destroy();
       tocbot.init({
         tocSelector: ".js-toc",
         contentSelector: ".js-toc-content",
         headingSelector: "h2, h3, h4",
         hasInnerContainers: true,
+        headingsOffset: tocOffset,
         scrollSmoothDuration: 300,
-        scrollSmoothOffset: 0,
+        scrollSmoothOffset: -tocOffset,
       });
     }
   });
