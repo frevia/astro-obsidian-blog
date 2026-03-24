@@ -176,19 +176,25 @@ h6:hover .icon-link::before {
 
 /* tocbot styles */
 .toc-title {
-  @apply text-base font-semibold;
+  @apply text-base font-semibold text-foreground/85;
+}
+
+.toc-list {
+  margin: 0;
+  padding-left: 0;
 }
 
 /* basic item reset */
 .toc-list-item {
   list-style: none;
   margin: 0;
-  padding: 0.25rem 0; /* vertical spacing between entries */
+  padding: 0.2rem 0; /* vertical spacing between entries */
   color: var(--toc-top-text-color);
 }
 .toc-link {
   color: var(--toc-top-text-color);
   text-decoration: none;
+  @apply block text-sm leading-6 transition-colors;
 }
 .toc-link.is-active-link {
   @apply text-accent;
@@ -198,12 +204,12 @@ h6:hover .icon-link::before {
   content: "";
 }
 
-/* indent nested levels to match screenshot */
-.toc-level-2 {
-  padding-left: 1rem;
+/* heading level alignment for tocbot output */
+.toc-link.node-name--H2 {
+  padding-left: 0;
 }
-.toc-level-3 {
-  padding-left: 1.75rem;
+.toc-link.node-name--H3 {
+  padding-left: 1rem;
 }
 
 @media (max-width: 1023px) {
@@ -237,7 +243,8 @@ h6:hover .icon-link::before {
   /* Desktop styles */
   @media (min-width: 1300px) {
     #sidebar {
-      @apply top-36 right-10 m-2 max-h-[calc(100vh-12rem)] w-32 translate-x-0 rounded-none bg-transparent p-0 shadow-none;
+      left: calc(50% + 25.5rem);
+      @apply top-36 m-2 max-h-[calc(100vh-12rem)] w-40 translate-x-0 rounded-none bg-transparent p-0 shadow-none;
     }
 
     #sidebar.no-toc {
@@ -247,7 +254,7 @@ h6:hover .icon-link::before {
     /* xl breakpoint */
     @media (min-width: 1280px) {
       #sidebar {
-        @apply w-53;
+        @apply w-48;
       }
     }
   }
