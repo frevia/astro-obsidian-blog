@@ -100,6 +100,20 @@ pnpm build
 pnpm preview
 ```
 
+### 足迹地图标签数据（本地生成）
+
+足迹地图**全国省名与省内市名**的排布共用同一套预计算（弦 + 中心点），避免在浏览器端跑 Turf。
+
+```bash
+# 生成/更新市、省标签弦与中心点 JSON
+pnpm run generate:footprint-labels
+```
+
+- 生成脚本：`scripts/generate-footprint-city-labels.ts`
+- 输出文件：`src/generated/footprint-city-label-chords.json`（键含 `省Key-city-序号` 与 `nation-province-序号`）
+- 建议在以下场景重新生成：升级 Turf、调整标签算法参数、地图数据源变更
+- 该 JSON 属于构建输入，建议提交到仓库
+
 ## ⚙️ 配置
 
 网站的主要配置位于 `src/config.ts` 文件中，你可以修改以下设置：
