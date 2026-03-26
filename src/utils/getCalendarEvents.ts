@@ -43,7 +43,7 @@ export function getCalendarEvents(
 
   const publishedDiary = diaryEntries.filter(entry => !entry.data.draft);
   for (const entry of publishedDiary) {
-    const dateStr = entry.id.replace(".md", "");
+    const dateStr = entry.id.split("/").pop()!.replace(".md", "");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) continue;
     const quarterKey = getQuarterKey(dateStr);
     events.push({

@@ -27,8 +27,8 @@ export const GET: APIRoute = async ({ params }) => {
 
     // 按文件名（日期）排序，最新的在前
     const sortedEntries = publishedEntries.sort((a, b) => {
-      const dateA = a.id.replace(".md", "");
-      const dateB = b.id.replace(".md", "");
+      const dateA = a.id.split("/").pop()!.replace(".md", "");
+      const dateB = b.id.split("/").pop()!.replace(".md", "");
       return dateB.localeCompare(dateA);
     });
 

@@ -104,30 +104,23 @@ export function processLink(href: string, currentFilePath?: string): string {
     // 提取slug
     const slug = extractSlugFromFile(targetFilePath);
     if (slug) {
-      // 获取相对路径
-      const blogDir = path.resolve(process.cwd(), BLOG_PATH);
-      const relativeDir = path
-        .dirname(path.relative(blogDir, targetFilePath))
-        .replace(/\\/g, "/")
-        .replace(/\s/g, "-")
+      // 无论 slug 是否包含分类路径，最终 URL 只保留最后一级 slug
+      const finalSlug = slug
+        .split("/")
+        .filter(Boolean)
+        .pop()
+        ?.replace(/\s/g, "-")
         .toLowerCase();
-
-      // 如果slug已经包含路径，直接使用，否则拼接相对路径
-      return slug.includes("/")
-        ? `/posts/${slug}`
-        : `/posts/${relativeDir}/${slug}`;
+      return finalSlug ? `/posts/${finalSlug}` : href;
     }
 
-    // 如果没有slug，使用相对路径
-    const blogDir = path.resolve(process.cwd(), BLOG_PATH);
-    const relativePath = path
-      .relative(blogDir, targetFilePath)
-      .replace(path.extname(targetFilePath), "")
-      .replace(/\\/g, "/")
+    // 如果没有slug，使用文件名作为最终 slug（忽略目录）
+    const fileSlug = path
+      .basename(targetFilePath, path.extname(targetFilePath))
       .replace(/\s/g, "-")
       .toLowerCase();
 
-    return `/posts/${relativePath}`;
+    return `/posts/${fileSlug}`;
   } catch {
     // 出错时返回原链接
     return href;

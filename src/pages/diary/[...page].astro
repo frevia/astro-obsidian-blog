@@ -19,7 +19,7 @@ export async function getStaticPaths() {
   const quarterGroups = new Map();
 
   publishedEntries.forEach(entry => {
-    const date = entry.id.replace(".md", "");
+    const date = entry.id.split("/").pop()!.replace(".md", "");
     const [year, month] = date.split("-");
     const quarter = Math.ceil(parseInt(month) / 3);
     const quarterKey = `${year}-Q${quarter}`;
@@ -50,7 +50,7 @@ const publishedEntries = diaryEntries.filter(entry => !entry.data.draft);
 
 // 按季度过滤条目
 let quarterEntries = publishedEntries.filter(entry => {
-  const date = entry.id.replace(".md", "");
+  const date = entry.id.split("/").pop()!.replace(".md", "");
   const [year, month] = date.split("-");
   const quarter = Math.ceil(parseInt(month) / 3);
   const entryQuarterKey = `${year}-Q${quarter}`;
@@ -59,8 +59,8 @@ let quarterEntries = publishedEntries.filter(entry => {
 
 // 按日期排序，最新的在前
 quarterEntries = quarterEntries.sort((a, b) => {
-  const dateA = a.id.replace(".md", "");
-  const dateB = b.id.replace(".md", "");
+  const dateA = a.id.split("/").pop()!.replace(".md", "");
+  const dateB = b.id.split("/").pop()!.replace(".md", "");
   return dateA.localeCompare(dateB);
 });
 
