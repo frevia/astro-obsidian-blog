@@ -488,3 +488,32 @@ video {
   right: 0 !important;
   z-index: 50 !important;
 }
+
+/* 足迹地图全国视图：单次渐隐/渐显 */
+@keyframes footprint-national-spot-fade-cycle {
+  0% {
+    opacity: 1;
+  }
+  35% {
+    opacity: 0;
+  }
+  65% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.footprint-national-spot-fade-cycle {
+  animation: footprint-national-spot-fade-cycle 1.8s cubic-bezier(0.42, 0, 0.58, 1)
+    1 both;
+  will-change: opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footprint-national-spot-fade-cycle {
+    animation: none;
+    opacity: 1;
+  }
+}

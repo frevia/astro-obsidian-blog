@@ -8,6 +8,7 @@ import { SITE } from "@/config";
 import { getCollection } from "astro:content";
 import postFilter from "@/utils/postFilter";
 import { getPath } from "@/utils/getPath";
+import { FOOTPRINT_TEST_PLACES } from "@/data/footprintTestPlaces";
 
 const blogPosts = await getCollection("blog");
 const publishedPosts = blogPosts.filter(postFilter);
@@ -68,7 +69,16 @@ const uniquePlaces = Array.from(
   ).values()
 );
 
-const places = uniquePlaces;
+/** 开发环境附加测试足迹点，便于查看地图高亮效果；生产构建不包含 */
+const placesSource = import.meta.env.DEV
+  ? [...uniquePlaces, ...FOOTPRINT_TEST_PLACES]
+  : uniquePlaces;
+
+const places = Array.from(
+  new Map(
+    placesSource.map(loc => [`${loc.name}:${loc.lng},${loc.lat}`, loc] as const)
+  ).values()
+);
 ---
 
 <Layout title={`足迹 | ${SITE.title}`}>

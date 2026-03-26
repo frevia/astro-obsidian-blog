@@ -77,7 +77,7 @@ interface LocalMusicData {
 
 // 解析日记条目的函数
 export async function parseEntry(entry: CollectionEntry<"diary">) {
-  const date = entry.id.replace(".md", "");
+  const date = entry.id.split("/").pop()!.replace(".md", "");
 
   // 解析markdown内容，提取时间段和内容
   let content = entry.body || "";

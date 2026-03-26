@@ -19,6 +19,10 @@ export interface FootprintMapProps {
   records?: FootprintRecord[];
 }
 
+/** 全国视图：单个「已点亮」市一轮约 3s（渐显 -> 停留 -> 渐隐） */
+const NATIONAL_SPOTLIGHT_FADE_CYCLE_MS = 1800;
+const NATIONAL_SPOTLIGHT_GAP_MS = 1200;
+
 const FootprintMap: React.FC<FootprintMapProps> = ({
   places = [],
   records = [],
@@ -42,6 +46,70 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
     cityCount,
     placeCount,
   } = useFootprintMap(places, records);
+
+  const visitedKeysSig = useMemo(
+    () => Array.from(visitedCityKeys).sort().join("|"),
+    [visitedCityKeys]
+  );
+
+  const visitedRef = useRef(visitedCityKeys);
+  const pathsRef = useRef(visibleCityPaths);
+  visitedRef.current = visitedCityKeys;
+  pathsRef.current = visibleCityPaths;
+
+  const [nationalSpotlight, setNationalSpotlight] = useState<{
+    key: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!isNationalView || visitedCityKeys.size === 0) {
+      setNationalSpotlight(null);
+      return;
+    }
+
+    let cancelled = false;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const schedule = (fn: () => void, ms: number) => {
+      const id = setTimeout(() => {
+        if (!cancelled) fn();
+      }, ms);
+      timers.push(id);
+    };
+
+    let lastKey: string | null = null;
+
+    const pickNext = () => {
+      if (cancelled) return;
+      const keys = Array.from(visitedRef.current).filter(k =>
+        pathsRef.current.some(p => p.key === k)
+      );
+      if (keys.length === 0) {
+        schedule(pickNext, 320);
+        return;
+      }
+
+      let next = keys[Math.floor(Math.random() * keys.length)];
+      if (keys.length > 1) {
+        let guard = 0;
+        while (next === lastKey && guard++ < 14) {
+          next = keys[Math.floor(Math.random() * keys.length)];
+        }
+      }
+      lastKey = next;
+
+      setNationalSpotlight({ key: next });
+      schedule(() => {
+        setNationalSpotlight(null);
+        schedule(() => pickNext(), NATIONAL_SPOTLIGHT_GAP_MS);
+      }, NATIONAL_SPOTLIGHT_FADE_CYCLE_MS);
+    };
+
+    schedule(pickNext, 400);
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
+  }, [isNationalView, visitedKeysSig]);
 
   function easeOutQuart(t: number): number {
     return 1 - Math.pow(1 - t, 4);
@@ -220,20 +288,34 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                 {visibleCityPaths.map(city => {
                   if (!city.d) return null;
                   const visited = visitedCityKeys.has(city.key);
+                  const isSpotlightTarget =
+                    visited &&
+                    nationalSpotlight !== null &&
+                    nationalSpotlight.key === city.key;
+
                   return (
-                    <path
-                      key={city.key}
-                      d={city.d}
-                      style={{ pointerEvents: "none" }}
-                      className={
-                        visited
-                          ? "fill-[#ff5a36]/75 stroke-[#ff3b30]"
-                          : "fill-muted/10 stroke-foreground/22"
-                      }
-                      strokeWidth={visited ? 0.85 : 0.35}
-                    >
-                      <title>{city.cityName}</title>
-                    </path>
+                    <g key={city.key}>
+                      <path
+                        d={city.d}
+                        style={{ pointerEvents: "none", opacity: isSpotlightTarget ? 0 : 1 }}
+                        className={
+                          visited
+                            ? "fill-[#ff5a36]/75 stroke-[#ff3b30]"
+                            : "fill-muted/10 stroke-foreground/22"
+                        }
+                        strokeWidth={visited ? 0.85 : 0.35}
+                      >
+                        <title>{city.cityName}</title>
+                      </path>
+                      {isSpotlightTarget ? (
+                        <path
+                          d={city.d}
+                          className="footprint-national-spot-fade-cycle fill-[#ff5a36]/80 stroke-[#ff3b30]"
+                          style={{ pointerEvents: "none" }}
+                          strokeWidth={0.95}
+                        />
+                      ) : null}
+                    </g>
                   );
                 })}
               </g>
