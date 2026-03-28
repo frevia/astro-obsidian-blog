@@ -17,7 +17,9 @@ let categories = getUniqueCategories(posts);
 
 const categoryLatestPost = new Map<string, string>();
 categories.forEach(({ categoryName }) => {
-  const latestPost = sortedPosts.find(post => (post.data as any).categories?.includes(categoryName));
+  const latestPost = sortedPosts.find(post =>
+    post.data.categories.includes(categoryName)
+  );
   if (latestPost) {
     categoryLatestPost.set(categoryName, latestPost.data.title);
   }

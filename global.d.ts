@@ -1,8 +1,8 @@
 declare module 'rehype-figure';
 declare global {
   interface Window {
-    tocbot?: any;
-    setupLazyList?: any;
+    tocbot?: unknown;
+    setupLazyList?: unknown;
     __artalkConfig?: { server?: string; site?: string };
   }
 }

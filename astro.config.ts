@@ -19,6 +19,7 @@ import { SITE } from "./src/config";
 import react from "@astrojs/react";
 import { remarkMediaCard } from "./src/utils/remarkMediaCard";
 import { remarkLinkProcessor } from "./src/utils/remarkLinkProcessor";
+import { remarkObsidianCallout } from "./src/utils/remarkObsidianCallout";
 import pagefind from "astro-pagefind";
 import photosuite from "photosuite";
 
@@ -65,6 +66,7 @@ export default defineConfig({
   markdown: {
     remarkPlugins: [
       remarkGfm,
+      remarkObsidianCallout,
       [remarkLinkProcessor, { enableDebug: false }],
       [remarkMediaCard, { enableDebug: false }],
       remarkMark,
