@@ -164,7 +164,9 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
     // 解析 Markdown 链接为 HTML 链接，并处理相对路径
     text = text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (_, linkText, href) => {
       const processedHref = processLink(href, currentFilePath);
-      return `<a href="${processedHref}" target="_blank" rel="noopener noreferrer" class="text-skin-accent font-semibold underline decoration-2 underline-offset-2 hover:decoration-4 hover:text-skin-accent-2 transition-all duration-200">${linkText}</a>`;
+      const isExternal = /^https?:\/\//.test(processedHref);
+      const externalAttrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
+      return `<a href="${processedHref}"${externalAttrs} class="text-skin-accent font-semibold underline decoration-2 underline-offset-2 hover:decoration-4 hover:text-skin-accent-2 transition-all duration-200">${linkText}</a>`;
     });
 
     // 解析 Markdown 图片为 HTML img 标签
@@ -314,7 +316,9 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
         const safeContent = content
           .replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (_, linkText, href) => {
             const processedHref = processLink(href, currentFilePath);
-            return `<a href="${processedHref}" target="_blank" rel="noopener noreferrer" class="text-skin-accent font-semibold underline decoration-2 underline-offset-2 hover:decoration-4 hover:text-skin-accent-2 transition-all duration-200">${linkText}</a>`;
+            const isExternal = /^https?:\/\//.test(processedHref);
+            const externalAttrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
+            return `<a href="${processedHref}"${externalAttrs} class="text-skin-accent font-semibold underline decoration-2 underline-offset-2 hover:decoration-4 hover:text-skin-accent-2 transition-all duration-200">${linkText}</a>`;
           })
           .replace(/\n+/g, "<br />");
         footnoteHtml += `<div id="${noteId}" class="footnote-item flex items-start gap-2 py-2 first:pt-0"><span class="footnote-id flex-none w-4 text-right">${id}.</span><span class="footnote-content flex-1">${safeContent}</span><a href="#${refId}" class="footnote-backref flex-none text-skin-accent hover:underline ml-2">↩</a></div>`;
