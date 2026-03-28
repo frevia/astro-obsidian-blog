@@ -1,9 +1,11 @@
+import path from "path";
 import {
   optimizeImage,
   type ImageOptimizeOptions,
 } from "@/utils/optimizeImages";
 import { getVideoPath } from "@/utils/videoUtils";
 import { processLink } from "@/utils/linkProcessor";
+import { DIARY_PATH } from "@/config";
 import type { CollectionEntry } from "astro:content";
 
 // 通用的poster路径优化函数
@@ -78,6 +80,9 @@ interface LocalMusicData {
 // 解析日记条目的函数
 export async function parseEntry(entry: CollectionEntry<"diary">) {
   const date = entry.id.split("/").pop()!.replace(".md", "");
+  const currentFilePath =
+    entry.filePath ??
+    path.resolve(process.cwd(), DIARY_PATH, entry.id);
 
   // 解析markdown内容，提取时间段和内容
   let content = entry.body || "";
@@ -158,7 +163,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
 
     // 解析 Markdown 链接为 HTML 链接，并处理相对路径
     text = text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (_, linkText, href) => {
-      const processedHref = processLink(href);
+      const processedHref = processLink(href, currentFilePath);
       return `<a href="${processedHref}" target="_blank" rel="noopener noreferrer" class="text-skin-accent font-semibold underline decoration-2 underline-offset-2 hover:decoration-4 hover:text-skin-accent-2 transition-all duration-200">${linkText}</a>`;
     });
 
@@ -308,7 +313,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
         // 处理脚注内容中的链接
         const safeContent = content
           .replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (_, linkText, href) => {
-            const processedHref = processLink(href);
+            const processedHref = processLink(href, currentFilePath);
             return `<a href="${processedHref}" target="_blank" rel="noopener noreferrer" class="text-skin-accent font-semibold underline decoration-2 underline-offset-2 hover:decoration-4 hover:text-skin-accent-2 transition-all duration-200">${linkText}</a>`;
           })
           .replace(/\n+/g, "<br />");
