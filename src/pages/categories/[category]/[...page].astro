@@ -18,7 +18,7 @@ export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
   return categories.flatMap(({ category, categoryName }) => {
     const categoryPosts = getSortedPosts(
       posts.filter(post =>
-        (post.data as any).categories?.includes(categoryName)
+        post.data.categories.includes(categoryName)
       )
     );
     return paginate(categoryPosts, {

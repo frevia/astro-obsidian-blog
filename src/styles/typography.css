@@ -162,6 +162,38 @@
       @apply mb-0;
     }
 
+    blockquote.callout::before {
+      content: none;
+    }
+
+    blockquote.callout > p.callout-title {
+      @apply mb-2 font-semibold text-foreground;
+    }
+
+    blockquote.callout.callout-note {
+      @apply border-l-slate-500/60 bg-slate-500/10;
+    }
+
+    blockquote.callout.callout-tip {
+      @apply border-l-emerald-500/60 bg-emerald-500/10;
+    }
+
+    blockquote.callout.callout-info {
+      @apply border-l-sky-500/60 bg-sky-500/10;
+    }
+
+    blockquote.callout.callout-warning {
+      @apply border-l-amber-500/65 bg-amber-500/10;
+    }
+
+    blockquote.callout.callout-danger {
+      @apply border-l-rose-500/65 bg-rose-500/10;
+    }
+
+    blockquote.callout.callout-success {
+      @apply border-l-green-500/65 bg-green-500/10;
+    }
+
     details {
       @apply inline-block cursor-pointer text-foreground select-none [&_p]:hidden [&_ul]:!my-0;
     }

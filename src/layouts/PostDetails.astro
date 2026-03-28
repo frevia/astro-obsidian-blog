@@ -32,7 +32,7 @@ export interface Props {
 const { post, posts } = Astro.props;
 
 // Table of contents flag from frontmatter (default true)
-const tocEnabled = (post.data as any).toc ?? true;
+const tocEnabled = post.data.toc ?? true;
 
 const {
   title,

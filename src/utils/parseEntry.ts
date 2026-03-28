@@ -209,8 +209,27 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
         .split("\n")
         .filter(line => line.trim().startsWith("> "))
         .map(line => line.substring(2).trim())
-        .join("\n");
-      return `<blockquote class="relative my-6 rounded-md border border-border/60 border-l-4 border-l-accent/65 bg-muted/28 px-4 py-3 break-words text-foreground/88 not-italic"><span aria-hidden="true" class="pointer-events-none absolute -top-3 left-2 text-4xl leading-none text-accent/28">"</span>${lines}</blockquote>`;
+        .filter(Boolean);
+
+      const firstLine = lines[0] ?? "";
+      const calloutMatch = firstLine.match(/^\[!([^\]]+)\]([+-])?\s*(.*)$/);
+
+      if (calloutMatch) {
+        const rawType = calloutMatch[1].trim();
+        const calloutType = rawType
+          .toLowerCase()
+          .replace(/[\s_]+/g, "-")
+          .replace(/[^a-z0-9-]/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "");
+        const title =
+          (calloutMatch[3] || "").trim() ||
+          rawType.replace(/[-_]+/g, " ").replace(/\b([a-z])/g, (_, c) => c.toUpperCase());
+        const body = lines.slice(1).join("\n");
+        return `<blockquote class="callout callout-${calloutType} my-6 rounded-md border border-border/60 border-l-4 bg-muted/28 px-4 py-3 break-words text-foreground/88 not-italic"><div class="callout-title mb-2 font-semibold">${title}</div>${body}</blockquote>`;
+      }
+
+      return `<blockquote class="relative my-6 rounded-md border border-border/60 border-l-4 border-l-accent/65 bg-muted/28 px-4 py-3 break-words text-foreground/88 not-italic"><span aria-hidden="true" class="pointer-events-none absolute -top-3 left-2 text-4xl leading-none text-accent/28">"</span>${lines.join("\n")}</blockquote>`;
     });
 
     // 解析 Markdown 行内代码为 HTML code

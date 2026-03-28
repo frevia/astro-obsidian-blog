@@ -165,7 +165,6 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
         if (timeoutRef.current != null) clearTimeout(timeoutRef.current);
       };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [target, durationMs, delayMs]);
 
     return val;

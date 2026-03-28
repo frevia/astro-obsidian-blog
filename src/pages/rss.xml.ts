@@ -10,6 +10,7 @@ import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
 import { remarkRssMediaCard } from "../../src/utils/remarkRssMediaCard";
+import { remarkObsidianCallout } from "../utils/remarkObsidianCallout";
 import rehypeFigure from "rehype-figure";
 import rehypeSlug from "rehype-slug";
 
@@ -17,6 +18,7 @@ const renderMarkdown = async (markdown: string) => {
   const processed = await unified()
     .use(remarkRssMediaCard)
     .use(remarkParse)
+    .use(remarkObsidianCallout)
     .use(remarkRehype)
     .use(rehypeSlug)
     .use(rehypeFigure)
