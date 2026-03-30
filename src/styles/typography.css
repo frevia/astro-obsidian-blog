@@ -176,7 +176,7 @@
     }
 
     blockquote.callout.callout-tip {
-      @apply border-l-emerald-500/60 bg-emerald-500/10;
+      @apply border-l-teal-500/60 bg-teal-500/10;
     }
 
     blockquote.callout.callout-info {
