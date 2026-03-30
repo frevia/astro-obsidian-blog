@@ -10,6 +10,7 @@ export interface TimelineItemProps {
   time: string;
   date?: string;
   text?: string;
+  postText?: string;
   images?: Array<{
     alt: string;
     src: string;
@@ -30,6 +31,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
   time,
   date,
   text,
+  postText,
   images,
   htmlContent,
   movieData,
@@ -306,6 +308,13 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
                 >
                   <MediaCard mediaData={musicData} cardType="music" />
                 </section>
+              )}
+
+              {postText && (
+                <div
+                  className="mb-4 text-base leading-relaxed whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{ __html: postText }}
+                />
               )}
 
               {/* 脚注 */}

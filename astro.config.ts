@@ -20,6 +20,7 @@ import react from "@astrojs/react";
 import { remarkMediaCard } from "./src/utils/remarkMediaCard";
 import { remarkLinkProcessor } from "./src/utils/remarkLinkProcessor";
 import { remarkObsidianCallout } from "./src/utils/remarkObsidianCallout";
+import { remarkHardLineBreaks } from "./src/utils/remarkHardLineBreaks";
 import pagefind from "astro-pagefind";
 import photosuite from "photosuite";
 
@@ -67,6 +68,7 @@ export default defineConfig({
     remarkPlugins: [
       remarkGfm,
       remarkObsidianCallout,
+      remarkHardLineBreaks,
       [remarkLinkProcessor, { enableDebug: false }],
       [remarkMediaCard, { enableDebug: false }],
       remarkMark,
