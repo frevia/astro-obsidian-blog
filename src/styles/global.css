@@ -130,10 +130,39 @@ h6 {
   }
 }
 
-/* Footnotes: account for sticky header when jumping */
+/* Footnotes: default offset */
 .footnote-item[id],
 .footnote-ref[id] {
   scroll-margin-top: calc(var(--spacing) * 14 + 15px);
+}
+
+#article .footnote-item[id],
+#article .footnote-ref[id],
+#article .footnotes [id] {
+  scroll-margin-top: calc(var(--site-header-height, 0px) + 2px);
+}
+
+#article [id^="fn-"],
+#article [id^="fnref-"],
+#article .footnote-backref,
+#article sup[id^="fnref-"] {
+  scroll-margin-top: calc(var(--site-header-height, 0px) + 2px);
+}
+
+#article :target {
+  scroll-margin-top: calc(var(--site-header-height, 0px) + 2px);
+}
+
+#article sup[id^="fnref-"] {
+  display: inline-block;
+}
+
+.footnotes {
+  @apply ml-0 pl-0;
+}
+
+.footnote-item {
+  @apply pl-0;
 }
 
 /* Footnote tooltip: show note on hover/focus */
