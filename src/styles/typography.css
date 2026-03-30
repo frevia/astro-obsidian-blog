@@ -146,12 +146,13 @@
     }
 
     blockquote {
-      @apply relative my-6 rounded-md border border-border/60 border-l-4 border-l-accent/65 bg-muted/28 px-4 py-3 break-words text-foreground/88 not-italic;
+      @apply relative my-6 rounded-md border border-l-4 border-border/60 border-l-accent/65 bg-muted/28 px-4 py-3 break-words text-foreground/88 not-italic;
+      quotes: none;
     }
 
-    blockquote::before {
-      content: '"';
-      @apply pointer-events-none absolute -top-3 left-2 text-4xl leading-none text-accent/28;
+    blockquote:not(.callout) p::before,
+    blockquote:not(.callout) p::after {
+      content: none !important;
     }
 
     blockquote p:first-child {
@@ -187,6 +188,10 @@
     }
 
     blockquote.callout.callout-danger {
+      @apply border-l-rose-500/65 bg-rose-500/10;
+    }
+
+    blockquote.callout.callout-error {
       @apply border-l-rose-500/65 bg-rose-500/10;
     }
 

@@ -81,8 +81,9 @@ interface LocalMusicData {
 export async function parseEntry(entry: CollectionEntry<"diary">) {
   const date = entry.id.split("/").pop()!.replace(".md", "");
   const currentFilePath =
-    entry.filePath ??
-    path.resolve(process.cwd(), DIARY_PATH, entry.id);
+    entry.filePath ?? path.resolve(process.cwd(), DIARY_PATH, entry.id);
+  const linkClass =
+    "break-words text-foreground underline decoration-dashed decoration-accent/40 underline-offset-4 hover:text-accent hover:decoration-accent/80 focus-visible:no-underline";
 
   // 解析markdown内容，提取时间段和内容
   let content = entry.body || "";
@@ -134,134 +135,135 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
 
     lastMatchEnd = match.index + match[0].length;
 
-    // 提取文本内容（在```imgs、```html、```card-之前的部分）
-    const textMatch = blockContent.match(
-      /^([\s\S]*?)(?=```imgs|```html|```card-|$)/
-    );
-    let text = textMatch ? textMatch[1].trim() : blockContent.trim();
+    const cardBlockRegex = /```card-(movie|tv|book|music)[^\n]*\n?[\s\S]*?```/;
+    const cardBlockMatch = cardBlockRegex.exec(blockContent);
+    const rawTextBeforeCard = cardBlockMatch
+      ? blockContent.slice(0, cardBlockMatch.index)
+      : blockContent;
+    const rawTextAfterCard = cardBlockMatch
+      ? blockContent.slice(cardBlockMatch.index + cardBlockMatch[0].length)
+      : "";
 
-    // 保存原始blockContent用于提取脚注定义
     const originalBlockContent = blockContent;
 
-    // 移除代码块标识
-    text = text.replace(/```(imgs|html|card-[\s\S]*?)[\s\S]*?```/g, "").trim();
+    const applyMarkdown = (input: string) => {
+      let t = (input || "").trim();
+      t = t.replace(/```(imgs|html|card-[^\n]*)[\s\S]*?```/g, "").trim();
 
-    // 解析 Markdown 加粗语法为 HTML strong mark 标签
-    // 处理 **text** 格式
-    text = text.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-    // 处理 __text__ 格式
-    text = text.replace(
-      /__([^_]+)__/g,
-      "<mark class='bg-accent/20 text-foreground px-0.5'>$1</mark>"
-    );
+      t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      t = t.replace(
+        /__([^_]+)__/g,
+        "<mark class='bg-accent/20 text-foreground px-0.5'>$1</mark>"
+      );
 
-    // 解析 Markdown 斜体语法为 HTML em 标签
-    // 处理 *text* 格式
-    text = text.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-    // 处理 _text_ 格式
-    text = text.replace(/_(.+?)_/g, "<em>$1</em>");
+      t = t.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+      t = t.replace(/_(.+?)_/g, "<em>$1</em>");
 
-    // 解析 Markdown 链接为 HTML 链接，并处理相对路径
-    text = text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (_, linkText, href) => {
-      const processedHref = processLink(href, currentFilePath);
-      const isExternal = /^https?:\/\//.test(processedHref);
-      const externalAttrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
-      return `<a href="${processedHref}"${externalAttrs} class="text-skin-accent font-semibold underline decoration-2 underline-offset-2 hover:decoration-4 hover:text-skin-accent-2 transition-all duration-200">${linkText}</a>`;
-    });
+      t = t.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (_, linkText, href) => {
+        const processedHref = processLink(href, currentFilePath);
+        const isExternal = /^https?:\/\//.test(processedHref);
+        const externalAttrs = isExternal
+          ? ' target="_blank" rel="noopener noreferrer"'
+          : "";
+        return `<a href="${processedHref}"${externalAttrs} class="${linkClass}">${linkText}</a>`;
+      });
 
-    // 解析 Markdown 图片为 HTML img 标签
-    text = text.replace(
-      /!\[([^\]]*)\]\(([^\s)]+)(?:\s+"([^"]*)"|\s+'([^']*)')?\)/g,
-      (_, alt, src, title1, title2) => {
-        const title = title1 || title2 || "";
-        return `<img src="${src}" alt="${alt}" title="${title}" class="my-4 max-w-full h-auto rounded-lg shadow-md" />`;
-      }
-    );
+      t = t.replace(
+        /!\[([^\]]*)\]\(([^\s)]+)(?:\s+"([^"]*)"|\s+'([^']*)')?\)/g,
+        (_, alt, src, title1, title2) => {
+          const title = title1 || title2 || "";
+          return `<img src="${src}" alt="${alt}" title="${title}" class="my-4 max-w-full h-auto rounded-lg shadow-md" />`;
+        }
+      );
 
-    // 解析 Markdown 无序列表为 HTML ul/li
-    text = text.replace(/((?:^- .+(?:\n|$))+)/gm, match => {
-      const items = match
-        .split("\n")
-        .filter(line => line.trim().startsWith("- "))
-        .map(
-          line => `<li class="ml-4 list-disc">${line.substring(2).trim()}</li>`
-        )
-        .join("");
-      return `<ul class="mt-1 mb-2 pl-2">${items}</ul>`;
-    });
+      t = t.replace(/((?:^- .+(?:\n|$))+)/gm, match => {
+        const items = match
+          .split("\n")
+          .filter(line => line.trim().startsWith("- "))
+          .map(
+            line =>
+              `<li class="ml-4 list-disc">${line.substring(2).trim()}</li>`
+          )
+          .join("");
+        return `<ul class="mt-1 mb-2 pl-2">${items}</ul>`;
+      });
 
-    // 解析 Markdown 有序列表为 HTML ol/li
-    text = text.replace(/((?:^\d+\. .+(?:\n|$))+)/gm, match => {
-      const items = match
-        .split("\n")
-        .filter(line => /^\d+\. /.test(line.trim()))
-        .map(
-          line =>
-            `<li class="ml-4 list-decimal">${line.replace(/^\d+\. /, "").trim()}</li>`
-        )
-        .join("");
-      return `<ol class="mt-1 mb-2 pl-2">${items}</ol>`;
-    });
+      t = t.replace(/((?:^\d+\. .+(?:\n|$))+)/gm, match => {
+        const items = match
+          .split("\n")
+          .filter(line => /^\d+\. /.test(line.trim()))
+          .map(
+            line =>
+              `<li class="ml-4 list-decimal">${line.replace(/^\d+\. /, "").trim()}</li>`
+          )
+          .join("");
+        return `<ol class="mt-1 mb-2 pl-2">${items}</ol>`;
+      });
 
-    // 解析 Markdown 引用为 HTML blockquote
-    text = text.replace(/((?:^> .+(?:\n|$))+)/gm, match => {
-      const lines = match
-        .split("\n")
-        .filter(line => line.trim().startsWith("> "))
-        .map(line => line.substring(2).trim())
-        .filter(Boolean);
+      t = t.replace(/((?:^>.*(?:\n|$))+)/gm, match => {
+        const lines = match
+          .split("\n")
+          .filter(line => line.trim().startsWith(">"))
+          .map(line => line.replace(/^>\s?/, "").trim());
 
-      const firstLine = lines[0] ?? "";
-      const calloutMatch = firstLine.match(/^\[!([^\]]+)\]([+-])?\s*(.*)$/);
+        const firstNonEmptyIndex = lines.findIndex(l => l.trim().length > 0);
+        const firstLine =
+          firstNonEmptyIndex >= 0 ? lines[firstNonEmptyIndex] : "";
+        const calloutMatch = firstLine.match(/^\[!([^\]]+)\]([+-])?\s*(.*)$/);
 
-      if (calloutMatch) {
-        const rawType = calloutMatch[1].trim();
-        const calloutType = rawType
-          .toLowerCase()
-          .replace(/[\s_]+/g, "-")
-          .replace(/[^a-z0-9-]/g, "-")
-          .replace(/-+/g, "-")
-          .replace(/^-|-$/g, "");
-        const title =
-          (calloutMatch[3] || "").trim() ||
-          rawType.replace(/[-_]+/g, " ").replace(/\b([a-z])/g, (_, c) => c.toUpperCase());
-        const body = lines.slice(1).join("\n");
-        return `<blockquote class="callout callout-${calloutType} my-6 rounded-md border border-border/60 border-l-4 bg-muted/28 px-4 py-3 break-words text-foreground/88 not-italic"><div class="callout-title mb-2 font-semibold">${title}</div>${body}</blockquote>`;
-      }
+        if (calloutMatch) {
+          const rawType = calloutMatch[1].trim();
+          const calloutType = rawType
+            .toLowerCase()
+            .replace(/[\s_]+/g, "-")
+            .replace(/[^a-z0-9-]/g, "-")
+            .replace(/-+/g, "-")
+            .replace(/^-|-$/g, "");
+          const title =
+            (calloutMatch[3] || "").trim() ||
+            rawType
+              .replace(/[-_]+/g, " ")
+              .replace(/\b([a-z])/g, (_, c) => c.toUpperCase());
+          const body = lines.slice(firstNonEmptyIndex + 1).join("<br />");
+          return `<blockquote class="callout callout-${calloutType} my-6 rounded-md border border-border/60 border-l-4 bg-muted/28 px-4 py-3 break-words text-foreground/88 not-italic"><div class="callout-title mb-2 font-semibold">${title}</div>${body}</blockquote>`;
+        }
 
-      return `<blockquote class="relative my-6 rounded-md border border-border/60 border-l-4 border-l-accent/65 bg-muted/28 px-4 py-3 break-words text-foreground/88 not-italic"><span aria-hidden="true" class="pointer-events-none absolute -top-3 left-2 text-4xl leading-none text-accent/28">"</span>${lines.join("\n")}</blockquote>`;
-    });
+        const body = lines.join("<br />");
+        return `<blockquote class="relative my-6 rounded-md border border-border/60 border-l-4 border-l-accent/65 bg-muted/28 px-4 py-3 break-words text-foreground/88 not-italic"><span aria-hidden="true" class="pointer-events-none absolute -top-3 left-2 text-4xl leading-none text-accent/28">"</span>${body}</blockquote>`;
+      });
 
-    // 解析 Markdown 行内代码为 HTML code
-    text = text.replace(
-      /`([^`]+)`/g,
-      "<code class='bg-skin-muted px-1.5 py-0.5 rounded text-sm font-mono'>$1</code>"
-    );
+      t = t.replace(
+        /`([^`]+)`/g,
+        "<code class='bg-skin-muted px-1.5 py-0.5 rounded text-sm font-mono'>$1</code>"
+      );
 
-    // 解析 Markdown 代码块为 HTML pre/code
-    text = text.replace(/```([\s\S]*?)```/g, (_, codeContent) => {
-      return `<pre class='my-4 bg-skin-muted p-4 rounded-lg overflow-x-auto'><code class='font-mono text-sm'>${codeContent}</code></pre>`;
-    });
+      t = t.replace(/```([\s\S]*?)```/g, (_, codeContent) => {
+        return `<pre class='my-4 bg-skin-muted p-4 rounded-lg overflow-x-auto'><code class='font-mono text-sm'>${codeContent}</code></pre>`;
+      });
 
-    // 解析 Markdown 分割线为 HTML hr 标签
-    text = text.replace(
-      /(?:^|\n)\s*[-*_]{3,}\s*(?:\n|$)/g,
-      "<hr class='my-6 border-skin-muted/50 border-t border-dashed' />"
-    );
+      t = t.replace(
+        /(?:^|\n)\s*[-*_]{3,}\s*(?:\n|$)/g,
+        "<hr class='my-6 border-skin-muted/50 border-t border-dashed' />"
+      );
 
-    // 额外处理前后没有空行的分割线
-    text = text.replace(
-      /([^\n])\s*[-*_]{3,}\s*([^\n])/g,
-      "$1<hr class='my-6 border-skin-muted/50 border-t border-dashed' />$2"
-    );
-    text = text.replace(
-      /^\s*[-*_]{3,}\s*([^\n])/g,
-      "<hr class='my-6 border-skin-muted/50 border-t border-dashed' />$1"
-    );
-    text = text.replace(
-      /([^\n])\s*[-*_]{3,}\s*$/g,
-      "$1<hr class='my-6 border-skin-muted/50 border-t border-dashed' />"
-    );
+      t = t.replace(
+        /([^\n])\s*[-*_]{3,}\s*([^\n])/g,
+        "$1<hr class='my-6 border-skin-muted/50 border-t border-dashed' />$2"
+      );
+      t = t.replace(
+        /^\s*[-*_]{3,}\s*([^\n])/g,
+        "<hr class='my-6 border-skin-muted/50 border-t border-dashed' />$1"
+      );
+      t = t.replace(
+        /([^\n])\s*[-*_]{3,}\s*$/g,
+        "$1<hr class='my-6 border-skin-muted/50 border-t border-dashed' />"
+      );
+
+      return t;
+    };
+
+    let text = applyMarkdown(rawTextBeforeCard);
+    let postText = applyMarkdown(rawTextAfterCard);
 
     // 解析 Markdown 角标引用（脚注）
     // 注意：diary 页面会把多个 md 汇总到同一页；必须为每个时间块命名空间，避免不同文档里重复的 [^1] 冲突。
@@ -292,7 +294,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
     let contentForFootnotes = originalBlockContent;
     // 移除代码块内容，只保留代码块标识
     contentForFootnotes = contentForFootnotes.replace(
-      /```(imgs|html|card-[\s\S]*?)[\s\S]*?```/g,
+      /```(imgs|html|card-[^\n]*)[\s\S]*?```/g,
       "```$1```"
     );
 
@@ -305,24 +307,29 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
       }
     );
 
-    // 从text中移除脚注定义（如果有的话）
-    text = text
-      .replace(/\[\^(\d+)\]:\s*([\s\S]*?)(?=\[\^\d+\]:|$)/g, "")
-      .trim();
+    const applyFootnotesToText = (input: string) => {
+      let t = input
+        .replace(/\[\^(\d+)\]:\s*([\s\S]*?)(?=\[\^\d+\]:|$)/g, "")
+        .trim();
 
-    // 替换角标引用
-    text = text.replace(/\[\^(\d+)\]/g, (_, id) => {
-      const refId = `fnref-${fnScope}-${id}`;
-      const noteId = `fn-${fnScope}-${id}`;
-      const tipId = `fntip-${fnScope}-${id}`;
-      const rawTip = footnotes[id] ? htmlToPlainText(footnotes[id]) : "";
-      const tip = rawTip.length > 240 ? rawTip.slice(0, 240) + "…" : rawTip;
-      const tooltipHtml = tip
-        ? `<span id="${tipId}" role="tooltip" class="footnote-tooltip">${escapeHtml(tip)}</span>`
-        : "";
-      const describedBy = tip ? ` aria-describedby="${tipId}"` : "";
-      return `<sup id="${refId}" class="footnote-ref inline-block align-super text-sm"><a href="#${noteId}" class="text-skin-accent hover:underline px-0.5"${describedBy}>${id}</a>${tooltipHtml}</sup>`;
-    });
+      t = t.replace(/\[\^(\d+)\]/g, (_, id) => {
+        const refId = `fnref-${fnScope}-${id}`;
+        const noteId = `fn-${fnScope}-${id}`;
+        const tipId = `fntip-${fnScope}-${id}`;
+        const rawTip = footnotes[id] ? htmlToPlainText(footnotes[id]) : "";
+        const tip = rawTip.length > 240 ? rawTip.slice(0, 240) + "…" : rawTip;
+        const tooltipHtml = tip
+          ? `<span id="${tipId}" role="tooltip" class="footnote-tooltip">${escapeHtml(tip)}</span>`
+          : "";
+        const describedBy = tip ? ` aria-describedby="${tipId}"` : "";
+        return `<sup id="${refId}" class="footnote-ref inline-block align-super text-sm"><a href="#${noteId}" class="text-accent/85 hover:text-accent hover:underline px-0.5"${describedBy}>${id}</a>${tooltipHtml}</sup>`;
+      });
+
+      return t;
+    };
+
+    text = applyFootnotesToText(text);
+    postText = applyFootnotesToText(postText);
 
     // 角标定义 HTML：延后到段落拆分后再 append，避免被 <p> 包裹破坏结构
     if (Object.keys(footnotes).length > 0) {
@@ -336,11 +343,13 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
           .replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (_, linkText, href) => {
             const processedHref = processLink(href, currentFilePath);
             const isExternal = /^https?:\/\//.test(processedHref);
-            const externalAttrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
-            return `<a href="${processedHref}"${externalAttrs} class="text-skin-accent font-semibold underline decoration-2 underline-offset-2 hover:decoration-4 hover:text-skin-accent-2 transition-all duration-200">${linkText}</a>`;
+            const externalAttrs = isExternal
+              ? ' target="_blank" rel="noopener noreferrer"'
+              : "";
+            return `<a href="${processedHref}"${externalAttrs} class="${linkClass}">${linkText}</a>`;
           })
           .replace(/\n+/g, "<br />");
-        footnoteHtml += `<div id="${noteId}" class="footnote-item flex items-start gap-2 py-2 first:pt-0"><span class="footnote-id flex-none w-4 text-right">${id}.</span><span class="footnote-content flex-1">${safeContent}</span><a href="#${refId}" class="footnote-backref flex-none text-skin-accent hover:underline ml-2">↩</a></div>`;
+        footnoteHtml += `<div id="${noteId}" class="footnote-item flex items-start gap-2 py-2 first:pt-0"><span class="footnote-id flex-none w-4 text-right">${id}.</span><span class="footnote-content flex-1">${safeContent}</span><a href="#${refId}" class="footnote-backref flex-none text-accent/85 hover:text-accent hover:underline ml-2">↩</a></div>`;
       });
       footnoteHtml += "</div>";
     }
@@ -574,42 +583,47 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
       }
     }
 
-    // 最后处理：将每个换行转换为独立的p段落
-    // 先标记已处理的ul、ol块，避免内部换行被处理
-    const htmlBlockRegex = /<(ul|ol)\b[^>]*>[\s\S]*?<\/\1>/g;
-    const htmlBlocks: string[] = [];
-    let blockIndex = 0;
+    const toParagraphHtml = (input: string) => {
+      if (!input) return "";
+      const htmlBlockRegex = /<(ul|ol)\b[^>]*>[\s\S]*?<\/\1>/g;
+      const htmlBlocks: string[] = [];
+      let blockIndex = 0;
 
-    // 用占位符替换HTML块
-    text = text.replace(htmlBlockRegex, match => {
-      // 为HTML块前后添加换行符
-      const placeholder = `\n__HTML_BLOCK_${blockIndex}__\n`;
-      htmlBlocks[blockIndex] = match;
-      blockIndex++;
-      return placeholder;
-    });
+      let t = input.replace(htmlBlockRegex, match => {
+        const placeholder = `\n__HTML_BLOCK_${blockIndex}__\n`;
+        htmlBlocks[blockIndex] = match;
+        blockIndex++;
+        return placeholder;
+      });
 
-    // 处理剩余文本的换行
-    text = text
-      .split("\n")
-      .filter(line => line.trim() !== "") // 过滤空行
-      .map(line => {
-        const trimmedLine = line.trim();
-        // 检查是否为占位符
-        if (trimmedLine.includes("__HTML_BLOCK_")) {
-          return trimmedLine;
-        }
-        return `<p class="mb-2">${trimmedLine}</p>`;
-      })
-      .join("");
+      t = t
+        .split("\n")
+        .filter(line => line.trim() !== "")
+        .map(line => {
+          const trimmedLine = line.trim();
+          if (trimmedLine.includes("__HTML_BLOCK_")) {
+            return trimmedLine;
+          }
+          if (trimmedLine.startsWith("<hr ")) {
+            return trimmedLine;
+          }
+          return `<p class="mb-2">${trimmedLine}</p>`;
+        })
+        .join("");
 
-    // 恢复HTML块
-    htmlBlocks.forEach((block, index) => {
-      text = text.replace(`__HTML_BLOCK_${index}__`, block);
-    });
+      htmlBlocks.forEach((block, index) => {
+        t = t.replace(`__HTML_BLOCK_${index}__`, block);
+      });
+
+      return t;
+    };
+
+    text = toParagraphHtml(text);
+    postText = toParagraphHtml(postText);
 
     if (
       text ||
+      postText ||
       images.length > 0 ||
       htmlContent ||
       movieData ||
@@ -621,6 +635,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
       timeBlocks.push({
         time,
         text,
+        postText,
         images,
         htmlContent,
         movieData,

@@ -59,6 +59,7 @@ interface LocalMusicData {
 export interface TimeBlock {
   time: string;
   text?: string;
+  postText?: string;
   images?: Array<{ alt: string; src: string; title?: string }>;
   htmlContent?: string;
   movieData?: LocalMovieData;
@@ -185,6 +186,7 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
             time={block.time}
             date={date}
             text={block.text}
+            postText={block.postText}
             images={block.images}
             htmlContent={block.htmlContent}
             movieData={block.movieData}
