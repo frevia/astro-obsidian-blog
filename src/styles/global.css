@@ -161,6 +161,10 @@ h6 {
   @apply ml-0 pl-0;
 }
 
+#article .footnotes {
+  @apply mt-6 border-t border-border/70 pt-4;
+}
+
 .footnote-item {
   @apply pl-0;
 }
