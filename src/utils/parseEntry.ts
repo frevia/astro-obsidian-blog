@@ -349,7 +349,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
             return `<a href="${processedHref}"${externalAttrs} class="${linkClass}">${linkText}</a>`;
           })
           .replace(/\n+/g, "<br />");
-        footnoteHtml += `<div id="${noteId}" class="footnote-item flex items-start gap-2 py-2 first:pt-0"><span class="footnote-id flex-none w-4 text-right">${id}.</span><span class="footnote-content flex-1">${safeContent}</span><a href="#${refId}" class="footnote-backref flex-none text-accent/85 hover:text-accent hover:underline ml-2">↩</a></div>`;
+        footnoteHtml += `<div id="${noteId}" class="footnote-item flex items-start gap-1 py-2 first:pt-0"><span class="footnote-id flex-none w-3 text-right">${id}.</span><span class="footnote-content flex-1">${safeContent}</span><a href="#${refId}" class="footnote-backref flex-none text-accent/85 hover:text-accent hover:underline ml-1">↩</a></div>`;
       });
       footnoteHtml += "</div>";
     }
