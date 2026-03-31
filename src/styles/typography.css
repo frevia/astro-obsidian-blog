@@ -150,6 +150,12 @@
       quotes: none;
     }
 
+    blockquote:not(.callout)::before {
+      content: '"';
+      @apply pointer-events-none absolute -top-3 left-2 text-4xl leading-none text-accent/28;
+      aria-hidden: true;
+    }
+
     blockquote:not(.callout) p::before,
     blockquote:not(.callout) p::after {
       content: none !important;

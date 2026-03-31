@@ -1,6 +1,7 @@
 import type { Props } from "astro";
+import { SITE } from "./config";
 //import IconMail from "@/assets/icons/IconMail.svg";
-//import IconGitHub from "@/assets/icons/IconGitHub.svg";
+import IconGitHub from "@/assets/icons/IconGitHub.svg";
 // import IconBrandX from "@/assets/icons/IconBrandX.svg";
 // import IconLinkedin from "@/assets/icons/IconLinkedin.svg";
 //import IconBili from "@/assets/icons/IconBilibili.svg";
@@ -19,12 +20,12 @@ interface Social {
 }
 
 export const SOCIALS: readonly Social[] = [
-  // {
-  //   name: "GitHub",
-  //   href: "https://github.com/vsme",
-  //   linkTitle: `${SITE.title} on GitHub`,
-  //   icon: IconGitHub,
-  // },
+  {
+    name: "GitHub",
+    href: "https://github.com/frevia",
+    linkTitle: `${SITE.title} on GitHub`,
+    icon: IconGitHub,
+  },
   // {
   //   name: "Bilibili",
   //   href: "https://space.bilibili.com/164997305",
