@@ -183,20 +183,26 @@ export default function TwikooThread({
           aria-label="展开评论区"
         >
           <svg
-            className="h-4 w-4 shrink-0 text-accent"
+            className="h-5 w-5 shrink-0 text-accent"
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             aria-hidden
           >
+            {/* 气泡外框 */}
             <path
-              d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-6l-2 3.5v-3.5H6.5a2 2 0 0 1-2-2v-9z"
+              d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-6l-2 3.5v-3.5H6.5a2 2 0 0 1-2-2v-7z"
               stroke="currentColor"
-              strokeWidth="1.6"
+              strokeWidth={1.5}
               strokeLinejoin="round"
             />
+
+            {/* 中间三个点 */}
+            <circle cx="9" cy="10.5" r="0.9" fill="currentColor" />
+            <circle cx="12" cy="10.5" r="0.9" fill="currentColor" />
+            <circle cx="15" cy="10.5" r="0.9" fill="currentColor" />
           </svg>
-          <span className="text-sm leading-none font-medium">评论</span>
+          {/* <span className="text-sm leading-none font-medium">评论</span> */}
         </button>
       </div>
     );
