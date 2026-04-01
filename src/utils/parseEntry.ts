@@ -269,7 +269,6 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
     // 注意：diary 页面会把多个 md 汇总到同一页；必须为每个时间块命名空间，避免不同文档里重复的 [^1] 冲突。
     const footnotes: Record<string, string> = {};
     const fnScope = `d-${date}-t-${time}`.replace(/[^a-zA-Z0-9_-]/g, "-");
-    let footnoteHtml = "";
 
     const escapeHtml = (s: string) =>
       s
@@ -314,7 +313,6 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
 
       t = t.replace(/\[\^(\d+)\]/g, (_, id) => {
         const refId = `fnref-${fnScope}-${id}`;
-        const noteId = `fn-${fnScope}-${id}`;
         const tipId = `fntip-${fnScope}-${id}`;
         const rawTip = footnotes[id] ? htmlToPlainText(footnotes[id]) : "";
         const tip = rawTip.length > 240 ? rawTip.slice(0, 240) + "…" : rawTip;
@@ -322,7 +320,8 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
           ? `<span id="${tipId}" role="tooltip" class="footnote-tooltip">${escapeHtml(tip)}</span>`
           : "";
         const describedBy = tip ? ` aria-describedby="${tipId}"` : "";
-        return `<sup id="${refId}" class="footnote-ref inline-block align-super text-sm"><a href="#${noteId}" class="text-accent/85 hover:text-accent hover:underline px-0.5"${describedBy}>${id}</a>${tooltipHtml}</sup>`;
+        // 日记不渲染底部脚注列表，用 button 避免 href 指向不存在的 #fn- 锚点
+        return `<sup id="${refId}" class="footnote-ref inline-block align-super text-sm"><button type="button" class="text-accent/85 hover:text-accent hover:underline px-0.5 align-baseline border-0 bg-transparent p-0 font-inherit text-inherit leading-none cursor-pointer"${describedBy}>${id}</button>${tooltipHtml}</sup>`;
       });
 
       return t;
@@ -331,28 +330,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
     text = applyFootnotesToText(text);
     postText = applyFootnotesToText(postText);
 
-    // 角标定义 HTML：延后到段落拆分后再 append，避免被 <p> 包裹破坏结构
-    if (Object.keys(footnotes).length > 0) {
-      footnoteHtml =
-        '<div class="footnotes mt-6 pt-4 border-t border-skin-muted/50 text-sm text-skin-base/80">';
-      Object.entries(footnotes).forEach(([id, content]) => {
-        const noteId = `fn-${fnScope}-${id}`;
-        const refId = `fnref-${fnScope}-${id}`;
-        // 处理脚注内容中的链接
-        const safeContent = content
-          .replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (_, linkText, href) => {
-            const processedHref = processLink(href, currentFilePath);
-            const isExternal = /^https?:\/\//.test(processedHref);
-            const externalAttrs = isExternal
-              ? ' target="_blank" rel="noopener noreferrer"'
-              : "";
-            return `<a href="${processedHref}"${externalAttrs} class="${linkClass}">${linkText}</a>`;
-          })
-          .replace(/\n+/g, "<br />");
-        footnoteHtml += `<div id="${noteId}" class="footnote-item flex items-start gap-1 py-2 first:pt-0"><span class="footnote-id flex-none w-3 text-right">${id}.</span><span class="footnote-content flex-1">${safeContent}</span><a href="#${refId}" class="footnote-backref flex-none text-accent/85 hover:text-accent hover:underline ml-1">↩</a></div>`;
-      });
-      footnoteHtml += "</div>";
-    }
+    // 日记仅用语义上的悬停/聚焦提示（.footnote-tooltip），不渲染文末脚注列表
 
     // 提取图片并优化
     const images = [];
@@ -629,8 +607,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
       movieData ||
       tvData ||
       bookData ||
-      musicData ||
-      footnoteHtml
+      musicData
     ) {
       timeBlocks.push({
         time,
@@ -642,7 +619,6 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
         tvData,
         bookData,
         musicData,
-        footnoteHtml,
       });
     }
   }
