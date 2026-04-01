@@ -88,10 +88,8 @@ function useChineseDaysForMonth(
   rangeEnd?: string
 ): Record<string, DayExtraInfo> {
   return useMemo(() => {
-    const start =
-      rangeStart ?? toYMDUtc(new Date(Date.UTC(year, month, 1)));
-    const end =
-      rangeEnd ?? toYMDUtc(new Date(Date.UTC(year, month + 1, 0)));
+    const start = rangeStart ?? toYMDUtc(new Date(Date.UTC(year, month, 1)));
+    const end = rangeEnd ?? toYMDUtc(new Date(Date.UTC(year, month + 1, 0)));
     const result: Record<string, DayExtraInfo> = {};
 
     try {
@@ -195,11 +193,44 @@ const Calendar: React.FC<CalendarProps> = ({
   const [viewYM, setViewYM] = useState(() =>
     getYearMonthInTimeZone(new Date())
   );
-  const todayKey = toYMDInTimeZone(new Date());
+  const [todayKey, setTodayKey] = useState(() => toYMDInTimeZone(new Date()));
   const [selected, setSelected] = useState<{
     dateKey: string;
     events: { type: string; url: string; title?: string }[];
   }>({ dateKey: todayKey, events: eventsByDate[todayKey] ?? [] });
+
+  // 定期检查日期变化，自动更新今天的日期
+  React.useEffect(() => {
+    const checkDateChange = () => {
+      const currentDate = toYMDInTimeZone(new Date());
+      if (currentDate !== todayKey) {
+        setTodayKey(currentDate);
+        // 如果当前选中的是今天，更新选中日期
+        if (selected.dateKey === todayKey) {
+          setSelected({
+            dateKey: currentDate,
+            events: eventsByDate[currentDate] ?? [],
+          });
+        }
+        // 如果当前视图月份与今天的月份不同，更新视图
+        const todayYM = getYearMonthInTimeZone(new Date());
+        if (
+          todayYM.year !== viewYM.year ||
+          todayYM.monthIndex !== viewYM.monthIndex
+        ) {
+          setViewYM(todayYM);
+        }
+      }
+    };
+
+    // 初始检查
+    checkDateChange();
+
+    // 每小时检查一次日期变化
+    const intervalId = setInterval(checkDateChange, 3600000);
+
+    return () => clearInterval(intervalId as unknown as number);
+  }, [todayKey, selected.dateKey, viewYM, eventsByDate]);
 
   const { year, monthIndex: month } = viewYM;
   const monthLabel = `${year}年${month + 1}月`;
