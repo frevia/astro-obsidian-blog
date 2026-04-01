@@ -123,7 +123,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
   }, [isImagesLoaded, optimizedImages]);
   return (
     <article
-      className="mb-1 border-b border-dashed border-border/30 pb-6 last:border-b-0 last:pb-0"
+      className="mb-1 pb-6 last:pb-0"
       tabIndex={0}
       role="article"
       aria-label={`${time} 时间段的记录`}
@@ -177,7 +177,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
             <div className="text-skin-base">
               {text && (
                 <div
-                  className="mb-4 text-base leading-relaxed whitespace-pre-wrap"
+                  className="text-base leading-relaxed whitespace-pre-wrap"
                   dangerouslySetInnerHTML={{ __html: text }}
                 />
               )}

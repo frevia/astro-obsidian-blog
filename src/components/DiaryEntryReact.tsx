@@ -144,7 +144,10 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
   }, [date]);
 
   return (
-    <div className="date-group mb-16" data-pagefind-weight="2">
+    <div
+      className="date-group border-b border-border/25 pb-5 mb-5"
+      data-pagefind-weight="2"
+    >
       <header className="mb-8">
         <div className="flex items-baseline gap-3">
           <h2
@@ -203,7 +206,7 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
           className="hidden sm:block sm:w-0 sm:flex-shrink-0"
           aria-hidden="true"
         />
-        <div className="min-w-0 w-full flex-1">
+        <div className="w-full min-w-0 flex-1">
           <TwikooThread
             threadKey={threadKey}
             path={threadPath}
