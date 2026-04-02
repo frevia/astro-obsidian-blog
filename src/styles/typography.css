@@ -36,7 +36,7 @@
     }
 
     .rehype-figure figcaption {
-      @apply text-center;
+      @apply mt-0 text-center;
     }
 
     .rehype-figure img {
