@@ -54,6 +54,8 @@
     if (modal) {
       modal.classList.remove("hidden");
     }
+    // 让日历岛在打开时用当前时刻重新对齐「今天」（部署后长驻页、后台标签等场景）
+    document.dispatchEvent(new CustomEvent("calendar-modal-open"));
   }
 
   // 隐藏日历模态框

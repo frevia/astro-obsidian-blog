@@ -199,38 +199,64 @@ const Calendar: React.FC<CalendarProps> = ({
     events: { type: string; url: string; title?: string }[];
   }>({ dateKey: todayKey, events: eventsByDate[todayKey] ?? [] });
 
-  // 定期检查日期变化，自动更新今天的日期
+  const todayKeyRef = React.useRef(todayKey);
+  const selectedRef = React.useRef(selected);
+  const viewYMRef = React.useRef(viewYM);
+  const eventsByDateRef = React.useRef(eventsByDate);
+  todayKeyRef.current = todayKey;
+  selectedRef.current = selected;
+  viewYMRef.current = viewYM;
+  eventsByDateRef.current = eventsByDate;
+
+  // 与站点时区「今天」对齐：轮询 + 回前台 + 视图切换 + 打开日历弹窗（避免 Vercel/长挂页/ClientRouter 后仍用旧日期）
   React.useEffect(() => {
     const checkDateChange = () => {
       const currentDate = toYMDInTimeZone(new Date());
-      if (currentDate !== todayKey) {
+      const tk = todayKeyRef.current;
+      const sel = selectedRef.current;
+      const vm = viewYMRef.current;
+      const ev = eventsByDateRef.current;
+      if (currentDate !== tk) {
         setTodayKey(currentDate);
-        // 如果当前选中的是今天，更新选中日期
-        if (selected.dateKey === todayKey) {
+        if (sel.dateKey === tk) {
           setSelected({
             dateKey: currentDate,
-            events: eventsByDate[currentDate] ?? [],
+            events: ev[currentDate] ?? [],
           });
         }
-        // 如果当前视图月份与今天的月份不同，更新视图
         const todayYM = getYearMonthInTimeZone(new Date());
         if (
-          todayYM.year !== viewYM.year ||
-          todayYM.monthIndex !== viewYM.monthIndex
+          todayYM.year !== vm.year ||
+          todayYM.monthIndex !== vm.monthIndex
         ) {
           setViewYM(todayYM);
         }
       }
     };
 
-    // 初始检查
     checkDateChange();
 
-    // 每小时检查一次日期变化
-    const intervalId = setInterval(checkDateChange, 3600000);
+    const intervalMs = 60_000;
+    const intervalId = window.setInterval(checkDateChange, intervalMs);
 
-    return () => clearInterval(intervalId as unknown as number);
-  }, [todayKey, selected.dateKey, viewYM, eventsByDate]);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") checkDateChange();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    const onAfterSwap = () => checkDateChange();
+    document.addEventListener("astro:after-swap", onAfterSwap);
+
+    const onModalOpen = () => checkDateChange();
+    document.addEventListener("calendar-modal-open", onModalOpen);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisibility);
+      document.removeEventListener("astro:after-swap", onAfterSwap);
+      document.removeEventListener("calendar-modal-open", onModalOpen);
+    };
+  }, []);
 
   const { year, monthIndex: month } = viewYM;
   const monthLabel = `${year}年${month + 1}月`;
