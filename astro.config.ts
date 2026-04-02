@@ -41,6 +41,7 @@ export default defineConfig({
     pagefind(),
     photosuite({
       scope: "#article",
+      imageAlts: false,
     }),
     compress({
       CSS: true,
