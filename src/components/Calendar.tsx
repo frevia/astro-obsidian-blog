@@ -225,10 +225,7 @@ const Calendar: React.FC<CalendarProps> = ({
           });
         }
         const todayYM = getYearMonthInTimeZone(new Date());
-        if (
-          todayYM.year !== vm.year ||
-          todayYM.monthIndex !== vm.monthIndex
-        ) {
+        if (todayYM.year !== vm.year || todayYM.monthIndex !== vm.monthIndex) {
           setViewYM(todayYM);
         }
       }
@@ -753,7 +750,7 @@ const Calendar: React.FC<CalendarProps> = ({
                       ? "日记"
                       : ev.type === "blog" && ev.title
                         ? ev.title
-                        : "日志";
+                        : "文章";
                     return (
                       <li key={idx}>
                         <a
@@ -772,7 +769,7 @@ const Calendar: React.FC<CalendarProps> = ({
                                 : "bg-sky-500/15 text-sky-800 dark:text-sky-300",
                             ].join(" ")}
                           >
-                            {isDiary ? "日记" : "日志"}
+                            {isDiary ? "日记" : "文章"}
                           </span>
                           <span className="text-skin-base min-w-0 flex-1 text-xs leading-snug group-hover:text-accent">
                             {isDiary ? "当日日记" : label}
@@ -790,7 +787,7 @@ const Calendar: React.FC<CalendarProps> = ({
                 </ul>
               ) : (
                 <div className="bg-skin-muted/5 text-skin-muted dark:bg-skin-muted/10 border-skin-muted/25 rounded-lg border border-dashed px-3 py-4 text-center text-xs leading-relaxed">
-                  该日暂无日记或日志
+                  该日暂无日记或文章
                 </div>
               )}
             </div>
