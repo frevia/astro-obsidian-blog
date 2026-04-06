@@ -29,7 +29,7 @@
 
 ## 🚀 项目结构
 
-```
+```bash
 /
 ├── public/
 │   ├── favicon.png
@@ -84,6 +84,7 @@
 1. **编辑 RSS 订阅列表**
    - 在 `public/data/feeds/rss-subscriptions.json` 文件中添加或修改博客的 RSS 源
    - 示例配置：
+
      ```json
      {
        "subscriptions": [
@@ -222,7 +223,7 @@ title: 电影标题
 - 其他媒体卡片组件，具体查看[obsidian-card-viewer](https://github.com/vsme/obsidian-card-viewer)。
 
 卡片建议搭配 Obsidian 使用（PS:需要自己写抓取脚本）：
-https://github.com/user-attachments/assets/fab12904-d1db-41c2-83bf-fd26013910f1
+[GitHub 资产链接](https://github.com/user-attachments/assets/fab12904-d1db-41c2-83bf-fd26013910f1)
 
 ## 🎨 自定义样式
 
