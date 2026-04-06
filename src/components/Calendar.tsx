@@ -32,19 +32,23 @@ function getChineseHolidayName(name: string): string {
   return name;
 }
 
-/** 月网格用 UTC 构造公历日，避免 Vercel(Node=UTC) 与用户浏览器本地时区不一致 */
+/** 月网格用东八区时间构造公历日，避免 Vercel(Node=UTC) 与用户浏览器本地时区不一致 */
 function toYMDUtc(d: Date): string {
-  const y = d.getUTCFullYear();
-  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(d.getUTCDate()).padStart(2, "0");
+  // 转换为东八区时间（UTC+08:00）
+  const east8Date = new Date(d.getTime() + 8 * 60 * 60 * 1000);
+  const y = east8Date.getUTCFullYear();
+  const m = String(east8Date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(east8Date.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
 
-/** 周一为一周第一天，返回的 grid 从左到右为 一…日（全 UTC，与站点时区的 YYYY-MM-DD 对齐） */
+/** 周一为一周第一天，返回的 grid 从左到右为 一…日（全东八区时间，与站点时区的 YYYY-MM-DD 对齐） */
 function getCalendarGridDates(year: number, month: number): Date[] {
+  // 转换为东八区时间（UTC+08:00）
   const first = new Date(Date.UTC(year, month, 1));
+  const east8First = new Date(first.getTime() + 8 * 60 * 60 * 1000);
   const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-  const firstWeekday = first.getUTCDay(); // 0=日 1=一 … 6=六
+  const firstWeekday = east8First.getUTCDay(); // 0=日 1=一 … 6=六
   const offset = (firstWeekday + 6) % 7;
 
   const gridStart = new Date(Date.UTC(year, month, 1 - offset));
@@ -62,7 +66,9 @@ function getCalendarGridDates(year: number, month: number): Date[] {
 
 function ymdToUTC(ymd: string) {
   const [y, m, d] = ymd.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d));
+  // 转换为东八区时间（UTC+08:00）
+  const utcDate = new Date(Date.UTC(y, m - 1, d));
+  return new Date(utcDate.getTime() - 8 * 60 * 60 * 1000);
 }
 
 /** 休=休息日 班=补班 调=调休日 */
@@ -193,7 +199,7 @@ const Calendar: React.FC<CalendarProps> = ({
   const [viewYM, setViewYM] = useState(() =>
     getYearMonthInTimeZone(new Date())
   );
-  const [todayKey, setTodayKey] = useState(() => toYMDInTimeZone(new Date()));
+  const [todayKey, setTodayKey] = useState(() => toYMDUtc(new Date()));
   const [selected, setSelected] = useState<{
     dateKey: string;
     events: { type: string; url: string; title?: string }[];
@@ -211,7 +217,7 @@ const Calendar: React.FC<CalendarProps> = ({
   // 与站点时区「今天」对齐：轮询 + 回前台 + 视图切换 + 打开日历弹窗（避免 Vercel/长挂页/ClientRouter 后仍用旧日期）
   React.useEffect(() => {
     const checkDateChange = () => {
-      const currentDate = toYMDInTimeZone(new Date());
+      const currentDate = toYMDUtc(new Date());
       const tk = todayKeyRef.current;
       const sel = selectedRef.current;
       const vm = viewYMRef.current;
@@ -285,7 +291,7 @@ const Calendar: React.FC<CalendarProps> = ({
     );
   const goToday = () => {
     const now = new Date();
-    const key = toYMDInTimeZone(now);
+    const key = toYMDUtc(now);
     setViewYM(getYearMonthInTimeZone(now));
     setSelected({ dateKey: key, events: eventsByDate[key] ?? [] });
   };

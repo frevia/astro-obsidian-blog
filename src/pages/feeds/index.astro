@@ -38,7 +38,7 @@ import {
 
 // 初始显示数量
 // 默认头像图片（未设置时使用）
-const FALLBACK_OG_IMAGE = "https://cos.lhasa.icu/dist/avatar/default.png";
+const FALLBACK_OG_IMAGE = "/data/feeds/default-avatar.svg";
 
 /**
  * 客户端数据配置
@@ -155,11 +155,9 @@ const hasTwikooEnv =
       try {
         const clientData = JSON.parse(dataElement.dataset.json);
         initFeeds(
-          clientData.siteTimezone,
           clientData.fallbackOgImage,
           clientData.initialItemCount,
-          clientData.itemsPerPage,
-          clientData.dataSourceUrl
+          clientData.itemsPerPage
         );
       } catch (e) {
         console.error(
@@ -179,5 +177,42 @@ const hasTwikooEnv =
 <style>
   #feeds-list-section {
     padding-inline: 0;
+  }
+
+  #feeds-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+
+  #feeds-loading ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+
+  #feeds-loading li {
+    margin-bottom: 0;
+  }
+
+  /* 调整卡片内部间距 */
+  #feeds-list li {
+    padding: 1rem;
+  }
+
+  #feeds-list li > div {
+    gap: 0.75rem;
+  }
+
+  #feeds-list h3 {
+    margin-bottom: 0.125rem;
+  }
+
+  #feeds-list p {
+    margin: 0.125rem 0;
+  }
+
+  #feeds-list li > div > div > div {
+    margin-top: 0.5rem;
   }
 </style>
