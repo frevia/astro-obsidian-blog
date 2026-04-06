@@ -143,6 +143,24 @@ async function main() {
     // 抓取所有 feeds
     const items = await fetchAllFeeds(subscriptions);
     
+    // 按日期倒序排序（最新的文章排在前面）
+    items.sort((a, b) => {
+      // 处理空日期的情况
+      if (!a.published || a.published === '未知') return 1;
+      if (!b.published || b.published === '未知') return -1;
+      
+      // 解析日期字符串为日期对象
+      const dateA = new Date(a.published);
+      const dateB = new Date(b.published);
+      
+      // 处理无效日期的情况
+      if (isNaN(dateA.getTime())) return 1;
+      if (isNaN(dateB.getTime())) return -1;
+      
+      // 按日期倒序排序
+      return dateB.getTime() - dateA.getTime();
+    });
+    
     // 生成 feeds.json
     const now = new Date();
     const updated = `${now.getFullYear()}年${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
