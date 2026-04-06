@@ -35,4 +35,7 @@ export const SITE = {
   timezone: "Asia/Shanghai", // Default global timezone (IANA format) https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   // 博客创建日期（用于计算运行天数）
   createdAt: "2025-03-17",
+  // 邻居 feeds 配置
+  feedsPerIndex: 12,
+  feedsPerPage: 12,
 } as const;

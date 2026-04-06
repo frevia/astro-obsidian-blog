@@ -41,7 +41,7 @@ type Entry = Pick<LabelChordResult, "a" | "b" | "sweepAngleDeg"> & {
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const outDir = join(__dirname, "../src/generated");
-const outPath = join(outDir, "footprint-city-label-chords.json");
+const outPath = join(process.cwd(), "public", "data", "footprint", "footprint-city-label-chords.json");
 
 const out: Record<string, Entry> = {};
 

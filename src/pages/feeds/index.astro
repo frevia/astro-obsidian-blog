@@ -1,0 +1,183 @@
+---
+/**
+ * 邻居页（友链/博客列表）
+ *
+ * @fileoverview 显示作者订阅的其他博客
+ *
+ * 核心逻辑：
+ * 1. 从外部 JSON 数据源加载博客列表
+ * 2. 初始显示前 N 项（INITIAL_ITEMS_TO_SHOW = 4）
+ * 3. 滚动到底部自动加载更多（每次 12 项）
+ * 4. 显示加载状态、错误提示、无内容提示
+ * 5. 使用 initFeeds 函数初始化（定义在 public/feeds.ts）
+ *
+ * 数据源配置：
+ * - JSON URL: https://cos.lhasa.icu/lhasaRSS/data.json
+ * - 初始数量: 12
+ * - 每页数量: 12
+ * - 时区: SITE.timezone
+ * - 默认头像: FALLBACK_OG_IMAGE
+ *
+ * 依赖关系：
+ * - 被 /feeds 路径访问
+ * - 使用 Twikoo 组件显示评论
+ * - 依赖 public/feeds.js 的 initFeeds 函数
+ */
+
+import Layout from "@/layouts/Layout.astro";
+import Main from "@/layouts/Main.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Twikoo from "@/components/Twikoo.astro";
+import { SITE } from "@/config";
+import {
+  PUBLIC_TWIKOO_ENABLED,
+  PUBLIC_TWIKOO_ENV_ID,
+  PUBLIC_TWIKOO_REGION,
+} from "astro:env/client";
+
+// 初始显示数量
+// 默认头像图片（未设置时使用）
+const FALLBACK_OG_IMAGE = "https://cos.lhasa.icu/dist/avatar/default.png";
+
+/**
+ * 客户端数据配置
+ *
+ * 通过 data 属性传递给客户端脚本
+ */
+const feedsDataForClient = {
+  siteTimezone: SITE.timezone,
+  fallbackOgImage: FALLBACK_OG_IMAGE,
+  initialItemCount: SITE.feedsPerIndex,
+  itemsPerPage: SITE.feedsPerPage,
+  dataSourceUrl: "https://cos.lhasa.icu/lhasaRSS/data.json",
+};
+
+// 评论配置
+const commentsEnabled =
+  SITE.comments.enabled && PUBLIC_TWIKOO_ENABLED !== "false";
+const hasTwikooEnv =
+  (PUBLIC_TWIKOO_ENV_ID ?? "").trim().length > 0 &&
+  (PUBLIC_TWIKOO_REGION ?? "").trim().length > 0;
+---
+
+<Layout title={`邻居 | ${SITE.title}`}>
+  <Header />
+  <Main pageTitle="邻居" pageDesc="订阅的其他博客更新">
+    <section id="feeds-list-section" class="px-0">
+      <!-- 加载提示 -->
+      <!-- 加载提示（骨架屏） -->
+      <div id="feeds-loading">
+        <ul class="mb-10 animate-pulse list-none">
+          {
+            Array.from({ length: SITE.feedsPerIndex }).map(() => (
+              <li class="mb-4">
+                <div class="relative block pr-12">
+                  <div class="flex items-center gap-3">
+                    <div class="bg-skeleton h-[50px] w-[50px] shrink-0 rounded-md" />
+                    <div class="min-w-0 flex-1">
+                      <div class="bg-skeleton mb-2 h-5 w-2/3 rounded" />
+                      <div class="bg-skeleton h-4 w-1/2 rounded" />
+                    </div>
+                  </div>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <!-- 错误提示 -->
+      <div id="feeds-error" class="text-error my-6 hidden text-center">
+        <p>加载 Feeds 失败，请稍后重试或检查网络连接。</p>
+      </div>
+      <!-- 无内容提示 -->
+      <div id="feeds-no-content" class="my-6 hidden text-center">
+        <p>暂无内容。</p>
+      </div>
+      <!-- Feeds 列表容器 -->
+      <ul id="feeds-list" class="mb-10 list-none"></ul>
+      <!-- 加载更多触发器 -->
+      <div id="load-more-trigger" class="h-10" style="display: none;"></div>
+    </section>
+
+    {
+      commentsEnabled && (
+        <>
+          <hr class="my-8 border-dashed" />
+          <h2 class="mb-4 text-xl font-semibold">留言</h2>
+        </>
+      )
+    }
+
+    {commentsEnabled && hasTwikooEnv && <Twikoo />}
+
+    {
+      commentsEnabled && !hasTwikooEnv && (
+        <div class="mt-8 rounded-xl border border-border/60 bg-muted/15 px-4 py-3 text-sm text-foreground/80">
+          留言功能已开启，但尚未完成 Twikoo 配置。请在环境变量中设置
+          <code class="mx-1 rounded bg-muted/30 px-1.5 py-0.5 text-xs">
+            PUBLIC_TWIKOO_ENV_ID
+          </code>
+          与
+          <code class="mx-1 rounded bg-muted/30 px-1.5 py-0.5 text-xs">
+            PUBLIC_TWIKOO_REGION
+          </code>
+          后重新部署。
+        </div>
+      )
+    }
+  </Main>
+  <Footer />
+</Layout>
+
+<!-- 客户端数据容器 -->
+<div
+  id="feeds-data-json-container"
+  data-json={JSON.stringify(feedsDataForClient)}
+  style="display: none;"
+>
+</div>
+
+<script>
+  import { initFeeds } from "public/feeds";
+
+  /**
+   * 初始化 Feeds 功能
+   *
+   * 1. 解析客户端配置
+   * 2. 调用 initFeeds 函数
+   * 3. 错误处理：显示错误提示
+   */
+  document.addEventListener("astro:page-load", () => {
+    const dataElement = document.getElementById("feeds-data-json-container");
+
+    if (dataElement && dataElement.dataset.json) {
+      try {
+        const clientData = JSON.parse(dataElement.dataset.json);
+        initFeeds(
+          clientData.siteTimezone,
+          clientData.fallbackOgImage,
+          clientData.initialItemCount,
+          clientData.itemsPerPage,
+          clientData.dataSourceUrl
+        );
+      } catch (e) {
+        console.error(
+          "Failed to parse feeds client data or initialize feeds:",
+          e
+        );
+        // 显示错误提示
+        const errorContainer = document.getElementById("feeds-error");
+        const loadingContainer = document.getElementById("feeds-loading");
+        if (errorContainer) errorContainer.classList.remove("hidden");
+        if (loadingContainer) loadingContainer.classList.add("hidden");
+      }
+    }
+  });
+</script>
+
+<style>
+  #feeds-list-section {
+    padding-inline: 0;
+  }
+</style>

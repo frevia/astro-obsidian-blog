@@ -110,7 +110,7 @@ pnpm run generate:footprint-labels
 ```
 
 - 生成脚本：`scripts/generate-footprint-city-labels.ts`
-- 输出文件：`src/generated/footprint-city-label-chords.json`（键含 `省Key-city-序号` 与 `nation-province-序号`）
+- 输出文件：`public/data/footprint/footprint-city-label-chords.json`（键含 `省Key-city-序号` 与 `nation-province-序号`）
 - 建议在以下场景重新生成：升级 Turf、调整标签算法参数、地图数据源变更
 - 该 JSON 属于构建输入，建议提交到仓库
 

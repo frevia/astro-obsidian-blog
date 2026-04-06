@@ -7,7 +7,7 @@ import {
 import { labelLngLatAvoidingSiblings } from "@/components/footprint/sameLevelLabelPoint";
 import type { LabelChordResult } from "@/utils/cityLabelChord";
 import { layoutLabelAlongChord } from "@/utils/cityLabelChord";
-import precomputedChords from "@/generated/footprint-city-label-chords.json";
+import precomputedChords from "@/data/footprint/footprint-city-label-chords.json";
 
 export type CityPathItem = {
   key: string;
