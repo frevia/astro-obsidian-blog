@@ -34,31 +34,46 @@ function getChineseHolidayName(name: string): string {
 
 /** 月网格用东八区时间构造公历日，避免 Vercel(Node=UTC) 与用户浏览器本地时区不一致 */
 function toYMDUtc(d: Date): string {
-  // 转换为东八区时间（UTC+08:00）
-  const east8Date = new Date(d.getTime() + 8 * 60 * 60 * 1000);
-  const y = east8Date.getUTCFullYear();
-  const m = String(east8Date.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(east8Date.getUTCDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  // 使用 Intl.DateTimeFormat 确保时区正确
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
 }
 
 /** 周一为一周第一天，返回的 grid 从左到右为 一…日（全东八区时间，与站点时区的 YYYY-MM-DD 对齐） */
 function getCalendarGridDates(year: number, month: number): Date[] {
-  // 转换为东八区时间（UTC+08:00）
-  const first = new Date(Date.UTC(year, month, 1));
-  const east8First = new Date(first.getTime() + 8 * 60 * 60 * 1000);
-  const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-  const firstWeekday = east8First.getUTCDay(); // 0=日 1=一 … 6=六
-  const offset = (firstWeekday + 6) % 7;
+  // 计算当月第一天
+  const first = new Date(year, month, 1);
 
-  const gridStart = new Date(Date.UTC(year, month, 1 - offset));
+  // 计算当月第一天在东八区的星期几（0=日 1=一 … 6=六）
+  const firstDayOfWeek = new Date(
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Shanghai",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(first)
+  ).getDay();
+
+  // 计算网格开始日期
+  const offset = (firstDayOfWeek + 6) % 7;
+  const gridStart = new Date(year, month, 1 - offset);
+
+  // 计算当月天数
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // 计算网格总天数
   const total = offset + daysInMonth;
   const totalCells = Math.ceil(total / 7) * 7;
 
+  // 生成网格日期
   const dates: Date[] = [];
   for (let i = 0; i < totalCells; i++) {
     const d = new Date(gridStart);
-    d.setUTCDate(gridStart.getUTCDate() + i);
+    d.setDate(gridStart.getDate() + i);
     dates.push(d);
   }
   return dates;
@@ -66,9 +81,11 @@ function getCalendarGridDates(year: number, month: number): Date[] {
 
 function ymdToUTC(ymd: string) {
   const [y, m, d] = ymd.split("-").map(Number);
-  // 转换为东八区时间（UTC+08:00）
-  const utcDate = new Date(Date.UTC(y, m - 1, d));
-  return new Date(utcDate.getTime() - 8 * 60 * 60 * 1000);
+  // 直接创建日期对象，使用东八区时间
+  const date = new Date(y, m - 1, d);
+  // 调整为东八区时间（UTC+08:00）
+  date.setHours(8, 0, 0, 0);
+  return date;
 }
 
 /** 休=休息日 班=补班 调=调休日 */
