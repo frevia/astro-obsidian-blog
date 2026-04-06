@@ -4,14 +4,15 @@
   "version": "5.5.0",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build",
+    "build": "astro check && astro build && npm run fetch:feeds",
     "preview": "astro preview",
     "sync": "astro sync",
     "astro": "astro",
     "format:check": "prettier --check .",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "generate:footprint-labels": "tsx scripts/generate-footprint-city-labels.ts"
+    "generate:footprint-labels": "tsx scripts/generate-footprint-city-labels.ts",
+    "fetch:feeds": "node scripts/fetch-feeds-data.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.1",
