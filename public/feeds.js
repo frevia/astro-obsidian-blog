@@ -5,65 +5,9 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-function createFeedCardHTML(item, siteTimezone, fallbackOgImageGlobal) {
-  let displayDate = "";
-  let displayTime = "";
-  let isoTimestamp = "";
-
-  if (item.published && typeof item.published === "string") {
-    const parts = item.published.split(" | ");
-    displayDate = parts[0]; // e.g., "26 May, 2025"
-    if (parts.length > 1) {
-      displayTime = parts[1]; // e.g., "01:20 PM"
-    }
-
-    // Construct a string that dayjs is likely to parse for the ISO timestamp
-    // Example: "26 May 2025 01:20 PM" (remove comma from date part for better parsing)
-    let parsableString = displayDate.replace(/,/g, ""); // "26 May 2025"
-    if (displayTime) {
-      parsableString += ` ${displayTime}`; // "26 May 2025 01:20 PM"
-    }
-
-    try {
-      // @ts-ignore
-      const parsed = dayjs(
-        parsableString,
-        ["D MMM YYYY hh:mm A", "D MMM YYYY h:mm A", "D MMM YYYY"],
-        true
-      ); // Added true for strict parsing
-      if (parsed.isValid()) {
-        // @ts-ignore
-        isoTimestamp = parsed.tz(siteTimezone || "UTC").toISOString();
-      } else {
-        // Fallback for isoTimestamp if strict parsing fails
-        // Try parsing without format string, relying on dayjs's flexibility
-        // @ts-ignore
-        const lessStrictParse = dayjs(item.published.replace(" | ", " "));
-        if (lessStrictParse.isValid()) {
-          // @ts-ignore
-          isoTimestamp = lessStrictParse
-            .tz(siteTimezone || "UTC")
-            .toISOString();
-        } else {
-          console.warn(
-            "Failed to parse date for ISO timestamp:",
-            item.published
-          );
-        }
-      }
-    } catch (e) {
-      console.warn(
-        "Exception during date parsing for ISO timestamp:",
-        item.published,
-        e
-      );
-    }
-  } else {
-    displayDate = "Date not available";
-  }
-
+function createFeedCardHTML(item, fallbackOgImageGlobal) {
   const defaultImageClass =
-    "w-[50px] h-[50px] object-cover rounded-md shrink-0 group-hover:opacity-90 transition-opacity duration-300";
+    "w-12 h-12 object-cover rounded-md shrink-0 transition-opacity duration-300";
 
   let imgSrc = item.avatar || "";
   if ((!imgSrc || imgSrc.trim() === "") && fallbackOgImageGlobal) {
@@ -76,45 +20,48 @@ function createFeedCardHTML(item, siteTimezone, fallbackOgImageGlobal) {
 
   const blogName =
     typeof item.blog_name === "string" ? item.blog_name.trim() : "";
-  const blogNameDisplay = blogName ? blogName : "";
+  const latestPostTitle =
+    typeof item.title === "string" ? item.title.trim() : "";
+  const publishedDate =
+    typeof item.published === "string" ? item.published.trim() : "";
+  const postLink = item.link || "";
 
   return `
-    <li class="mb-4">
-      <div class="relative block pr-12">
-        <div class="flex items-center gap-3">
-          ${
-            imgSrc
-              ? `
+    <li class="p-4 rounded-lg border border-border/60 hover:shadow-sm transition-shadow">
+      <div class="flex items-center gap-4">
+        ${
+          imgSrc
+            ? `
             <img
               src="${imgSrc}"
-              alt="${item.title}"
+              alt="${blogName}"
               class="${defaultImageClass}"
               loading="lazy"
               onerror="${onerrorHandler}"
             />
           `
+            : `
+            <div class="${defaultImageClass} bg-muted/30 flex items-center justify-center">
+              <span class="text-sm text-muted-foreground">${blogName.charAt(0)}</span>
+            </div>
+          `
+        }
+        <div class="flex-1 min-w-0">
+          <h3 class="font-medium text-foreground hover:text-accent transition-colors">
+            <a href="${postLink}" target="_blank" rel="noopener noreferrer" class="hover:underline">${blogName}</a>
+          </h3>
+          ${
+            latestPostTitle
+              ? `
+            <div class="flex items-center gap-2 flex-wrap">
+              <a href="${postLink}" target="_blank" rel="noopener noreferrer" class="text-sm text-accent hover:underline flex-1">
+                ${latestPostTitle}
+              </a>
+              ${publishedDate ? `<p class="text-xs text-muted-foreground whitespace-nowrap">${publishedDate}</p>` : ""}
+            </div>
+          `
               : ""
           }
-          <div class="min-w-0 flex-1 ">
-            <div class="text-lg font-medium text-accent underline-offset-4 min-w-0">
-              <h3 class="text-sm font-medium truncate overflow-hidden whitespace-nowrap min-w-0">
-                <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="hover:underline">${item.title}</a>
-              </h3>
-            </div>
-            <div class="mt-1 flex items-center gap-x-2 opacity-80 text-xs whitespace-nowrap">
-              <span class="sr-only">Published:</span>
-              <time class="opacity-80 text-[var(--posts-list-time-color)]" datetime="${isoTimestamp}">
-                ${displayDate}
-              </time>
-              ${
-                blogName
-                  ? `
-                <span class="text-[var(--posts-list-time-color)] truncate min-w-0 flex-1 opacity-80 text-xs font-normal">${blogNameDisplay}</span>
-              `
-                  : ""
-              }
-            </div>
-          </div>
         </div>
       </div>
     </li>
@@ -122,14 +69,12 @@ function createFeedCardHTML(item, siteTimezone, fallbackOgImageGlobal) {
 }
 
 export async function initFeeds(
-  siteTimezone,
   fallbackOgImageGlobal,
   initialItemCount,
-  itemsPerPage,
-  dataSourceUrl
+  itemsPerPage
 ) {
   // 默认使用本地数据
-  const localDataSourceUrl = "/data/feeds.json";
+  const localDataSourceUrl = "/data/feeds/feeds.json";
   const feedsListElement = document.getElementById("feeds-list");
   const loadMoreTrigger = document.getElementById("load-more-trigger");
   const loadingContainer = document.getElementById("feeds-loading");
@@ -152,17 +97,11 @@ export async function initFeeds(
 
   async function fetchFeeds() {
     try {
-      // 先尝试从本地加载数据
-      let response = await fetch(localDataSourceUrl);
-
-      // 如果本地数据加载失败，尝试从外部 API 加载
-      if (!response.ok) {
-        console.log("本地数据加载失败，尝试从外部 API 加载");
-        response = await fetch(dataSourceUrl);
-      }
+      // 从本地加载数据
+      const response = await fetch(localDataSourceUrl);
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`本地数据加载失败: ${response.status}`);
       }
 
       const data = await response.json();
@@ -218,11 +157,7 @@ export async function initFeeds(
 
     let newItemsHTML = "";
     itemsToLoad.forEach(item => {
-      newItemsHTML += createFeedCardHTML(
-        item,
-        siteTimezone,
-        fallbackOgImageGlobal
-      );
+      newItemsHTML += createFeedCardHTML(item, fallbackOgImageGlobal);
     });
     feedsListElement.insertAdjacentHTML("beforeend", newItemsHTML);
     currentIndex += itemsToLoad.length;

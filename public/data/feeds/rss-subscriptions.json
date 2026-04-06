@@ -1,0 +1,17 @@
+{
+  "subscriptions": [
+    {
+      "url": "https://bgo.me/rss.xml",
+      "avatar": "https://bgo.me/favicon.png"
+    },
+    {
+      "url": "http://1900.live/rss",
+      "avatar": "https://1900.live/logo.svg"
+    },
+    {
+      "url": "https://www.mrhe.net/",
+      "avatar": "https://images.mrhe.net/favicon.ico",
+      "name": "Mr.He"
+    }
+  ]
+}
