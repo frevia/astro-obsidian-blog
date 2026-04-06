@@ -1,18 +1,18 @@
 {
   "items": [
     {
-      "blog_name": "Bingo!",
-      "title": "当下的力量",
-      "published": "2026-02-02",
-      "link": "https://bgo.me/posts/the-power-of-now/",
-      "avatar": "https://bgo.me/favicon.png"
-    },
-    {
       "blog_name": "1900的灯泡店",
       "title": "还是成品NAS好+徒步散心",
       "published": "2026-03-29",
       "link": "https://1900.live/huan-shi-cheng-pin-nashao-tu-bu-san-xin/",
       "avatar": "https://1900.live/logo.svg"
+    },
+    {
+      "blog_name": "Bingo!",
+      "title": "当下的力量",
+      "published": "2026-02-02",
+      "link": "https://bgo.me/posts/the-power-of-now/",
+      "avatar": "https://bgo.me/favicon.png"
     },
     {
       "blog_name": "Mr.He",
@@ -22,5 +22,5 @@
       "avatar": "https://images.mrhe.net/favicon.ico"
     }
   ],
-  "updated": "2026年04月06日 21:48:18"
+  "updated": "2026年04月06日 21:55:20"
 }

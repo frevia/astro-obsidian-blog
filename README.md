@@ -25,6 +25,7 @@
 - 🖼️ **拼图功能** - 支持将图片拼接成大图片
 - 📅 **日历功能** - 支持农历、节气、工作日/节假日显示，悬浮日历效果，顶部日期挂件，点击弹窗查看详细日历
 - 🎐 **风铃效果** - 顶部日期挂件下方显示工作日/休息日，带有风铃飘动动画
+- 📡 **RSS 数据定时抓取** - 每天自动拉取订阅的博客更新，保持内容新鲜
 
 ## 🚀 项目结构
 
@@ -73,6 +74,46 @@
 
 - Node.js 18+
 - pnpm (推荐)
+
+### RSS 数据定时抓取
+
+项目支持每天自动拉取订阅的博客更新，保持 feeds 页面的内容新鲜。
+
+#### 配置方式
+
+1. **编辑 RSS 订阅列表**
+   - 在 `public/data/feeds/rss-subscriptions.json` 文件中添加或修改博客的 RSS 源
+   - 示例配置：
+     ```json
+     {
+       "subscriptions": [
+         {
+           "url": "https://example.com/rss.xml",
+           "avatar": "https://example.com/avatar.png"
+         }
+       ]
+     }
+     ```
+
+2. **定时任务配置**
+   - 项目使用 Vercel 的定时任务功能，每天 8:00 AM 自动执行数据抓取
+   - 配置文件：`vercel.json`
+   - API 端点：`src/pages/api/fetch-rss.ts`
+
+#### 手动执行
+
+如果需要手动执行 RSS 数据抓取，可以运行以下命令：
+
+```bash
+pnpm run fetch:rss-feeds
+```
+
+#### 工作原理
+
+1. Vercel 定时任务每天 8:00 AM 调用 `/api/fetch-rss` 端点
+2. 该端点执行 `scripts/fetch-rss-feeds.js` 脚本
+3. 脚本从 RSS 订阅源拉取最新数据，生成 `public/data/feeds/feeds.json` 文件
+4. 页面加载时使用最新的 RSS 数据，确保显示的是最新的博客更新
 
 ### 本地开发
 

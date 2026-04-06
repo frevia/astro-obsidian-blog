@@ -105,7 +105,23 @@ export async function initFeeds(
       }
 
       const data = await response.json();
-      allFeeds = data.items || []; // Ensure allFeeds is an array
+      // 按日期倒序排序（最新的文章排在前面）
+      allFeeds = (data.items || []).sort((a, b) => {
+        // 处理空日期的情况
+        if (!a.published || a.published === "未知") return 1;
+        if (!b.published || b.published === "未知") return -1;
+
+        // 解析日期字符串为日期对象
+        const dateA = new Date(a.published);
+        const dateB = new Date(b.published);
+
+        // 处理无效日期的情况
+        if (isNaN(dateA.getTime())) return 1;
+        if (isNaN(dateB.getTime())) return -1;
+
+        // 按日期倒序排序
+        return dateB.getTime() - dateA.getTime();
+      });
       loadingContainer.classList.add("hidden");
 
       if (allFeeds.length === 0) {
