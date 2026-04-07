@@ -10,7 +10,7 @@
  * 
  * 用法：
  * - 手动执行：node scripts/fetch-rss-feeds.js
- * - 构建后自动执行：通过 package.json 配置
+ * - 构建前自动执行：通过 package.json 配置
  */
 
 import fs from 'fs';
