@@ -8,6 +8,7 @@ import Card from "@/components/Card.astro";
 import getPostsByGroupCondition from "@/utils/getPostsByGroupCondition";
 import postFilter from "@/utils/postFilter";
 import { SITE } from "@/config";
+import { getYearMonthInTimeZone } from "@/utils/calendarDate";
 
 // Redirect to 404 page if `showArchives` config is false
 if (!SITE.showArchives) {
@@ -38,7 +39,7 @@ const months = [
     {
       Object.entries(
         getPostsByGroupCondition(posts, post =>
-          post.data.pubDatetime.getFullYear()
+          getYearMonthInTimeZone(post.data.pubDatetime).year
         )
       )
         .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
@@ -49,7 +50,7 @@ const months = [
             {Object.entries(
               getPostsByGroupCondition(
                 yearGroup,
-                post => post.data.pubDatetime.getMonth() + 1
+                post => getYearMonthInTimeZone(post.data.pubDatetime).monthIndex + 1
               )
             )
               .sort(([monthA], [monthB]) => Number(monthB) - Number(monthA))

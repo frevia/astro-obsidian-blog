@@ -1,7 +1,7 @@
 import React from "react";
 import TimelineItemReact from "./TimelineItemReact";
 import TwikooThread from "./TwikooThread";
-import { SITE } from "../config";
+import { parseYMDAsUTC, formatSiteDate, toSiteYMD } from "@/utils/calendarDate";
 
 // 本地电影数据接口
 interface LocalMovieData {
@@ -75,24 +75,6 @@ export interface DiaryEntryProps {
   timeBlocks: TimeBlock[];
 }
 
-const TZ = SITE.timezone;
-
-// 将 Date -> "YYYY-MM-DD"（按指定时区），便于比较"今天/昨天/前天"
-function toYMD(d: Date, timeZone = TZ) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(d); // en-CA 会输出 2025-08-17
-}
-
-// 解析 "YYYY-MM-DD" 为一个 UTC 的 00:00:00 时间点，避免本地时区干扰
-function ymdToUTC(ymd: string) {
-  const [y, m, d] = ymd.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d));
-}
-
 const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
   date,
   hideYear = false,
@@ -101,37 +83,29 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
   const threadKey = `twikoo-diary-${date}`;
   const threadPath = `/diary/${date}`;
 
-  // 1) 先准备稳定的 SSR 文案：绝对日期 (MM/DD) + 固定时区的星期/年份
-  const entryDateUTC = ymdToUTC(date);
+  const entryDateUTC = parseYMDAsUTC(date);
 
-  const absoluteLabel = new Intl.DateTimeFormat("zh-CN", {
-    timeZone: TZ,
+  const absoluteLabel = formatSiteDate(entryDateUTC, "zh-CN", {
     month: "2-digit",
     day: "2-digit",
-  }).format(entryDateUTC); // 如 "08/17"
+  });
 
-  const weekdayLabel = new Intl.DateTimeFormat("zh-CN", {
-    timeZone: TZ,
+  const weekdayLabel = formatSiteDate(entryDateUTC, "zh-CN", {
     weekday: "short",
-  }).format(entryDateUTC); // 如 "周日"
+  });
 
-  const yearLabel = new Intl.DateTimeFormat("zh-CN", {
-    timeZone: TZ,
+  const yearLabel = formatSiteDate(entryDateUTC, "zh-CN", {
     year: "numeric",
-  }).format(entryDateUTC); // 如 "2025"
+  });
 
-  // 2) 客户端再计算"今天/昨天/前天"，并替换显示
   const [relativeLabel, setRelativeLabel] = React.useState<string | null>(null);
 
   React.useLayoutEffect(() => {
     const now = new Date();
-    // 当天(按 TZ) 与条目日期(按 TZ) 的日历日
-    const todayYMD = toYMD(now, TZ);
-    const entryYMD = toYMD(entryDateUTC, TZ);
-
-    // 把 "YYYY-MM-DD" 转为 UTC 00:00 计算"整日"差
-    const todayUTC = ymdToUTC(todayYMD);
-    const entryUTC = ymdToUTC(entryYMD);
+    const todayYMD = toSiteYMD(now);
+    const entryYMD = toSiteYMD(entryDateUTC);
+    const todayUTC = parseYMDAsUTC(todayYMD);
+    const entryUTC = parseYMDAsUTC(entryYMD);
 
     const diffDays = Math.floor(
       (todayUTC.getTime() - entryUTC.getTime()) / 86400000
@@ -145,7 +119,7 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
 
   return (
     <div
-      className="date-group border-b border-border/25 pb-5 mb-5"
+      className="date-group mb-5 border-b border-border/25 pb-5"
       data-pagefind-weight="2"
     >
       <header className="mb-8">

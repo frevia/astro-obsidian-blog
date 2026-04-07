@@ -1,8 +1,9 @@
 ---
 import Hr from "./Hr.astro";
 import Socials from "./Socials.astro";
+import { getSiteYear } from "@/utils/calendarDate";
 
-const currentYear = new Date().getFullYear();
+const currentYear = getSiteYear(new Date());
 
 export interface Props {
   noMarginTop?: boolean;
