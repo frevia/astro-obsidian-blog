@@ -71,10 +71,11 @@ function createFeedCardHTML(item, fallbackOgImageGlobal) {
 export async function initFeeds(
   fallbackOgImageGlobal,
   initialItemCount,
-  itemsPerPage
+  itemsPerPage,
+  dataSourceUrl
 ) {
-  // 默认使用本地数据
-  const localDataSourceUrl = "/data/feeds/feeds.json";
+  // 使用传入的数据源 URL，如果没有则使用默认本地数据
+  const localDataSourceUrl = dataSourceUrl || "/data/feeds/feeds.json";
   const feedsListElement = document.getElementById("feeds-list");
   const loadMoreTrigger = document.getElementById("load-more-trigger");
   const loadingContainer = document.getElementById("feeds-loading");
