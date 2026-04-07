@@ -17,14 +17,28 @@ import IconRocket from "@/assets/icons/IconRocket.svg";
 </div>
 
 <script type="module" is:inline>
-  function getYearProgress() {
-    const now = new Date();
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
-    const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+  import { getSiteDateParts, getSiteYear } from "@/utils/calendarDate";
 
-    const total = endOfYear.getTime() - startOfYear.getTime();
-    const elapsed = now.getTime() - startOfYear.getTime();
+  function getYearProgress() {
+    const now = getSiteDateParts(new Date());
+    const nowTs = Date.UTC(
+      now.year,
+      now.month - 1,
+      now.day,
+      now.hour,
+      now.minute,
+      now.second
+    );
+    const startOfYear = Date.UTC(now.year, 0, 1, 0, 0, 0);
+    const endOfYear = Date.UTC(now.year, 11, 31, 23, 59, 59);
+
+    const total = endOfYear - startOfYear;
+    const elapsed = nowTs - startOfYear;
     return (elapsed / total) * 100;
+  }
+
+  function getCurrentYear() {
+    return getSiteYear(new Date());
   }
 
   function easeOutCubic(t) {
@@ -67,7 +81,7 @@ import IconRocket from "@/assets/icons/IconRocket.svg";
       bar.style.width = current + "%";
       root.style.setProperty("--year-progress", current + "%");
       img.style.left = current + "%";
-      const year = new Date().getFullYear();
+      const year = getCurrentYear();
       tooltip.textContent = `${year}年已走完 ${current.toFixed(1)}%`;
 
       tooltip.classList.remove("end", "center");
@@ -97,7 +111,7 @@ import IconRocket from "@/assets/icons/IconRocket.svg";
       bar.style.width = progress + "%";
       root.style.setProperty("--year-progress", progress + "%");
       img.style.left = progress + "%";
-      const year = new Date().getFullYear();
+      const year = getCurrentYear();
       tooltip.textContent = `${year}年已走完 ${progress.toFixed(1)}%`;
       tooltip.classList.remove("end", "center");
       tooltip.classList.add(progress > 90 ? "center" : "end");

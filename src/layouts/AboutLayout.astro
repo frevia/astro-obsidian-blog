@@ -31,6 +31,7 @@ import Twikoo from "@/components/Twikoo.astro";
 // import Breadcrumb from "@/components/Breadcrumb.astro";
 import Layout from "./Layout.astro";
 import { SITE } from "@/config";
+import { getYMDParts } from "@/utils/calendarDate";
 import { getBlogMetrics } from "@/utils/getBlogMetrics";
 import {
   PUBLIC_TWIKOO_ENABLED,
@@ -54,10 +55,9 @@ const hasTwikooEnv =
   (PUBLIC_TWIKOO_REGION ?? "").trim().length > 0;
 
 // 解析博客创建日期
-const createdAt = new Date(SITE.createdAt);
-const startYear = createdAt.getFullYear();
-const startMonth = createdAt.getMonth() + 1; // 月份从 0 开始，需要加 1
-const startDay = createdAt.getDate();
+const { year: startYear, month: startMonth, day: startDay } = getYMDParts(
+  SITE.createdAt
+);
 ---
 
 <Layout title={`${frontmatter.title} | ${SITE.title}`}>

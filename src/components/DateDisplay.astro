@@ -1,67 +1,8 @@
----
-import chineseDays from "chinese-days";
-import { SITE } from "@/config";
-import { toYMDInTimeZone } from "@/utils/calendarDate";
-
-// 与 config 中 SITE.timezone 一致，避免 Vercel(UTC) 下显示成“昨天”
-const now = new Date();
-const dateKey = toYMDInTimeZone(now);
-const [, ms, ds] = dateKey.split("-");
-const month = Number(ms);
-const day = Number(ds);
-
-const weekdayText = new Intl.DateTimeFormat("zh-CN", {
-  timeZone: SITE.timezone,
-  weekday: "short",
-}).format(now);
-
-const weekdayEn = new Intl.DateTimeFormat("en-US", {
-  timeZone: SITE.timezone,
-  weekday: "short",
-}).formatToParts(now)
-  .find(p => p.type === "weekday")?.value;
-const isWorkday = weekdayEn !== "Sat" && weekdayEn !== "Sun";
-
-// 获取农历信息
-let lunarMonth = "";
-let lunarDay = "";
-try {
-  const lunarInfo = chineseDays.getLunarDatesInRange(dateKey, dateKey);
-  if (lunarInfo && lunarInfo.length > 0) {
-    const info = lunarInfo[0];
-    lunarMonth = info.lunarMonCN;
-    lunarDay = info.lunarDayCN;
-  }
-} catch {
-  // 忽略错误
-}
-
-// 获取节气信息（仅当日有节气时显示）
-let solarTerm = "";
-try {
-  const solarTerms = chineseDays.getSolarTermsInRange(dateKey, dateKey) as Array<{
-    date: string;
-    name: string;
-    index?: number;
-  }>;
-  const todaySolarTerm = solarTerms.find(
-    item => item.date === dateKey && item.index === 1
-  );
-  if (todaySolarTerm?.name) {
-    solarTerm = todaySolarTerm.name;
-  }
-} catch {
-  // 忽略错误
-}
-
-const workdayText = isWorkday ? "工作日" : "休息啦";
-const workdayClass = isWorkday
-  ? "text-green-600 dark:text-green-400"
-  : "text-red-600 dark:text-red-400";
----
-
 <!-- 整颗风铃：顶环 → 绳 → 主牌 → 绳 → 坠 -->
-<div class="date-chime-root inline-flex flex-col items-center">
+<div
+  class="date-chime-root inline-flex flex-col items-center"
+  data-date-display
+>
   <div class="chime-sway-primary flex flex-col items-center">
     <span
       class="chime-ring border-accent/55 bg-background shadow-sm"
@@ -70,74 +11,65 @@ const workdayClass = isWorkday
 
     <div
       class="hover:bg-skin-muted/20 flex cursor-pointer flex-col items-center justify-center rounded-lg border bg-background p-3 shadow-sm transition-colors"
-      id="date-display-btn"
+      data-date-display-btn
     >
       <div class="flex flex-col items-center justify-center">
         <div class="flex items-center gap-1 text-sm">
-          <span class="font-medium text-red-600 dark:text-red-400"
-            >{weekdayText}</span
+          <span
+            class="font-medium text-red-600 dark:text-red-400"
+            data-date-display-weekday></span>
+          <span class="text-skin-muted"
+            ><span data-date-display-month></span>月</span
           >
-          <span class="text-skin-muted">{month}月</span>
         </div>
-        <div class="text-2xl font-bold">{day}</div>
-        {
-          lunarMonth && lunarDay && (
-            <div class="text-skin-muted text-xs">
-              {lunarMonth}
-              {lunarDay}
-            </div>
-          )
-        }
+        <div class="text-2xl font-bold" data-date-display-day></div>
+        <div class="text-skin-muted hidden text-xs" data-date-display-lunar>
+        </div>
       </div>
     </div>
 
     <div class="chime-sway-secondary flex flex-col items-center">
-      {
-        solarTerm ? (
-          <div class="chime-solar-chain flex flex-col items-center">
-            <!-- 上绳 + 五边形 + 下绳：同一 SVG、同一坐标系，与顶点/底边中点严格对齐 -->
-            <div class="chime-solar-chain-inner relative w-[3.6rem] shrink-0">
-              <svg
-                class="chime-solar-chain-svg block overflow-visible"
-                viewBox="0 0 36 69"
-                width="3.6rem"
-                height="6.9rem"
-                aria-hidden="true"
-              >
-                <!-- 绳段高度 17.5 + 五边形高度 34 + 绳段 17.5 = 69（与原先 1.75rem+3.4rem+1.75rem 同比例） -->
-                <line
-                  class="chime-chain-stroke"
-                  x1="18"
-                  y1="0"
-                  x2="18"
-                  y2="17.5"
-                  stroke-linecap="butt"></line>
-                <polygon
-                  class="chime-chain-stroke chime-chain-pent"
-                  points="18,17.5 36,30.42 29.52,51.5 6.48,51.5 0,30.42"></polygon>
-                <line
-                  class="chime-chain-stroke"
-                  x1="18"
-                  y1="51.5"
-                  x2="18"
-                  y2="69"
-                  stroke-linecap="butt"></line>
-              </svg>
-              <span
-                class="text-xs font-medium text-amber-700 dark:text-amber-300 pointer-events-none absolute top-1/2 left-1/2 z-[1] max-w-[2.4rem] -translate-x-1/2 -translate-y-1/2 text-center leading-none"
-              >
-                {solarTerm}
-              </span>
-            </div>
-          </div>
-        ) : (
-          <div class="chime-rope chime-rope--mid"></div>
-        )
-      }
       <div
-        class="chime-workday-pill min-w-[4.5rem] rounded-full border bg-background px-2 py-1 text-center shadow-sm"
+        class="chime-solar-chain flex hidden flex-col items-center"
+        data-date-display-solar-chain
       >
-        <span class={`text-xs font-medium ${workdayClass}`}>{workdayText}</span>
+        <div class="chime-solar-chain-inner relative w-[3.6rem] shrink-0">
+          <svg
+            class="chime-solar-chain-svg block overflow-visible"
+            viewBox="0 0 36 69"
+            width="3.6rem"
+            height="6.9rem"
+            aria-hidden="true"
+          >
+            <line
+              class="chime-chain-stroke"
+              x1="18"
+              y1="0"
+              x2="18"
+              y2="17.5"
+              stroke-linecap="butt"></line>
+            <polygon
+              class="chime-chain-stroke chime-chain-pent"
+              points="18,17.5 36,30.42 29.52,51.5 6.48,51.5 0,30.42"></polygon>
+            <line
+              class="chime-chain-stroke"
+              x1="18"
+              y1="51.5"
+              x2="18"
+              y2="69"
+              stroke-linecap="butt"></line>
+          </svg>
+          <span
+            class="pointer-events-none absolute top-1/2 left-1/2 z-[1] max-w-[2.4rem] -translate-x-1/2 -translate-y-1/2 text-center text-xs leading-none font-medium text-amber-700 dark:text-amber-300"
+            data-date-display-solar-term></span>
+        </div>
+      </div>
+      <div class="chime-rope chime-rope--mid" data-date-display-mid-rope></div>
+      <div
+        class="chime-workday-pill chime-workday-pill--with-rope min-w-[4.5rem] rounded-full border bg-background px-2 py-1 text-center shadow-sm"
+        data-date-display-workday-pill
+      >
+        <span class="text-xs font-medium" data-date-display-workday></span>
       </div>
     </div>
   </div>
@@ -170,12 +102,12 @@ const workdayClass = isWorkday
   }
 
   /* 节气链底与工作日坠略贴紧（下绳已在 SVG 内，此处只收外层缝） */
-  .chime-solar-chain + .chime-workday-pill {
+  .chime-workday-pill--with-solar {
     margin-top: -0.06rem;
   }
 
   /* 无节气时：主绳与工作日坠之间略收紧 */
-  .chime-sway-secondary > .chime-rope--mid + .chime-workday-pill {
+  .chime-workday-pill--with-rope {
     margin-top: -0.08rem;
   }
 
@@ -254,26 +186,166 @@ const workdayClass = isWorkday
 </style>
 
 <script>
-  // 添加日期显示挂件的点击事件监听器
-  function addDateDisplayListener() {
-    const dateDisplayBtn = document.getElementById("date-display-btn");
-    if (dateDisplayBtn) {
-      // 先移除可能存在的事件监听器，避免重复添加
-      dateDisplayBtn.removeEventListener("click", handleDateDisplayClick);
-      dateDisplayBtn.addEventListener("click", handleDateDisplayClick);
-    }
+  import chineseDays from "chinese-days";
+  import { formatSiteDate, toSiteYMD } from "@/utils/calendarDate";
+
+  const globalWindow = window as Window & {
+    __dateDisplayBound?: boolean;
+    __dateDisplayIntervalId?: number;
+  };
+
+  function getDisplayData() {
+    const now = new Date();
+    const dateKey = toSiteYMD(now);
+    const [, ms, ds] = dateKey.split("-");
+    const month = Number(ms);
+    const day = Number(ds);
+    const weekdayText = formatSiteDate(now, "zh-CN", { weekday: "short" });
+    const weekdayEn = formatSiteDate(now, "en-US", { weekday: "short" });
+    const isWorkday = weekdayEn !== "Sat" && weekdayEn !== "Sun";
+
+    let lunarText = "";
+    try {
+      const lunarInfo = chineseDays.getLunarDatesInRange(dateKey, dateKey);
+      const info = lunarInfo?.[0];
+      if (info) {
+        lunarText = `${info.lunarMonCN}${info.lunarDayCN}`;
+      }
+    } catch {}
+
+    let solarTerm = "";
+    try {
+      const solarTerms = chineseDays.getSolarTermsInRange(
+        dateKey,
+        dateKey
+      ) as Array<{
+        date: string;
+        name: string;
+        index?: number;
+      }>;
+      const todaySolarTerm = solarTerms.find(
+        item => item.date === dateKey && item.index === 1
+      );
+      solarTerm = todaySolarTerm?.name ?? "";
+    } catch {}
+
+    return {
+      month,
+      day,
+      weekdayText,
+      lunarText,
+      solarTerm,
+      workdayText: isWorkday ? "工作日" : "休息啦",
+      isWorkday,
+    };
   }
 
-  // 处理日期显示挂件点击
+  function getElements(root: HTMLElement) {
+    const button = root.querySelector("[data-date-display-btn]");
+    const weekday = root.querySelector("[data-date-display-weekday]");
+    const month = root.querySelector("[data-date-display-month]");
+    const day = root.querySelector("[data-date-display-day]");
+    const lunar = root.querySelector("[data-date-display-lunar]");
+    const solarChain = root.querySelector("[data-date-display-solar-chain]");
+    const solarTerm = root.querySelector("[data-date-display-solar-term]");
+    const midRope = root.querySelector("[data-date-display-mid-rope]");
+    const workdayPill = root.querySelector("[data-date-display-workday-pill]");
+    const workday = root.querySelector("[data-date-display-workday]");
+
+    if (
+      !(button instanceof HTMLElement) ||
+      !(weekday instanceof HTMLElement) ||
+      !(month instanceof HTMLElement) ||
+      !(day instanceof HTMLElement) ||
+      !(lunar instanceof HTMLElement) ||
+      !(solarChain instanceof HTMLElement) ||
+      !(solarTerm instanceof HTMLElement) ||
+      !(midRope instanceof HTMLElement) ||
+      !(workdayPill instanceof HTMLElement) ||
+      !(workday instanceof HTMLElement)
+    ) {
+      return null;
+    }
+
+    return {
+      button,
+      weekday,
+      month,
+      day,
+      lunar,
+      solarChain,
+      solarTerm,
+      midRope,
+      workdayPill,
+      workday,
+    };
+  }
+
   function handleDateDisplayClick() {
     const calendarModal = document.getElementById("calendar-modal");
     if (calendarModal) {
       calendarModal.classList.remove("hidden");
+      document.dispatchEvent(new CustomEvent("calendar-modal-open"));
     }
   }
 
-  // 在 DOMContentLoaded、pageshow 和 astro:after-swap 事件中添加事件监听器
-  document.addEventListener("DOMContentLoaded", addDateDisplayListener);
-  window.addEventListener("pageshow", addDateDisplayListener);
-  document.addEventListener("astro:after-swap", addDateDisplayListener);
+  function updateDateDisplays() {
+    const roots = document.querySelectorAll("[data-date-display]");
+    roots.forEach(node => {
+      if (!(node instanceof HTMLElement)) return;
+      const els = getElements(node);
+      if (!els) return;
+
+      const data = getDisplayData();
+
+      els.button.onclick = handleDateDisplayClick;
+      els.weekday.textContent = data.weekdayText;
+      els.month.textContent = String(data.month);
+      els.day.textContent = String(data.day);
+      els.workday.textContent = data.workdayText;
+      els.workday.classList.toggle("text-green-600", data.isWorkday);
+      els.workday.classList.toggle("dark:text-green-400", data.isWorkday);
+      els.workday.classList.toggle("text-red-600", !data.isWorkday);
+      els.workday.classList.toggle("dark:text-red-400", !data.isWorkday);
+
+      if (data.lunarText) {
+        els.lunar.textContent = data.lunarText;
+        els.lunar.classList.remove("hidden");
+      } else {
+        els.lunar.textContent = "";
+        els.lunar.classList.add("hidden");
+      }
+
+      const hasSolarTerm = data.solarTerm !== "";
+      els.solarTerm.textContent = data.solarTerm;
+      els.solarChain.classList.toggle("hidden", !hasSolarTerm);
+      els.midRope.classList.toggle("hidden", hasSolarTerm);
+      els.workdayPill.classList.toggle(
+        "chime-workday-pill--with-solar",
+        hasSolarTerm
+      );
+      els.workdayPill.classList.toggle(
+        "chime-workday-pill--with-rope",
+        !hasSolarTerm
+      );
+    });
+  }
+
+  if (!globalWindow.__dateDisplayBound) {
+    document.addEventListener("astro:page-load", updateDateDisplays);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") updateDateDisplays();
+    });
+    window.addEventListener("pageshow", updateDateDisplays);
+    document.addEventListener("DOMContentLoaded", updateDateDisplays, {
+      once: true,
+    });
+    globalWindow.__dateDisplayIntervalId = window.setInterval(
+      updateDateDisplays,
+      60_000
+    );
+    globalWindow.__dateDisplayBound = true;
+  }
+
+  updateDateDisplays();
 </script>

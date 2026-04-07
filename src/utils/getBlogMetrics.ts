@@ -27,6 +27,7 @@
 
 import { getCollection } from "astro:content";
 import { SITE } from "@/config";
+import { parseYMDAsUTC, toSiteYMD } from "@/utils/calendarDate";
 
 /**
  * 博客指标数据接口
@@ -66,9 +67,8 @@ export interface BlogMetrics {
  */
 export async function getBlogMetrics(): Promise<BlogMetrics> {
   // 博客创建日期：从配置中获取
-  const startDate = new Date(SITE.createdAt);
-  // 当前日期和时间
-  const currentDate = new Date();
+  const startDate = parseYMDAsUTC(SITE.createdAt);
+  const currentDate = parseYMDAsUTC(toSiteYMD(new Date()));
 
   /**
    * 计算运行天数

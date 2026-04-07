@@ -1,5 +1,6 @@
 import React from "react";
 import type { MediaCardProps } from "../types/media";
+import { formatInTimeZone } from "@/utils/calendarDate";
 
 const MediaCard: React.FC<MediaCardProps> = ({
   mediaData,
@@ -44,7 +45,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
   const formatReleaseDate = (dateStr?: string) => {
     if (!dateStr) return "";
     const date = new Date(dateStr);
-    return date.toLocaleDateString("zh-CN", {
+    return formatInTimeZone(date, "zh-CN", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
