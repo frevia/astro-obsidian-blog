@@ -38,18 +38,16 @@ function getChineseHolidayName(name: string): string {
 
 /** 周一为一周第一天，返回的 grid 从左到右为 一…日（全东八区时间，与站点时区的 YYYY-MM-DD 对齐） */
 function getCalendarGridDates(year: number, month: number): Date[] {
-  const first = new Date(year, month, 1);
-  const firstDayOfWeek = parseYMDAsUTC(toSiteYMD(first)).getUTCDay();
+  const first = new Date(Date.UTC(year, month, 1));
+  const firstDayOfWeek = first.getUTCDay();
   const offset = (firstDayOfWeek + 6) % 7;
-  const gridStart = new Date(year, month, 1 - offset);
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const gridStartTs = Date.UTC(year, month, 1 - offset);
+  const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
   const total = offset + daysInMonth;
   const totalCells = Math.ceil(total / 7) * 7;
   const dates: Date[] = [];
   for (let i = 0; i < totalCells; i++) {
-    const d = new Date(gridStart);
-    d.setDate(gridStart.getDate() + i);
-    dates.push(d);
+    dates.push(new Date(gridStartTs + i * 86400000));
   }
   return dates;
 }
