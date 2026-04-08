@@ -208,6 +208,9 @@ function longestChordInRotatedPolygon(
 /**
  * 在 GeoJSON 多边形内部：负缓冲（buffer）→ 多角度旋转 → 水平扫描线与边界求交得弦 → 取最长一条。
  * 端点经逆旋转回到原始 [lng, lat]，仅输出一条最优线段。
+ *
+ * 对凹形多边形（如乌鲁木齐）：弦中点可能落在形外。算法同时追踪「弦中点在形内」的最长弦，
+ * 当 safe 弦长度 ≥ 最长弦的 MIN_SAFE_RATIO 时优先选用，避免文字横跨凹陷区。
  */
 export function findLongestInteriorChord(
   raw: unknown,
@@ -236,14 +239,28 @@ export function findLongestInteriorChord(
 
   const pivot = turf.getCoord(turf.centroid(working));
 
-  let best:
-    | {
-        a: [number, number];
-        b: [number, number];
-        len: number;
-        sweepDeg: number;
-      }
-    | null = null;
+  type Candidate = {
+    a: [number, number];
+    b: [number, number];
+    len: number;
+    sweepDeg: number;
+  };
+
+  let best: Candidate | null = null;
+  let bestSafe: Candidate | null = null;
+
+  const isBetterCandidate = (
+    cur: Candidate | null,
+    len: number,
+    deg: number
+  ): boolean => {
+    const tieBetter =
+      cur &&
+      Math.abs(len - cur.len) <= 1e-9 &&
+      Math.abs(deg) < Math.abs(cur.sweepDeg);
+    const lengthBetter = !cur || len > cur.len + 1e-9;
+    return !!(lengthBetter || tieBetter);
+  };
 
   for (let deg = -90; deg <= 90 + EPS; deg += angleStep) {
     const rotated = turf.transformRotate(working, -deg, {
@@ -253,34 +270,43 @@ export function findLongestInteriorChord(
     const chord = longestChordInRotatedPolygon(rotated, yScanLines);
     if (!chord) continue;
 
-    const tieBetter =
-      best &&
-      Math.abs(chord.lengthKm - best.len) <= 1e-9 &&
-      Math.abs(deg) < Math.abs(best.sweepDeg);
-    const lengthBetter = !best || chord.lengthKm > best.len + 1e-9;
+    const ln = turf.lineString([chord.a, chord.b]);
+    const back = turf.transformRotate(ln, deg, {
+      pivot,
+    }) as Feature<LineString>;
 
-    if (lengthBetter || tieBetter) {
-      const ln = turf.lineString([chord.a, chord.b]);
-      const back = turf.transformRotate(ln, deg, {
-        pivot,
-      }) as Feature<LineString>;
+    const [p0, p1] = back.geometry.coordinates;
+    const candidate: Candidate = {
+      a: [p0[0], p0[1]],
+      b: [p1[0], p1[1]],
+      len: chord.lengthKm,
+      sweepDeg: deg,
+    };
 
-      const [p0, p1] = back.geometry.coordinates;
-      best = {
-        a: [p0[0], p0[1]],
-        b: [p1[0], p1[1]],
-        len: chord.lengthKm,
-        sweepDeg: deg,
-      };
+    if (isBetterCandidate(best, candidate.len, deg)) {
+      best = candidate;
+    }
+
+    const mid: [number, number] = [
+      (candidate.a[0] + candidate.b[0]) / 2,
+      (candidate.a[1] + candidate.b[1]) / 2,
+    ];
+    const midInside = turf.booleanPointInPolygon(turf.point(mid), base);
+    if (midInside && isBetterCandidate(bestSafe, candidate.len, deg)) {
+      bestSafe = candidate;
     }
   }
 
   if (!best) return null;
 
+  const MIN_SAFE_RATIO = 0.38;
+  const chosen =
+    bestSafe && bestSafe.len >= best.len * MIN_SAFE_RATIO ? bestSafe : best;
+
   return {
-    a: best.a,
-    b: best.b,
-    sweepAngleDeg: best.sweepDeg,
+    a: chosen.a,
+    b: chosen.b,
+    sweepAngleDeg: chosen.sweepDeg,
   };
 }
 
