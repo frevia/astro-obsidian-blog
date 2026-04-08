@@ -29,10 +29,7 @@
     </div>
 
     <div class="chime-sway-secondary flex flex-col items-center">
-      <div
-        class="chime-solar-chain flex hidden flex-col items-center"
-        data-date-display-solar-chain
-      >
+      <div class="chime-solar-chain hidden" data-date-display-solar-chain>
         <div class="chime-solar-chain-inner relative w-[3.6rem] shrink-0">
           <svg
             class="chime-solar-chain-svg block overflow-visible"
@@ -120,6 +117,12 @@
 
   .chime-solar-chain-svg .chime-chain-pent {
     stroke-linejoin: miter;
+  }
+
+  .chime-solar-chain:not(.hidden) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   /* 整颗挂件绕顶环摆动 */
