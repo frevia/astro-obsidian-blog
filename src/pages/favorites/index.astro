@@ -8,6 +8,7 @@ import Datetime from "@/components/Datetime.astro";
 import getPostsByGroupCondition from "@/utils/getPostsByGroupCondition";
 import { SITE } from "@/config";
 import { getYearMonthInTimeZone } from "@/utils/calendarDate";
+import { slugifyStr } from "@/utils/slugify";
 
 const clips = await getCollection("clip");
 const allTags = Array.from(
@@ -31,11 +32,20 @@ const months = [
   "十二月",
 ];
 
-const getFavoritePath = (id: string, includeBase = true) => {
+const resolveFavoriteSlug = (slug: string | undefined, title: string) => {
+  const trimmedSlug = slug?.trim();
+  if (trimmedSlug) return trimmedSlug;
+  return slugifyStr(title);
+};
+
+const getFavoritePath = (
+  slug: string | undefined,
+  title: string,
+  includeBase = true
+) => {
   const basePath = includeBase ? "/favorites" : "";
-  const parts = id.split("/");
-  const slug = parts.length > 0 ? parts.slice(-1) : parts;
-  return [basePath, slug].join("/");
+  const favoriteSlug = resolveFavoriteSlug(slug, title);
+  return [basePath, favoriteSlug].join("/");
 };
 ---
 
@@ -122,7 +132,7 @@ const getFavoritePath = (id: string, includeBase = true) => {
                           data-tags={post.data.tags.join("||")}
                         >
                           <a
-                            href={getFavoritePath(post.id)}
+                            href={getFavoritePath(post.data.slug, post.data.title)}
                             class="inline-block text-lg font-medium text-accent decoration-dashed underline-offset-4 focus-visible:no-underline focus-visible:underline-offset-0"
                           >
                             <h2 class="text-lg font-medium decoration-dashed hover:underline">
