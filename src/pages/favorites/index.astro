@@ -1,0 +1,227 @@
+---
+import { getCollection } from "astro:content";
+import Main from "@/layouts/Main.astro";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Datetime from "@/components/Datetime.astro";
+import getPostsByGroupCondition from "@/utils/getPostsByGroupCondition";
+import { SITE } from "@/config";
+import { getYearMonthInTimeZone } from "@/utils/calendarDate";
+
+const clips = await getCollection("clip");
+const allTags = Array.from(
+  new Set(
+    clips.flatMap(clip => clip.data.tags.map(tag => tag.trim()).filter(Boolean))
+  )
+).sort((a, b) => a.localeCompare(b, "zh-CN"));
+
+const months = [
+  "一月",
+  "二月",
+  "三月",
+  "四月",
+  "五月",
+  "六月",
+  "七月",
+  "八月",
+  "九月",
+  "十月",
+  "十一月",
+  "十二月",
+];
+
+const getFavoritePath = (id: string, includeBase = true) => {
+  const basePath = includeBase ? "/favorites" : "";
+  const parts = id.split("/");
+  const slug = parts.length > 0 ? parts.slice(-1) : parts;
+  return [basePath, slug].join("/");
+};
+---
+
+<Layout title={`收藏 | ${SITE.title}`}>
+  <Header />
+  <Main
+    pageTitle="收藏"
+    pageDesc="文章转载或收集自互联网，仅作学习与整理使用。"
+  >
+    <div
+      class="mb-6 rounded-lg border border-border/60 bg-muted/20 px-4 py-3 text-sm text-foreground/80"
+    >
+      若内容涉及侵权，请联系删除。
+    </div>
+    {
+      allTags.length > 0 && (
+        <div class="mb-6" id="favorites-tag-filter">
+          <p class="mb-2 text-sm font-medium">标签筛选</p>
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              data-filter-tag=""
+              class="favorite-filter-btn is-active rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:text-accent"
+            >
+              全部
+            </button>
+            {allTags.map(tag => (
+              <button
+                type="button"
+                data-filter-tag={tag}
+                class="favorite-filter-btn rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:text-accent"
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      )
+    }
+    {
+      Object.entries(
+        getPostsByGroupCondition(
+          clips,
+          post => getYearMonthInTimeZone(post.data.published).year
+        )
+      )
+        .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
+        .map(([year, yearGroup]) => (
+          <div data-year-group>
+            <span class="text-2xl font-bold">{year}</span>
+            <sup class="text-sm">{yearGroup.length}</sup>
+            {Object.entries(
+              getPostsByGroupCondition(
+                yearGroup,
+                post =>
+                  getYearMonthInTimeZone(post.data.published).monthIndex + 1
+              )
+            )
+              .sort(([monthA], [monthB]) => Number(monthB) - Number(monthA))
+              .map(([month, monthGroup]) => (
+                <div class="flex flex-col sm:flex-row" data-month-group>
+                  <div class="mt-6 min-w-36 text-lg sm:my-6">
+                    <span class="font-bold">{months[Number(month) - 1]}</span>
+                  </div>
+                  <ul>
+                    {monthGroup
+                      .sort(
+                        (a, b) =>
+                          Math.floor(
+                            new Date(
+                              b.data.updated ?? b.data.published
+                            ).getTime() / 1000
+                          ) -
+                          Math.floor(
+                            new Date(
+                              a.data.updated ?? a.data.published
+                            ).getTime() / 1000
+                          )
+                      )
+                      .map(post => (
+                        <li
+                          class="my-6"
+                          data-favorite-item
+                          data-tags={post.data.tags.join("||")}
+                        >
+                          <a
+                            href={getFavoritePath(post.id)}
+                            class="inline-block text-lg font-medium text-accent decoration-dashed underline-offset-4 focus-visible:no-underline focus-visible:underline-offset-0"
+                          >
+                            <h2 class="text-lg font-medium decoration-dashed hover:underline">
+                              {post.data.title}
+                            </h2>
+                          </a>
+                          <Datetime
+                            published={post.data.published}
+                            updated={post.data.updated}
+                            timezone={post.data.timezone}
+                          />
+                          {post.data.description && (
+                            <p>{post.data.description}</p>
+                          )}
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              ))}
+          </div>
+        ))
+    }
+    <p
+      id="favorites-empty"
+      class="hidden py-8 text-center text-sm text-foreground/70"
+    >
+      当前标签下暂无收藏内容
+    </p>
+  </Main>
+  <Footer />
+</Layout>
+
+<style>
+  .favorite-filter-btn.is-active {
+    color: var(--accent);
+    border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
+    background: color-mix(in oklab, var(--accent) 12%, transparent);
+  }
+</style>
+
+<script is:inline>
+  const initFavoriteTagFilter = () => {
+    const filterRoot = document.getElementById("favorites-tag-filter");
+    if (!filterRoot) return;
+
+    const buttons = Array.from(
+      filterRoot.querySelectorAll("[data-filter-tag]")
+    );
+    const items = Array.from(document.querySelectorAll("[data-favorite-item]"));
+    const monthGroups = Array.from(
+      document.querySelectorAll("[data-month-group]")
+    );
+    const yearGroups = Array.from(
+      document.querySelectorAll("[data-year-group]")
+    );
+    const emptyHint = document.getElementById("favorites-empty");
+
+    const applyFilter = activeTag => {
+      buttons.forEach(btn => {
+        btn.classList.toggle(
+          "is-active",
+          (btn.dataset.filterTag ?? "") === activeTag
+        );
+      });
+
+      items.forEach(item => {
+        const tagsRaw = item.dataset.tags ?? "";
+        const tags = tagsRaw ? tagsRaw.split("||").filter(Boolean) : [];
+        const visible = !activeTag || tags.includes(activeTag);
+        item.classList.toggle("hidden", !visible);
+      });
+
+      monthGroups.forEach(group => {
+        const visibleCount = group.querySelectorAll(
+          "[data-favorite-item]:not(.hidden)"
+        ).length;
+        group.classList.toggle("hidden", visibleCount === 0);
+      });
+
+      yearGroups.forEach(group => {
+        const visibleCount = group.querySelectorAll(
+          "[data-month-group]:not(.hidden)"
+        ).length;
+        group.classList.toggle("hidden", visibleCount === 0);
+      });
+
+      const anyVisible = items.some(item => !item.classList.contains("hidden"));
+      if (emptyHint) emptyHint.classList.toggle("hidden", anyVisible);
+    };
+
+    buttons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        applyFilter(btn.dataset.filterTag ?? "");
+      });
+    });
+
+    applyFilter("");
+  };
+
+  initFavoriteTagFilter();
+  document.addEventListener("astro:page-load", initFavoriteTagFilter);
+</script>
