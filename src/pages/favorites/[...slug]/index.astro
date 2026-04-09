@@ -1,0 +1,113 @@
+---
+import "tocbot/dist/tocbot.css";
+import { render, type CollectionEntry, getCollection } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import BackButton from "@/components/BackButton.astro";
+import Datetime from "@/components/Datetime.astro";
+import { SITE } from "@/config";
+import { slugifyStr } from "@/utils/slugify";
+
+export interface Props {
+  post: CollectionEntry<"clip">;
+}
+
+export async function getStaticPaths() {
+  const posts = await getCollection("clip");
+  return posts.map(post => ({
+    params: { slug: post.id.split("/").at(-1) },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const { title, description, published, updated, timezone, source } = post.data;
+
+const layoutProps = {
+  title: `${title} | ${SITE.title}`,
+  description,
+  published,
+  updated,
+  scrollSmooth: true,
+};
+---
+
+<Layout {...layoutProps}>
+  <Header />
+  <BackButton />
+  <main id="main-content" class="mx-auto mt-4 w-full max-w-app px-4 pb-12">
+    <h1
+      transition:name={slugifyStr(title)}
+      class="inline-block text-2xl font-bold text-accent sm:text-3xl"
+    >
+      {title}
+    </h1>
+    <div class="my-2">
+      <Datetime {published} {updated} {timezone} size="lg" />
+    </div>
+    <article
+      id="article"
+      class="js-toc-content app-prose relative mx-auto mt-8 max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
+    >
+      <Content />
+    </article>
+    <div class="mt-8 rounded-lg border border-border/60 bg-muted/20 px-4 py-3 text-sm text-foreground/80">
+      <p>本文转载或收集自互联网，仅作学习与整理使用。</p>
+      {
+        source ? (
+          <p class="mt-2">
+            原文链接：
+            <a
+              href={source}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-accent underline-offset-4 hover:underline"
+            >
+              {source}
+            </a>
+          </p>
+        ) : (
+          <p class="mt-2">若内容涉及侵权，请联系删除。</p>
+        )
+      }
+    </div>
+    <aside id="sidebar" class="sidebar toc-empty hidden lg:block">
+      <div class="toc-title mb-2 text-sm font-medium">页面导航</div>
+      <div id="toc-container" class="js-toc"></div>
+    </aside>
+  </main>
+  <Footer />
+</Layout>
+
+<script>
+  import tocbot from "tocbot";
+
+  document.addEventListener("astro:page-load", () => {
+    const header = document.getElementById("site-header");
+    const tocOffset = header instanceof HTMLElement ? header.offsetHeight + 8 : 0;
+    const sidebar = document.getElementById("sidebar");
+    const tocContainer = document.getElementById("toc-container");
+
+    if (!tocContainer) return;
+
+    tocbot.destroy();
+    tocbot.init({
+      tocSelector: ".js-toc",
+      contentSelector: ".js-toc-content",
+      headingSelector: "h2, h3, h4",
+      hasInnerContainers: true,
+      headingsOffset: tocOffset,
+      scrollSmoothDuration: 300,
+      scrollSmoothOffset: -tocOffset,
+    });
+
+    const hasTocItem =
+      tocContainer.querySelector(".toc-list-item, .toc-link") !== null;
+    if (sidebar) {
+      sidebar.classList.toggle("toc-empty", !hasTocItem);
+    }
+  });
+</script>

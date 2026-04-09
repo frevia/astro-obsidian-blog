@@ -1,5 +1,6 @@
 export const BLOG_PATH = "src/data/blog";
 export const DIARY_PATH = "src/data/diary";
+export const CLIP_PATH = "src/data/clip";
 
 export const SITE = {
   website: "https://frevia.site/", // replace this with your deployed domain
