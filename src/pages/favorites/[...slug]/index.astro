@@ -5,6 +5,7 @@ import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import BackButton from "@/components/BackButton.astro";
+import BackToTopButton from "@/components/BackToTopButton.astro";
 import Datetime from "@/components/Datetime.astro";
 import { SITE } from "@/config";
 import { slugifyStr } from "@/utils/slugify";
@@ -15,8 +16,14 @@ export interface Props {
 
 export async function getStaticPaths() {
   const posts = await getCollection("clip");
+  const resolveFavoriteSlug = (post: CollectionEntry<"clip">) => {
+    const trimmedSlug = post.data.slug?.trim();
+    if (trimmedSlug) return trimmedSlug;
+    return slugifyStr(post.data.title);
+  };
+
   return posts.map(post => ({
-    params: { slug: post.id.split("/").at(-1) },
+    params: { slug: resolveFavoriteSlug(post) },
     props: { post },
   }));
 }
@@ -54,7 +61,9 @@ const layoutProps = {
     >
       <Content />
     </article>
-    <div class="mt-8 rounded-lg border border-border/60 bg-muted/20 px-4 py-3 text-sm text-foreground/80">
+    <div
+      class="mt-8 rounded-lg border border-border/60 bg-muted/20 px-4 py-3 text-sm text-foreground/80"
+    >
       <p>本文转载或收集自互联网，仅作学习与整理使用。</p>
       {
         source ? (
@@ -74,6 +83,7 @@ const layoutProps = {
         )
       }
     </div>
+    <BackToTopButton />
     <aside id="sidebar" class="sidebar toc-empty hidden lg:block">
       <div class="toc-title mb-2 text-sm font-medium">页面导航</div>
       <div id="toc-container" class="js-toc"></div>
@@ -87,7 +97,8 @@ const layoutProps = {
 
   document.addEventListener("astro:page-load", () => {
     const header = document.getElementById("site-header");
-    const tocOffset = header instanceof HTMLElement ? header.offsetHeight + 8 : 0;
+    const tocOffset =
+      header instanceof HTMLElement ? header.offsetHeight + 8 : 0;
     const sidebar = document.getElementById("sidebar");
     const tocContainer = document.getElementById("toc-container");
 
