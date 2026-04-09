@@ -147,7 +147,8 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
       const tick = (now: number) => {
         const elapsed = now - start;
         const p = Math.min(elapsed / durationMs, 1);
-        const next = startVal + (targetRef.current - startVal) * easeOutQuart(p);
+        const next =
+          startVal + (targetRef.current - startVal) * easeOutQuart(p);
         setVal(next);
         if (p < 1) rafRef.current = requestAnimationFrame(tick);
       };
@@ -232,7 +233,8 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         >
           {Math.floor(shownProvinceCount)}
         </span>{" "}
-        个省、<span
+        个省、
+        <span
           className="font-semibold text-accent"
           style={{
             display: "inline-block",
@@ -241,7 +243,8 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         >
           {Math.floor(shownCityCount)}
         </span>{" "}
-        个市、<span
+        个市、
+        <span
           className="font-semibold text-accent"
           style={{
             display: "inline-block",
@@ -255,8 +258,8 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
       <div
         className={
           focusedProvinceKey
-            ? "border-border bg-background relative overflow-hidden rounded-lg border"
-            : "border-border bg-background relative overflow-hidden rounded-lg border p-2 sm:p-3"
+            ? "relative overflow-hidden rounded-lg border border-border bg-background"
+            : "relative overflow-hidden rounded-lg border border-border bg-background p-2 sm:p-3"
         }
       >
         {focusedProvinceKey ? (
@@ -281,63 +284,86 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
             role="img"
             aria-label="中国地图足迹"
           >
-          {isNationalView ? (
-            <>
-              <g style={{ pointerEvents: "none" }}>
-                {visibleCityPaths.map(city => {
-                  if (!city.d) return null;
-                  const visited = visitedCityKeys.has(city.key);
-                  const isSpotlightTarget =
-                    visited &&
-                    nationalSpotlight !== null &&
-                    nationalSpotlight.key === city.key;
+            {isNationalView ? (
+              <>
+                <g style={{ pointerEvents: "none" }}>
+                  {visibleCityPaths.map(city => {
+                    if (!city.d) return null;
+                    const visited = visitedCityKeys.has(city.key);
+                    const isSpotlightTarget =
+                      visited &&
+                      nationalSpotlight !== null &&
+                      nationalSpotlight.key === city.key;
 
-                  return (
-                    <g key={city.key}>
-                      <path
-                        d={city.d}
-                        style={{ pointerEvents: "none", opacity: isSpotlightTarget ? 0 : 1 }}
-                        className={
-                          visited
-                            ? "fill-[#ff5a36]/75 stroke-[#ff3b30]"
-                            : "fill-muted/10 stroke-foreground/22"
-                        }
-                        strokeWidth={visited ? 0.85 : 0.35}
-                      >
-                        <title>{city.cityName}</title>
-                      </path>
-                      {isSpotlightTarget ? (
+                    return (
+                      <g key={city.key}>
                         <path
                           d={city.d}
-                          className="footprint-national-spot-fade-cycle fill-[#ff5a36]/80 stroke-[#ff3b30]"
-                          style={{ pointerEvents: "none" }}
-                          strokeWidth={0.95}
-                        />
-                      ) : null}
-                    </g>
-                  );
-                })}
-              </g>
-              <g style={{ pointerEvents: "auto" }}>{regionPathsJsx}</g>
-              <g style={{ pointerEvents: "none" }}>
-                {nationalProvinceLabelItems.map((item: CityPathItem) => {
-                  const label = nationalProvinceLabelByKey.get(item.key);
-                  if (!label) return null;
-                  const renderedFs = label.fontSize;
-                  const outlinePx = Math.max(0.5, renderedFs * 0.045);
-                  return (
-                    <g key={item.key}>
-                      {label.splitLines?.length ? (
-                        label.splitLines.map((seg, si) => (
+                          style={{
+                            pointerEvents: "none",
+                            opacity: isSpotlightTarget ? 0 : 1,
+                          }}
+                          className={
+                            visited
+                              ? "fill-[#ff5a36]/75 stroke-[#ff3b30]"
+                              : "fill-muted/10 stroke-foreground/22"
+                          }
+                          strokeWidth={visited ? 0.85 : 0.35}
+                        >
+                          <title>{city.cityName}</title>
+                        </path>
+                        {isSpotlightTarget ? (
+                          <path
+                            d={city.d}
+                            className="footprint-national-spot-fade-cycle fill-[#ff5a36]/80 stroke-[#ff3b30]"
+                            style={{ pointerEvents: "none" }}
+                            strokeWidth={0.95}
+                          />
+                        ) : null}
+                      </g>
+                    );
+                  })}
+                </g>
+                <g style={{ pointerEvents: "auto" }}>{regionPathsJsx}</g>
+                <g style={{ pointerEvents: "none" }}>
+                  {nationalProvinceLabelItems.map((item: CityPathItem) => {
+                    const label = nationalProvinceLabelByKey.get(item.key);
+                    if (!label) return null;
+                    const renderedFs = label.fontSize;
+                    const outlinePx = Math.max(0.5, renderedFs * 0.045);
+                    return (
+                      <g key={item.key}>
+                        {label.splitLines?.length ? (
+                          label.splitLines.map((seg, si) => (
+                            <text
+                              key={si}
+                              x={seg.cx}
+                              y={seg.cy}
+                              transform={`rotate(${label.rotate}, ${seg.cx}, ${seg.cy})`}
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              pointerEvents="none"
+                              className="pointer-events-none fill-foreground/38 stroke-background/55 font-serif font-medium select-none"
+                              style={{
+                                fontSize: renderedFs,
+                                letterSpacing: "0.03em",
+                                strokeWidth: outlinePx,
+                                paintOrder: "stroke fill",
+                              }}
+                            >
+                              <title>{item.provinceName}</title>
+                              {seg.text}
+                            </text>
+                          ))
+                        ) : (
                           <text
-                            key={si}
-                            x={seg.cx}
-                            y={seg.cy}
-                            transform={`rotate(${label.rotate}, ${seg.cx}, ${seg.cy})`}
+                            x={label.cx}
+                            y={label.cy}
+                            transform={`rotate(${label.rotate}, ${label.cx}, ${label.cy})`}
                             textAnchor="middle"
                             dominantBaseline="central"
                             pointerEvents="none"
-                            className="pointer-events-none select-none fill-foreground/38 stroke-background/55 font-serif font-medium"
+                            className="pointer-events-none fill-foreground/38 stroke-background/55 font-serif font-medium select-none"
                             style={{
                               fontSize: renderedFs,
                               letterSpacing: "0.03em",
@@ -346,100 +372,82 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                             }}
                           >
                             <title>{item.provinceName}</title>
-                            {seg.text}
+                            {item.cityName}
                           </text>
-                        ))
-                      ) : (
-                        <text
-                          x={label.cx}
-                          y={label.cy}
-                          transform={`rotate(${label.rotate}, ${label.cx}, ${label.cy})`}
-                          textAnchor="middle"
-                          dominantBaseline="central"
-                          pointerEvents="none"
-                          className="pointer-events-none select-none fill-foreground/38 stroke-background/55 font-serif font-medium"
-                          style={{
-                            fontSize: renderedFs,
-                            letterSpacing: "0.03em",
-                            strokeWidth: outlinePx,
-                            paintOrder: "stroke fill",
-                          }}
-                        >
-                          <title>{item.provinceName}</title>
-                          {item.cityName}
-                        </text>
-                      )}
-                    </g>
-                  );
-                })}
-              </g>
-            </>
-          ) : (
-            <g style={{ pointerEvents: "none" }}>{regionPathsJsx}</g>
-          )}
-
-          {visibleMarkerPoints.length > 0 ? (
-            <g style={{ pointerEvents: "none" }}>
-              {visibleMarkerPoints.map((p, idx) => (
-                <g key={`${p.name}-${idx}`}>
-                  <circle
-                    cx={p.x}
-                    cy={p.y}
-                    r={4.2}
-                    className="fill-accent/90 stroke-background"
-                    strokeWidth={2}
-                  >
-                    <title>{`${p.name} (${p.lng}, ${p.lat})`}</title>
-                  </circle>
+                        )}
+                      </g>
+                    );
+                  })}
                 </g>
-              ))}
-            </g>
-          ) : null}
+              </>
+            ) : (
+              <g style={{ pointerEvents: "none" }}>{regionPathsJsx}</g>
+            )}
 
-          {!isNationalView ? (
-            <g style={{ pointerEvents: "auto" }}>
-              {visibleCityPaths.map(city => {
-                if (!city.d) return null;
-                const visited = visitedCityKeys.has(city.key);
-                const selected = selectedCityKey === city.key;
-                const strokeW = selected ? 2.35 : visited ? 1.45 : 1.3;
-                const label = cityLabelByKey.get(city.key);
-                const renderedFs = label?.fontSize ?? 0;
-                const outlinePx = Math.max(0.5, renderedFs * 0.045);
-                return (
-                  <g key={city.key}>
-                    <path
-                      d={city.d}
-                      style={{ pointerEvents: "auto", cursor: "pointer" }}
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleCityClick(city.provinceKey, city.key);
-                      }}
-                      className={
-                        visited
-                          ? selected
-                            ? "fill-[#ff5a36]/82 stroke-accent"
-                            : "fill-[#ff5a36]/75 stroke-[#9f1a10] hover:opacity-[0.97]"
-                          : selected
-                            ? "fill-accent/20 stroke-accent"
-                            : "fill-muted/14 stroke-foreground/70 hover:fill-accent/18"
-                      }
-                      strokeWidth={strokeW}
-                    >
-                      <title>{`${city.cityName}（点击查看）`}</title>
-                    </path>
-                    {label ? (
-                      label.splitLines?.length ? (
-                        label.splitLines.map((seg, si) => (
+            {!isNationalView ? (
+              <g style={{ pointerEvents: "auto" }}>
+                {visibleCityPaths.map(city => {
+                  if (!city.d) return null;
+                  const visited = visitedCityKeys.has(city.key);
+                  const selected = selectedCityKey === city.key;
+                  const strokeW = selected ? 2.35 : visited ? 1.45 : 1.3;
+                  const label = cityLabelByKey.get(city.key);
+                  const renderedFs = label?.fontSize ?? 0;
+                  const outlinePx = Math.max(0.5, renderedFs * 0.045);
+                  return (
+                    <g key={city.key}>
+                      <path
+                        d={city.d}
+                        style={{ pointerEvents: "auto", cursor: "pointer" }}
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleCityClick(city.provinceKey, city.key);
+                        }}
+                        className={
+                          visited
+                            ? selected
+                              ? "fill-[#ff5a36]/82 stroke-accent"
+                              : "fill-[#ff5a36]/75 stroke-[#9f1a10] hover:opacity-[0.97]"
+                            : selected
+                              ? "fill-accent/20 stroke-accent"
+                              : "fill-muted/14 stroke-foreground/70 hover:fill-accent/18"
+                        }
+                        strokeWidth={strokeW}
+                      >
+                        <title>{`${city.cityName}（点击查看）`}</title>
+                      </path>
+                      {label ? (
+                        label.splitLines?.length ? (
+                          label.splitLines.map((seg, si) => (
+                            <text
+                              key={si}
+                              x={seg.cx}
+                              y={seg.cy}
+                              transform={`rotate(${label.rotate}, ${seg.cx}, ${seg.cy})`}
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              pointerEvents="none"
+                              className="pointer-events-none fill-foreground/38 stroke-background/55 font-serif font-medium select-none"
+                              style={{
+                                fontSize: renderedFs,
+                                letterSpacing: "0.03em",
+                                strokeWidth: outlinePx,
+                                paintOrder: "stroke fill",
+                              }}
+                            >
+                              <title>{city.cityName}</title>
+                              {seg.text}
+                            </text>
+                          ))
+                        ) : (
                           <text
-                            key={si}
-                            x={seg.cx}
-                            y={seg.cy}
-                            transform={`rotate(${label.rotate}, ${seg.cx}, ${seg.cy})`}
+                            x={label.cx}
+                            y={label.cy}
+                            transform={`rotate(${label.rotate}, ${label.cx}, ${label.cy})`}
                             textAnchor="middle"
                             dominantBaseline="central"
                             pointerEvents="none"
-                            className="pointer-events-none select-none fill-foreground/38 stroke-background/55 font-serif font-medium"
+                            className="pointer-events-none fill-foreground/38 stroke-background/55 font-serif font-medium select-none"
                             style={{
                               fontSize: renderedFs,
                               letterSpacing: "0.03em",
@@ -447,35 +455,32 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                               paintOrder: "stroke fill",
                             }}
                           >
-                            <title>{city.cityName}</title>
-                            {seg.text}
+                            {city.cityName}
                           </text>
-                        ))
-                      ) : (
-                        <text
-                          x={label.cx}
-                          y={label.cy}
-                          transform={`rotate(${label.rotate}, ${label.cx}, ${label.cy})`}
-                          textAnchor="middle"
-                          dominantBaseline="central"
-                          pointerEvents="none"
-                          className="pointer-events-none select-none fill-foreground/38 stroke-background/55 font-serif font-medium"
-                          style={{
-                            fontSize: renderedFs,
-                            letterSpacing: "0.03em",
-                            strokeWidth: outlinePx,
-                            paintOrder: "stroke fill",
-                          }}
-                        >
-                          {city.cityName}
-                        </text>
-                      )
-                    ) : null}
+                        )
+                      ) : null}
+                    </g>
+                  );
+                })}
+              </g>
+            ) : null}
+            {visibleMarkerPoints.length > 0 ? (
+              <g style={{ pointerEvents: "auto" }}>
+                {visibleMarkerPoints.map((p, idx) => (
+                  <g key={`${p.name}-${idx}`}>
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
+                      r={4.2}
+                      className="fill-accent/90 stroke-background"
+                      strokeWidth={2}
+                    >
+                      <title>{`${p.name} (${p.lng}, ${p.lat})`}</title>
+                    </circle>
                   </g>
-                );
-              })}
-            </g>
-          ) : null}
+                ))}
+              </g>
+            ) : null}
           </svg>
         </div>
       </div>
@@ -513,10 +518,11 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         ) : focusedProvinceKey ? (
           <p className="text-muted-foreground text-sm">
             已放大至{" "}
-            <span className="text-foreground font-medium">
+            <span className="font-medium text-foreground">
               {PROVINCE_NAME_MAP[focusedProvinceKey] ?? focusedProvinceKey}
             </span>
-            。请点击地图中的<strong className="text-foreground">城市区域</strong>
+            。请点击地图中的
+            <strong className="text-foreground">城市区域</strong>
             ，查看对应文章列表。
           </p>
         ) : (

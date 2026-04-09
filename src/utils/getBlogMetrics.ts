@@ -11,7 +11,7 @@
  *
  * 核心逻辑：
  * 1. 从配置的起始日期（SITE.createdAt）计算到当前日期的运行天数
- * 2. 从 content 集合中获取所有非草稿文章（包括 blog 和 diary），统计文章总数
+ * 2. 从 content 集合中获取所有文章（包括 blog 和 diary），统计文章总数
  * 3. 估算文章总字数：按每篇 1500 字的经验值计算
  * 4. 将总字数转换为"万"单位，保留一位小数
  *
@@ -33,9 +33,9 @@ import { parseYMDAsUTC, toSiteYMD } from "@/utils/calendarDate";
  * 博客指标数据接口
  *
  * @property runningDays - 博客运行天数（从 SITE.createdAt 到当前日期）
- * @property totalPosts - 文章总数（排除草稿，包括 blog 和 diary）
- * @property blogPosts - 博客文章数（排除草稿）
- * @property diaryPosts - 日记文章数（排除草稿）
+ * @property totalPosts - 文章总数（包括 blog 和 diary）
+ * @property blogPosts - 博客文章数
+ * @property diaryPosts - 日记文章数
  * @property totalWords - 总字数（估算值）
  * @property totalWordsInWan - 总字数（万为单位，保留一位小数）
  */
@@ -53,9 +53,9 @@ export interface BlogMetrics {
  *
  * 计算规则：
  * 1. 运行天数：从 SITE.createdAt 00:00:00 到当前日期的完整天数
- * 2. 文章总数：排除 draft=true 的文章数量（包括 blog 和 diary）
- * 3. 博客文章数：排除 draft=true 的 blog 文章数量
- * 4. 日记文章数：排除 draft=true 的 diary 文章数量
+ * 2. 文章总数：blog 与 diary 文章数量之和
+ * 3. 博客文章数：blog 文章数量
+ * 4. 日记文章数：diary 文章数量
  * 5. 总字数估算：按每篇文章 1500 字计算
  * 6. 总字数（万）：总字数除以 10000，保留一位小数
  *
@@ -82,12 +82,10 @@ export async function getBlogMetrics(): Promise<BlogMetrics> {
   const runningDays = Math.floor(timeDiff / (1000 * 3600 * 24));
 
   /**
-   * 获取所有非草稿文章（包括 blog 和 diary）
-   *
-   * 使用 getCollection 的过滤器参数，排除 data.draft = true 的文章
+   * 获取所有文章（包括 blog 和 diary）
    */
-  const blogPosts = await getCollection("blog", ({ data }) => !data.draft);
-  const diaryPosts = await getCollection("diary", ({ data }) => !data.draft);
+  const blogPosts = await getCollection("blog");
+  const diaryPosts = await getCollection("diary");
   const totalPosts = blogPosts.length + diaryPosts.length;
 
   /**

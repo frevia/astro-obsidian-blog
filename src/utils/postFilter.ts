@@ -3,13 +3,8 @@ import { SITE } from "@/config";
 
 const postFilter = ({ data }: CollectionEntry<"blog">) => {
   const isPublishTimePassed =
-    Date.now() >
-    new Date(data.pubDatetime).getTime() - SITE.scheduledPostMargin;
-  return (
-    !data.draft &&
-    !data.hidden &&
-    (import.meta.env.DEV || isPublishTimePassed)
-  );
+    Date.now() > new Date(data.published).getTime() - SITE.scheduledPostMargin;
+  return import.meta.env.DEV || isPublishTimePassed;
 };
 
 export default postFilter;

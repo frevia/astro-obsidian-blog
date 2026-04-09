@@ -4,10 +4,8 @@ import { parseEntry } from "@/utils/parseEntry";
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const diaryEntries = await getCollection("diary");
-  // 过滤掉草稿状态的条目
-  const publishedEntries = diaryEntries.filter(entry => !entry.data.draft);
   const ITEMS_PER_PAGE = 5;
-  const totalPages = Math.ceil(publishedEntries.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(diaryEntries.length / ITEMS_PER_PAGE);
 
   return Array.from({ length: totalPages }, (_, i) => ({
     params: { page: String(i + 1) },
@@ -22,11 +20,8 @@ export const GET: APIRoute = async ({ params }) => {
     // 获取所有日记条目
     const diaryEntries = await getCollection("diary");
 
-    // 过滤掉草稿状态的条目
-    const publishedEntries = diaryEntries.filter(entry => !entry.data.draft);
-
     // 按文件名（日期）排序，最新的在前
-    const sortedEntries = publishedEntries.sort((a, b) => {
+    const sortedEntries = diaryEntries.sort((a, b) => {
       const dateA = a.id.split("/").pop()!.replace(".md", "");
       const dateB = b.id.split("/").pop()!.replace(".md", "");
       return dateB.localeCompare(dateA);

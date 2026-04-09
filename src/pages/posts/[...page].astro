@@ -14,11 +14,11 @@ import { SITE } from "@/config";
 import Tag from "@/components/Tag.astro";
 import getUniqueTags from "@/utils/getUniqueTags";
 
-const posts = await getCollection("blog", ({ data }) => !data.draft);
+const posts = await getCollection("blog");
 const tags = getUniqueTags(posts);
 
 export const getStaticPaths = (async ({ paginate }) => {
-  const posts = await getCollection("blog", ({ data }) => !data.draft);
+  const posts = await getCollection("blog");
   return paginate(getSortedPosts(posts), { pageSize: SITE.postPerPage });
 }) satisfies GetStaticPaths;
 

@@ -12,33 +12,37 @@ import { getPath } from "@/utils/getPath";
 const blogPosts = await getCollection("blog");
 const publishedPosts = blogPosts.filter(postFilter);
 
-function parseLocationText(text: string): { lng: number; lat: number } | null {
-  const [lngRaw, latRaw] = text.split(",").map(s => s.trim());
+type PlaceRecord = {
+  name: string;
+  lng: number;
+  lat: number;
+};
+
+function parseLocationText(text: string): PlaceRecord | null {
+  const parts = text.split(",").map(s => s.trim());
+  if (parts.length < 3) return null;
+
+  const name = parts.slice(0, -2).join(",").trim();
+  const lngRaw = parts.at(-2);
+  const latRaw = parts.at(-1);
+  if (!name || !lngRaw || !latRaw) return null;
+
   const lng = Number(lngRaw);
   const lat = Number(latRaw);
   if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null;
   if (lng < -180 || lng > 180 || lat < -90 || lat > 90) return null;
-  return { lng, lat };
+  return { name, lng, lat };
 }
 
-function toPlaceRecord(
-  post: (typeof publishedPosts)[number]
-): { name: string; lng: number; lat: number } | null {
-  const { location, place, title } = post.data;
-  if (!location) return null;
-
-  const parsed = parseLocationText(location);
-  if (!parsed) return null;
-  return {
-    name: (place || title).trim(),
-    lng: parsed.lng,
-    lat: parsed.lat,
-  };
+function toPlaceRecords(post: (typeof publishedPosts)[number]): PlaceRecord[] {
+  const { locations } = post.data;
+  if (!locations?.length) return [];
+  return locations.filter(Boolean).map(parseLocationText).filter(Boolean) as PlaceRecord[];
 }
 
 const placesFromPosts = publishedPosts
-  .map(post => toPlaceRecord(post))
-  .filter((loc): loc is NonNullable<ReturnType<typeof toPlaceRecord>> => Boolean(loc));
+  .flatMap(post => toPlaceRecords(post))
+  .filter((loc): loc is PlaceRecord => Boolean(loc));
 
 type PostLocationRecord = {
   title: string;
@@ -49,18 +53,18 @@ type PostLocationRecord = {
 };
 
 const postLocationRecords = publishedPosts
-  .map(post => {
-    const loc = toPlaceRecord(post);
-    if (!loc) return null;
-    return {
-      title: post.data.title,
-      url: getPath(post.id, post.filePath),
-      name: loc.name,
-      lng: loc.lng,
-      lat: loc.lat,
-    } satisfies PostLocationRecord;
-  })
-  .filter((item): item is PostLocationRecord => Boolean(item));
+  .flatMap(post =>
+    toPlaceRecords(post).map(
+      loc =>
+        ({
+          title: post.data.title,
+          url: getPath(post.id, post.filePath),
+          name: loc.name,
+          lng: loc.lng,
+          lat: loc.lat,
+        }) satisfies PostLocationRecord
+    )
+  );
 
 const uniquePlaces = Array.from(
   new Map(

@@ -327,9 +327,9 @@ h6:hover .icon-link::before {
   }
 }
 
-/* when there's no TOC, adjust sidebar position */
-#sidebar.no-toc {
-  @apply top-150;
+/* when there's no TOC, hide sidebar */
+#sidebar.toc-empty {
+  @apply hidden;
 }
 
 @layer utilities {
@@ -356,8 +356,8 @@ h6:hover .icon-link::before {
       @apply top-36 m-2 max-h-[calc(100vh-12rem)] w-40 translate-x-0 rounded-none bg-transparent p-0 shadow-none;
     }
 
-    #sidebar.no-toc {
-      @apply top-150;
+    #sidebar.toc-empty {
+      @apply hidden;
     }
 
     /* xl breakpoint */

@@ -13,7 +13,7 @@ export interface Props extends CollectionEntry<"blog"> {
 
 const { variant = "h2", itemClass, hidden, data, id, filePath } = Astro.props;
 
-const { title, description, pubDatetime, modDatetime, timezone } = data;
+const { title, description, published, updated, timezone } = data;
 
 const headerProps = {
   style: { viewTransitionName: slugifyStr(title) },
@@ -27,10 +27,10 @@ const headerProps = {
       class="hidden md:mb-0 md:block md:h-[100px] md:w-[100px] md:flex-shrink-0"
     >
       {
-        data.ogImage &&
-          (typeof data.ogImage === "string" ? (
+        data.cover &&
+          (typeof data.cover === "string" ? (
             <Image
-              src={data.ogImage}
+              src={data.cover}
               alt={title}
               width={100}
               height={100}
@@ -38,7 +38,7 @@ const headerProps = {
             />
           ) : (
             <Image
-              src={data.ogImage}
+              src={data.cover}
               alt={title}
               width={100}
               height={100}
@@ -62,7 +62,7 @@ const headerProps = {
           )
         }
       </a>
-      <Datetime {pubDatetime} {modDatetime} {timezone} />
+      <Datetime {published} {updated} {timezone} />
       <p>{description}</p>
     </div>
   </div>
