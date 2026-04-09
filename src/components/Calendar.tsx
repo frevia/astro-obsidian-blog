@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import chineseDays from "chinese-days";
 import {
+  getYMDParts,
   getSiteYearMonth,
   parseYMDAsUTC,
   toSiteYMD,
@@ -395,9 +396,8 @@ const Calendar: React.FC<CalendarProps> = ({
         ))}
         {gridDates.map(d => {
           const dateKey = toSiteYMD(d);
-          const day = d.getUTCDate();
-          const inCurrentMonth =
-            d.getUTCFullYear() === year && d.getUTCMonth() === month;
+          const { year: keyYear, month: keyMonth, day } = getYMDParts(dateKey);
+          const inCurrentMonth = keyYear === year && keyMonth === month + 1;
           const events = eventsByDate[dateKey] ?? [];
           const extra = chineseDaysInfo[dateKey];
           const isToday = todayKey === dateKey;
@@ -410,7 +410,7 @@ const Calendar: React.FC<CalendarProps> = ({
                 : tag === "inLieu"
                   ? "调"
                   : null;
-          const weekday = d.getUTCDay();
+          const weekday = parseYMDAsUTC(dateKey).getUTCDay();
           const isWeekend = weekday === 0 || weekday === 6;
 
           const dayBg =
