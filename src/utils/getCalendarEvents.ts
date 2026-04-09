@@ -20,7 +20,7 @@ function getQuarterKey(dateStr: string): string {
 }
 
 /**
- * 聚合 blog（pubDatetime）和 diary（文件名日期）为日历事件列表。
+ * 聚合 blog（published）和 diary（文件名日期）为日历事件列表。
  * 用于日历组件：某日有事件则标记，点击跳转到对应文章或日记。
  */
 export function getCalendarEvents(
@@ -31,7 +31,7 @@ export function getCalendarEvents(
 
   const publishedPosts = blogEntries.filter(postFilter);
   for (const post of publishedPosts) {
-    const d = post.data.pubDatetime;
+    const d = post.data.published;
     const dateStr = toYMDInTimeZone(d);
     events.push({
       type: "blog",
@@ -41,8 +41,7 @@ export function getCalendarEvents(
     });
   }
 
-  const publishedDiary = diaryEntries.filter(entry => !entry.data.draft);
-  for (const entry of publishedDiary) {
+  for (const entry of diaryEntries) {
     const dateStr = entry.id.split("/").pop()!.replace(".md", "");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) continue;
     const quarterKey = getQuarterKey(dateStr);

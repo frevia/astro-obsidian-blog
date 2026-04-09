@@ -10,7 +10,6 @@ import EditPost from "@/components/EditPost.astro";
 import ShareLinks from "@/components/ShareLinks.astro";
 import BackButton from "@/components/BackButton.astro";
 import BackToTopButton from "@/components/BackToTopButton.astro";
-import SeriesSidebar from "@/components/SeriesSidebar.astro";
 import { getPath } from "@/utils/getPath";
 import { slugifyStr } from "@/utils/slugify";
 import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
@@ -31,17 +30,14 @@ export interface Props {
 
 const { post, posts } = Astro.props;
 
-// Table of contents flag from frontmatter (default true)
-const tocEnabled = post.data.toc ?? true;
-
 const {
   title,
   author,
   description,
-  ogImage: initOgImage,
+  cover: initOgImage,
   canonicalURL,
-  pubDatetime,
-  modDatetime,
+  published,
+  updated,
   timezone,
   tags,
   hideEditPost,
@@ -52,35 +48,32 @@ const {
 
 const { Content } = await render(post);
 
-let ogImageUrl: string | undefined;
+let coverUrl: string | undefined;
 
 // Determine OG image source
 if (typeof initOgImage === "string") {
-  ogImageUrl = initOgImage; // Remote OG image (absolute URL)
+  coverUrl = initOgImage; // Remote OG image (absolute URL)
 } else if (initOgImage?.src) {
-  ogImageUrl = initOgImage.src; // Local asset
+  coverUrl = initOgImage.src; // Local asset
 }
 
-// Use dynamic OG image if enabled and no remote|local ogImage
-if (!ogImageUrl && SITE.dynamicOgImage) {
-  ogImageUrl = `${getPath(post.id, post.filePath)}/index.png`;
+// Use dynamic OG image if enabled and no remote|local cover
+if (!coverUrl && SITE.dynamicOgImage) {
+  coverUrl = `${getPath(post.id, post.filePath)}/index.png`;
 }
 
-// Resolve OG image URL (or fallback to SITE.ogImage / default `og.png`)
-const ogImage = ogImageUrl
-  ? new URL(ogImageUrl, Astro.url.origin).href
-  : undefined;
+// Resolve OG image URL (or fallback to SITE.cover / default `og.png`)
+const cover = coverUrl ? new URL(coverUrl, Astro.url.origin).href : undefined;
 
 const layoutProps = {
   title: `${title} | ${SITE.title}`,
   author,
   description,
-  pubDatetime,
-  modDatetime,
+  published,
+  updated,
   canonicalURL,
-  ogImage,
+  cover,
   scrollSmooth: true,
-  toc: tocEnabled,
 };
 
 /* ========== Prev/Next Posts ========== */
@@ -101,7 +94,6 @@ const nextPost =
 <Layout {...layoutProps}>
   <Header />
   <BackButton />
-  <SeriesSidebar currentPost={post} allPosts={posts} />
   <main
     id="main-content"
     class:list={[
@@ -118,7 +110,7 @@ const nextPost =
       {title}
     </h1>
     <div class="my-2 flex items-center gap-2">
-      <Datetime {pubDatetime} {modDatetime} {timezone} size="lg" />
+      <Datetime {published} {updated} {timezone} size="lg" />
       <span
         aria-hidden="true"
         class:list={[
@@ -203,18 +195,9 @@ const nextPost =
     <BackToTopButton />
 
     <!-- 目录侧边栏 -->
-    <aside
-      id="sidebar"
-      class:list={["sidebar", "hidden lg:block", { "no-toc": !tocEnabled }]}
-    >
-      {
-        tocEnabled && (
-          <>
-            <div class="toc-title mb-2 text-sm font-medium">页面导航</div>
-            <div id="toc-container" class="js-toc" />
-          </>
-        )
-      }
+    <aside id="sidebar" class="sidebar toc-empty hidden lg:block">
+      <div class="toc-title mb-2 text-sm font-medium">页面导航</div>
+      <div id="toc-container" class="js-toc"></div>
     </aside>
 
     <!-- Previous/Next Post Buttons -->
@@ -405,8 +388,11 @@ const nextPost =
       return header.offsetHeight + 8;
     }
 
+    const sidebar = document.getElementById("sidebar");
+    const tocContainer = document.getElementById("toc-container");
+
     // initialize tocbot if sidebar exists
-    if (document.getElementById("toc-container")) {
+    if (tocContainer) {
       const tocOffset = getTocOffset();
       tocbot.destroy();
       tocbot.init({
@@ -419,6 +405,12 @@ const nextPost =
         scrollSmoothDuration: 300,
         scrollSmoothOffset: -tocOffset,
       });
+
+      const hasTocItem =
+        tocContainer.querySelector(".toc-list-item, .toc-link") !== null;
+      if (sidebar) {
+        sidebar.classList.toggle("toc-empty", !hasTocItem);
+      }
     }
   });
 </script>

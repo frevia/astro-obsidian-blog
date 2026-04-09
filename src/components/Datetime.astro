@@ -13,22 +13,22 @@ export interface Props {
   class?: string;
   size?: "sm" | "lg";
   timezone: string | undefined;
-  pubDatetime: string | Date;
-  modDatetime: string | Date | undefined | null;
+  published: string | Date;
+  updated: string | Date | undefined | null;
 }
 
 const {
-  pubDatetime,
-  modDatetime,
+  published,
+  updated,
   size = "sm",
   class: className = "",
   timezone: postTimezone,
 } = Astro.props;
 
 /* ========== Formatted Datetime ========== */
-const isModified = modDatetime && modDatetime > pubDatetime;
+const isModified = updated && updated > published;
 
-const datetime = dayjs(isModified ? modDatetime : pubDatetime).tz(
+const datetime = dayjs(isModified ? updated : published).tz(
   postTimezone || SITE_TIMEZONE
 );
 

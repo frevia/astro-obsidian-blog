@@ -12,13 +12,10 @@ import DiaryTimeline from "@/components/DiaryTimeline.tsx";
 export async function getStaticPaths() {
   const diaryEntries = await getCollection("diary");
 
-  // 过滤掉草稿状态的条目
-  const publishedEntries = diaryEntries.filter(entry => !entry.data.draft);
-
   // 按季度分组日记条目
   const quarterGroups = new Map();
 
-  publishedEntries.forEach(entry => {
+  diaryEntries.forEach(entry => {
     const date = entry.id.split("/").pop()!.replace(".md", "");
     const [year, month] = date.split("-");
     const quarter = Math.ceil(parseInt(month) / 3);
@@ -45,11 +42,8 @@ const quarterKey = page as string;
 
 const diaryEntries = await getCollection("diary");
 
-// 过滤掉草稿状态的条目
-const publishedEntries = diaryEntries.filter(entry => !entry.data.draft);
-
 // 按季度过滤条目
-let quarterEntries = publishedEntries.filter(entry => {
+let quarterEntries = diaryEntries.filter(entry => {
   const date = entry.id.split("/").pop()!.replace(".md", "");
   const [year, month] = date.split("-");
   const quarter = Math.ceil(parseInt(month) / 3);

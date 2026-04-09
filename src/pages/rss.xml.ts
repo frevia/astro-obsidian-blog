@@ -160,13 +160,13 @@ export async function GET() {
   const rssItems = await Promise.all(
     sortedPosts.slice(0, 7).map(async post => {
       let thumbnailUrl = "";
-      if (typeof post.data.ogImage === "string") {
-        const optimizedImageInfo = await optimizeImage(post.data.ogImage, {
+      if (typeof post.data.cover === "string") {
+        const optimizedImageInfo = await optimizeImage(post.data.cover, {
           thumbnailSize: 1200,
         });
         thumbnailUrl = new URL(optimizedImageInfo.thumbnail, SITE.website).href;
-      } else if (post.data.ogImage?.src) {
-        thumbnailUrl = new URL(post.data.ogImage.src, SITE.website).href;
+      } else if (post.data.cover?.src) {
+        thumbnailUrl = new URL(post.data.cover.src, SITE.website).href;
       }
 
       // 处理文章内容中的图片 - 使用原始markdown内容
@@ -183,7 +183,7 @@ export async function GET() {
         link: getPath(post.id, post.filePath),
         title: post.data.title,
         description: post.data.description,
-        pubDate: new Date(post.data.modDatetime ?? post.data.pubDatetime),
+        pubDate: new Date(post.data.updated ?? post.data.published),
         content: processedContent,
         customData: `<enclosure url="${thumbnailUrl}" type="image/webp" length="0" />`,
       };
