@@ -70,16 +70,8 @@ export function toYMDInTimeZone(
   d: Date,
   timeZone: string = SITE_TIMEZONE
 ): string {
-  return formatInTimeZone(
-    d,
-    "en-CA",
-    {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    },
-    timeZone
-  );
+  const { year, month, day } = getTimeZoneDateParts(d, timeZone);
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 export function toSiteYMD(d: Date): string {
@@ -90,9 +82,8 @@ export function getYearMonthInTimeZone(
   d: Date,
   timeZone: string = SITE_TIMEZONE
 ): { year: number; monthIndex: number } {
-  const ymd = toYMDInTimeZone(d, timeZone);
-  const [y, m] = ymd.split("-").map(Number);
-  return { year: y, monthIndex: m - 1 };
+  const { year, month } = getTimeZoneDateParts(d, timeZone);
+  return { year, monthIndex: month - 1 };
 }
 
 export function getSiteYearMonth(d: Date): {

@@ -10,7 +10,7 @@ import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
 import { remarkRssMediaCard } from "../../src/utils/remarkRssMediaCard";
-import { remarkObsidianCallout } from "../utils/remarkObsidianCallout";
+import remarkObsidianCallout from "remark-obsidian-callout";
 import rehypeFigure from "rehype-figure";
 import rehypeSlug from "rehype-slug";
 

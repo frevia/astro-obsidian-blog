@@ -125,6 +125,9 @@ importers:
       remark-mark-highlight:
         specifier: ^0.1.1
         version: 0.1.1
+      remark-obsidian-callout:
+        specifier: ^1.5.1
+        version: 1.5.1
       rss-parser:
         specifier: ^3.13.0
         version: 3.13.0
@@ -3830,6 +3833,9 @@ packages:
 
   remark-mdx@3.1.0:
     resolution: {integrity: sha512-Ngl/H3YXyBV9RcRNdlYsZujAmhsxwzxpDzpDEhFBVAGthS4GDgnctpDjgFl/ULx5UEDzqtW1cyBSNKqYYrqLBA==}
+
+  remark-obsidian-callout@1.5.1:
+    resolution: {integrity: sha512-eLvaDujdmAGugWvIBta5FPhwbBq3X+2ZyGBSdcteoGI5pJMmrdJJoA72ustRBr/ObDqS0cB4q1ERKzwyiJhpxw==}
 
   remark-parse@11.0.0:
     resolution: {integrity: sha512-FCxlKLNGknS5ba/1lmpYijMUzX2esxW5xQqjWxw2eHFfS2MSdaHVINFmhjo+qN1WhZhNimq0dZATN9pH0IDrpA==}
@@ -9432,6 +9438,11 @@ snapshots:
       micromark-extension-mdxjs: 3.0.0
     transitivePeerDependencies:
       - supports-color
+
+  remark-obsidian-callout@1.5.1:
+    dependencies:
+      mdast-util-to-string: 4.0.0
+      unist-util-visit: 5.0.0
 
   remark-parse@11.0.0:
     dependencies:
