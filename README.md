@@ -177,16 +177,14 @@ pnpm run generate:footprint-labels
 ---
 title: "文章标题"
 author: "作者名称"
-pubDatetime: 2025-01-01T12:00:00+08:00
-modDatetime: # 可选，修改时间
-featured: false
-draft: false
+published: 2025-01-01T12:00:00+08:00
+updated: # 可选，修改时间
 tags:
   - "标签1"
   - "标签2"
 toc: true # 可选，是否显示目录
 description: "文章描述"
-ogImage: "../attachment/og/image.png" # 可选，OG图片
+cover: "../attachment/og/image.png" # 可选，OG图片
 slug: "article-slug" # 可选，自定义URL
 ---
 

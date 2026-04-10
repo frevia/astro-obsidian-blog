@@ -25,14 +25,34 @@ const {
   timezone: postTimezone,
 } = Astro.props;
 
-/* ========== Formatted Datetime ========== */
 const isModified = updated && updated > published;
+const displaySource = isModified ? updated : published;
 
-const datetime = dayjs(isModified ? updated : published).tz(
+const hasExplicitTime = (value: string | Date | undefined | null) => {
+  if (!value) return false;
+  if (typeof value === "string") {
+    return /[T\s]\d{2}:\d{2}/.test(value.trim());
+  }
+  if (value instanceof Date) {
+    return !(
+      value.getUTCHours() === 0 &&
+      value.getUTCMinutes() === 0 &&
+      value.getUTCSeconds() === 0 &&
+      value.getUTCMilliseconds() === 0
+    );
+  }
+  return false;
+};
+
+const datetime = dayjs(displaySource).tz(
   postTimezone || SITE_TIMEZONE
 );
 
-const date = datetime.locale("zh-cn").format("ddd / YYYY-MM-DD HH:mm"); // e.g., '2025-03-22 星期六 13:45'
+const date = datetime
+  .locale("zh-cn")
+  .format(
+    hasExplicitTime(displaySource) ? "ddd / YYYY-MM-DD HH:mm" : "ddd / YYYY-MM-DD"
+  );
 ---
 
 <div class:list={["flex items-center gap-x-2 opacity-80", className]}>
