@@ -14,6 +14,21 @@ const normalizeAuthor = (
   return pick(author) || pick(authors) || SITE.author;
 };
 
+const parsePublishedDate = (value: unknown) => {
+  if (value instanceof Date) return value;
+  if (typeof value !== "string") return value;
+  const raw = value.trim();
+  if (!raw) return value;
+
+  const ym = raw.match(/^(\d{4})-(\d{2})$/);
+  if (ym) {
+    const year = Number(ym[1]);
+    const month = Number(ym[2]);
+    return new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
+  }
+  return value;
+};
+
 const blog = defineCollection({
   loader: glob({ pattern: "**/[^_]*.{md,mdx}", base: `./${BLOG_PATH}` }),
   schema: ({ image }) =>
@@ -27,7 +42,7 @@ const blog = defineCollection({
           .union([z.string(), z.array(z.string())])
           .nullable()
           .optional(),
-        published: z.date(),
+        published: z.preprocess(parsePublishedDate, z.date()),
         updated: z.date().optional().nullable(),
         title: z.string(),
         tags: z.array(z.string()).default(["其他"]),
@@ -68,7 +83,7 @@ const clip = defineCollection({
           .union([z.string(), z.array(z.string())])
           .nullable()
           .optional(),
-        published: z.date(),
+        published: z.preprocess(parsePublishedDate, z.date()),
         updated: z.date().optional().nullable(),
         title: z.string(),
         tags: z
