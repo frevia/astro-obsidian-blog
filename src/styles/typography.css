@@ -150,14 +150,14 @@
       quotes: none;
     }
 
-    blockquote:not(.callout)::before {
+    blockquote:not(.callout):not([data-callout])::before {
       content: '"';
       @apply pointer-events-none absolute -top-3 left-2 text-4xl leading-none text-accent/28;
       aria-hidden: true;
     }
 
-    blockquote:not(.callout) p::before,
-    blockquote:not(.callout) p::after {
+    blockquote:not(.callout):not([data-callout]) p::before,
+    blockquote:not(.callout):not([data-callout]) p::after {
       content: none !important;
     }
 
@@ -169,39 +169,48 @@
       @apply mb-0;
     }
 
-    blockquote.callout::before {
+    blockquote.callout::before,
+    blockquote[data-callout]::before {
       content: none;
     }
 
-    blockquote.callout > p.callout-title {
+    blockquote.callout > p.callout-title,
+    blockquote.callout > .callout-title {
       @apply mb-2 font-semibold text-foreground;
     }
 
-    blockquote.callout.callout-note {
+    blockquote.callout.callout-note,
+    blockquote.callout[data-callout="note"] {
       @apply border-l-slate-500/60 bg-slate-500/10;
     }
 
-    blockquote.callout.callout-tip {
+    blockquote.callout.callout-tip,
+    blockquote.callout[data-callout="tip"] {
       @apply border-l-teal-500/60 bg-teal-500/10;
     }
 
-    blockquote.callout.callout-info {
+    blockquote.callout.callout-info,
+    blockquote.callout[data-callout="info"] {
       @apply border-l-sky-500/60 bg-sky-500/10;
     }
 
-    blockquote.callout.callout-warning {
+    blockquote.callout.callout-warning,
+    blockquote.callout[data-callout="warning"] {
       @apply border-l-amber-500/65 bg-amber-500/10;
     }
 
-    blockquote.callout.callout-danger {
+    blockquote.callout.callout-danger,
+    blockquote.callout[data-callout="danger"] {
       @apply border-l-rose-500/65 bg-rose-500/10;
     }
 
-    blockquote.callout.callout-error {
+    blockquote.callout.callout-error,
+    blockquote.callout[data-callout="error"] {
       @apply border-l-rose-500/65 bg-rose-500/10;
     }
 
-    blockquote.callout.callout-success {
+    blockquote.callout.callout-success,
+    blockquote.callout[data-callout="success"] {
       @apply border-l-green-500/65 bg-green-500/10;
     }
 
