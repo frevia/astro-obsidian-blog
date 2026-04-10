@@ -83,17 +83,6 @@ const isActive = (path: string) => {
           </li>
           <li>
             <a
-              href="/footprint"
-              class:list={[
-                "px-3 py-2 text-base font-medium transition-colors hover:text-accent",
-                { "active-nav": isActive("/footprint") },
-              ]}
-            >
-              足迹
-            </a>
-          </li>
-          <li>
-            <a
               href="/favorites"
               class:list={[
                 "px-3 py-2 text-base font-medium transition-colors hover:text-accent",
@@ -101,6 +90,17 @@ const isActive = (path: string) => {
               ]}
             >
               收藏
+            </a>
+          </li>
+          <li>
+            <a
+              href="/footprint"
+              class:list={[
+                "px-3 py-2 text-base font-medium transition-colors hover:text-accent",
+                { "active-nav": isActive("/footprint") },
+              ]}
+            >
+              足迹
             </a>
           </li>
           <li>
@@ -234,18 +234,18 @@ const isActive = (path: string) => {
         </li>
         <li class="col-span-6">
           <a
-            href="/footprint"
-            class:list={{ "active-nav": isActive("/footprint") }}
-          >
-            足迹
-          </a>
-        </li>
-        <li class="col-span-6">
-          <a
             href="/favorites"
             class:list={{ "active-nav": isActive("/favorites") }}
           >
             收藏
+          </a>
+        </li>
+        <li class="col-span-6">
+          <a
+            href="/footprint"
+            class:list={{ "active-nav": isActive("/footprint") }}
+          >
+            足迹
           </a>
         </li>
         <li class="col-span-6">

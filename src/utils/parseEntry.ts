@@ -149,6 +149,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
     const applyMarkdown = (input: string) => {
       let t = (input || "").trim();
       t = t.replace(/```(imgs|html|card-[^\n]*)[\s\S]*?```/g, "").trim();
+      t = t.replace(/%%[\s\S]*?%%/g, "");
 
       t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
       t = t.replace(
@@ -175,6 +176,54 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
           return `<img src="${src}" alt="${alt}" title="${title}" class="my-4 max-w-full h-auto rounded-lg shadow-md" />`;
         }
       );
+
+      t = t.replace(/!\[\[([^[\]]+?)\]\]/g, (_, inner: string) => {
+        const [targetRaw, aliasRaw = ""] = inner.split("|", 2);
+        const target = targetRaw.trim();
+        const alias = aliasRaw.trim();
+        if (!target) return _;
+        if (/\.(png|jpe?g|gif|webp|svg|avif)$/i.test(target)) {
+          const alt =
+            alias ||
+            target
+              .split("/")
+              .pop()
+              ?.replace(/\.[^.]+$/, "") ||
+            "";
+          return `<img src="${target}" alt="${alt}" class="my-4 max-w-full h-auto rounded-lg shadow-md" />`;
+        }
+        const linkText = alias || target.split("/").pop() || target;
+        return `<a href="${target}" target="_blank" rel="noopener noreferrer" class="${linkClass}">${linkText}</a>`;
+      });
+
+      t = t.replace(/\[\[([^[\]]+?)\]\]/g, (_, inner: string) => {
+        const [targetWithHeading, aliasRaw = ""] = inner.split("|", 2);
+        const [targetRaw, headingRaw = ""] = targetWithHeading.split("#", 2);
+        const target = targetRaw.trim();
+        const heading = headingRaw.trim();
+        const alias = aliasRaw.trim();
+        if (!target) return _;
+        const normalizedTarget =
+          target.includes(".") || target.startsWith("/")
+            ? target
+            : `${target}.md`;
+        const finalHref = processLink(
+          heading ? `${normalizedTarget}#${heading}` : normalizedTarget,
+          currentFilePath
+        );
+        const linkText =
+          alias ||
+          target
+            .split("/")
+            .pop()
+            ?.replace(/\.[^.]+$/, "") ||
+          target;
+        const isExternal = /^https?:\/\//.test(finalHref);
+        const externalAttrs = isExternal
+          ? ' target="_blank" rel="noopener noreferrer"'
+          : "";
+        return `<a href="${finalHref}"${externalAttrs} class="${linkClass}">${linkText}</a>`;
+      });
 
       t = t.replace(/((?:^- .+(?:\n|$))+)/gm, match => {
         const items = match
