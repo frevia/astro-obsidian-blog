@@ -7,19 +7,29 @@ import { SITE } from "@/config";
 import * as cheerio from "cheerio";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
+import remarkGfm from "remark-gfm";
+import { remarkMark } from "remark-mark-highlight";
+import remarkMath from "remark-math";
 import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
 import { remarkRssMediaCard } from "../../src/utils/remarkRssMediaCard";
-import remarkObsidianCallout from "remark-obsidian-callout";
+import { remarkLinkProcessor } from "../../src/utils/remarkLinkProcessor";
+import { remarkObsidianCalloutLocal } from "@/utils/remarkObsidianCalloutLocal";
 import rehypeFigure from "rehype-figure";
+import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
 
 const renderMarkdown = async (markdown: string) => {
   const processed = await unified()
-    .use(remarkRssMediaCard)
     .use(remarkParse)
-    .use(remarkObsidianCallout)
+    .use(remarkGfm)
+    .use(remarkObsidianCalloutLocal, { blockquoteClass: "callout" })
+    .use(remarkLinkProcessor, { enableDebug: false })
+    .use(remarkRssMediaCard)
+    .use(remarkMark)
+    .use(remarkMath)
     .use(remarkRehype)
+    .use(rehypeKatex)
     .use(rehypeSlug)
     .use(rehypeFigure)
     .use(rehypeStringify)

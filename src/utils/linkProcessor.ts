@@ -38,6 +38,53 @@ function resolveRelativePath(relativePath: string, basePath: string): string {
   return path.resolve(basePath, relativePath);
 }
 
+function normalizeHeadingHash(hash: string): string {
+  return hash
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^\p{L}\p{N}-]/gu, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function resolveMarkdownFilePath(
+  sourcePath: string,
+  currentFilePath?: string
+): string | undefined {
+  const projectRoot = process.cwd();
+  const currentDir = currentFilePath
+    ? path.dirname(currentFilePath)
+    : projectRoot;
+  const decodedSource = decodeURIComponent(sourcePath);
+  const hasMdExt = /\.(md|mdx)$/i.test(decodedSource);
+  const ext = path.extname(decodedSource);
+  const candidates = hasMdExt
+    ? [decodedSource]
+    : ext
+      ? []
+      : [`${decodedSource}.md`, `${decodedSource}.mdx`];
+
+  for (const candidate of candidates) {
+    const resolved = resolveRelativePath(candidate, currentDir).replace(
+      /\\/g,
+      "/"
+    );
+    if (fs.existsSync(resolved)) {
+      return resolved;
+    }
+
+    const blogDir = path.resolve(projectRoot, BLOG_PATH);
+    const relativePath = path.relative(projectRoot, resolved);
+    const blogFilePath = path.join(blogDir, relativePath);
+    if (fs.existsSync(blogFilePath)) {
+      return blogFilePath.replace(/\\/g, "/");
+    }
+  }
+
+  return undefined;
+}
+
 /**
  * 处理链接，将相对路径的blog文件链接转换为/posts/[slug]格式
  * @param href 原始链接
@@ -59,50 +106,23 @@ export function processLink(href: string, currentFilePath?: string): string {
     return href;
   }
 
-  // 检查是否为md文件
-  if (!/\.(md|mdx)$/i.test(href)) {
+  const [rawPath, rawHash] = href.split("#", 2);
+  const isMarkdownLink =
+    /\.(md|mdx)$/i.test(rawPath) || path.extname(rawPath.trim()) === "";
+
+  if (!isMarkdownLink) {
     return href;
   }
 
   try {
-    let targetFilePath: string;
-
-    if (currentFilePath) {
-      // 如果提供了当前文件路径，解析相对路径
-      const currentDir = path.dirname(currentFilePath);
-      // 对href进行URL解码，处理空格等特殊字符
-      const decodedHref = decodeURIComponent(href);
-      targetFilePath = resolveRelativePath(decodedHref, currentDir);
-    } else {
-      // 否则假设是相对于项目根目录的路径
-      const projectRoot = process.cwd();
-      const decodedHref = decodeURIComponent(href);
-      targetFilePath = path.resolve(projectRoot, decodedHref);
-    }
-
-    // 标准化路径分隔符
-    targetFilePath = targetFilePath.replace(/\\/g, "/");
-
-    // 检查文件是否存在
-    if (!fs.existsSync(targetFilePath)) {
-      // 如果文件不存在，尝试在blog目录中查找
-      const blogDir = path.resolve(process.cwd(), BLOG_PATH);
-      // 计算相对于博客目录的路径
-      const relativePath = path.relative(process.cwd(), targetFilePath);
-      // 构建博客目录中的文件路径
-      const blogFilePath = path.join(blogDir, relativePath);
-      // 检查文件是否存在
-      if (fs.existsSync(blogFilePath)) {
-        targetFilePath = blogFilePath;
-      } else {
-        // 文件不存在，返回原链接
-        return href;
-      }
-      targetFilePath = blogFilePath;
+    const targetFilePath = resolveMarkdownFilePath(rawPath, currentFilePath);
+    if (!targetFilePath) {
+      return href;
     }
 
     // 提取slug
     const slug = extractSlugFromFile(targetFilePath);
+    const hashSuffix = rawHash ? `#${normalizeHeadingHash(rawHash)}` : "";
     if (slug) {
       // 无论 slug 是否包含分类路径，最终 URL 只保留最后一级 slug
       const finalSlug = slug
@@ -111,7 +131,7 @@ export function processLink(href: string, currentFilePath?: string): string {
         .pop()
         ?.replace(/\s/g, "-")
         .toLowerCase();
-      return finalSlug ? `/posts/${finalSlug}` : href;
+      return finalSlug ? `/posts/${finalSlug}${hashSuffix}` : href;
     }
 
     // 如果没有slug，使用文件名作为最终 slug（忽略目录）
@@ -120,7 +140,7 @@ export function processLink(href: string, currentFilePath?: string): string {
       .replace(/\s/g, "-")
       .toLowerCase();
 
-    return `/posts/${fileSlug}`;
+    return `/posts/${fileSlug}${hashSuffix}`;
   } catch {
     // 出错时返回原链接
     return href;

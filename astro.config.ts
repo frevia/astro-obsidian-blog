@@ -4,11 +4,11 @@ import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import { remarkMark } from "remark-mark-highlight";
 import remarkGfm from "remark-gfm";
-import type { Root } from "mdast";
+import remarkMath from "remark-math";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeFigure from "rehype-figure";
+import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
-import type { Processor, Transformer } from "unified";
 
 import {
   transformerNotationDiff,
@@ -21,16 +21,11 @@ import { SITE } from "./src/config";
 import react from "@astrojs/react";
 import { remarkMediaCard } from "./src/utils/remarkMediaCard";
 import { remarkLinkProcessor } from "./src/utils/remarkLinkProcessor";
-import remarkObsidianCallout from "remark-obsidian-callout";
+import { remarkObsidianCalloutLocal } from "./src/utils/remarkObsidianCalloutLocal";
 import pagefind from "astro-pagefind";
 import photosuite from "photosuite";
 
 import compress from "astro-compress";
-
-const obsidianCalloutPlugin = remarkObsidianCallout as unknown as (
-  this: Processor,
-  ...parameters: unknown[]
-) => void | Transformer<Root, Root> | undefined;
 
 // https://astro.build/config
 export default defineConfig({
@@ -74,12 +69,14 @@ export default defineConfig({
   markdown: {
     remarkPlugins: [
       remarkGfm,
-      [obsidianCalloutPlugin, { blockquoteClass: "callout" }],
+      [remarkObsidianCalloutLocal, { blockquoteClass: "callout" }],
       [remarkLinkProcessor, { enableDebug: false }],
       [remarkMediaCard, { enableDebug: false }],
       remarkMark,
+      remarkMath,
     ],
     rehypePlugins: [
+      rehypeKatex,
       rehypeSlug,
       [rehypeAutolinkHeadings, { behavior: "append" }],
       rehypeFigure,
