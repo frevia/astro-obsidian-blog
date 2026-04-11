@@ -115,14 +115,10 @@ const getFavoritePath = (
                       .sort(
                         (a, b) =>
                           Math.floor(
-                            new Date(
-                              b.data.updated ?? b.data.published
-                            ).getTime() / 1000
+                            new Date(b.data.published).getTime() / 1000
                           ) -
                           Math.floor(
-                            new Date(
-                              a.data.updated ?? a.data.published
-                            ).getTime() / 1000
+                            new Date(a.data.published).getTime() / 1000
                           )
                       )
                       .map(post => (
@@ -132,7 +128,10 @@ const getFavoritePath = (
                           data-tags={post.data.tags.join("||")}
                         >
                           <a
-                            href={getFavoritePath(post.data.slug, post.data.title)}
+                            href={getFavoritePath(
+                              post.data.slug,
+                              post.data.title
+                            )}
                             class="inline-block text-lg font-medium text-accent decoration-dashed underline-offset-4 focus-visible:no-underline focus-visible:underline-offset-0"
                           >
                             <h2 class="text-lg font-medium decoration-dashed hover:underline">
@@ -141,12 +140,11 @@ const getFavoritePath = (
                           </a>
                           <Datetime
                             published={post.data.published}
-                            updated={post.data.updated}
                             timezone={post.data.timezone}
                           />
-                          {post.data.description && (
+                          {/* {post.data.description && (
                             <p>{post.data.description}</p>
-                          )}
+                          )} */}
                         </li>
                       ))}
                   </ul>

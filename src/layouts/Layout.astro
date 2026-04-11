@@ -17,7 +17,6 @@ export interface Props {
   cover?: string;
   canonicalURL?: string;
   published?: Date;
-  updated?: Date | null;
   scrollSmooth?: boolean;
 }
 
@@ -29,7 +28,6 @@ const {
   cover = SITE.cover ? `/${SITE.cover}` : "/og.jpg",
   canonicalURL = new URL(Astro.url.pathname, Astro.url),
   published,
-  updated,
   scrollSmooth = false,
 } = Astro.props;
 
@@ -43,7 +41,6 @@ const structuredData = {
   headline: `${title}`,
   image: `${socialImageURL}`,
   datePublished: `${published?.toISOString()}`,
-  ...(updated && { dateModified: updated.toISOString() }),
   author: [
     {
       "@type": "Person",
@@ -86,14 +83,6 @@ const structuredData = {
         <meta
           property="article:published_time"
           content={published.toISOString()}
-        />
-      )
-    }
-    {
-      updated && (
-        <meta
-          property="article:modified_time"
-          content={updated.toISOString()}
         />
       )
     }

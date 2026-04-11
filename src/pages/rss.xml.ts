@@ -193,7 +193,7 @@ export async function GET() {
         link: getPath(post.id, post.filePath),
         title: post.data.title,
         description: post.data.description,
-        pubDate: new Date(post.data.updated ?? post.data.published),
+        pubDate: new Date(post.data.published),
         content: processedContent,
         customData: `<enclosure url="${thumbnailUrl}" type="image/webp" length="0" />`,
       };

@@ -178,7 +178,6 @@ pnpm run generate:footprint-labels
 title: "文章标题"
 author: "作者名称"
 published: 2025-01-01T12:00:00+08:00
-updated: # 可选，修改时间
 tags:
   - "标签1"
   - "标签2"

@@ -37,7 +37,6 @@ const {
   cover: initOgImage,
   canonicalURL,
   published,
-  updated,
   timezone,
   tags,
   hideEditPost,
@@ -70,7 +69,6 @@ const layoutProps = {
   author,
   description,
   published,
-  updated,
   canonicalURL,
   cover,
   scrollSmooth: true,
@@ -110,7 +108,7 @@ const nextPost =
       {title}
     </h1>
     <div class="my-2 flex items-center gap-2">
-      <Datetime {published} {updated} {timezone} size="lg" />
+      <Datetime {published} {timezone} size="lg" />
       <span
         aria-hidden="true"
         class:list={[
