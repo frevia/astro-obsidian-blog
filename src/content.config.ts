@@ -43,7 +43,6 @@ const blog = defineCollection({
           .nullable()
           .optional(),
         published: z.preprocess(parsePublishedDate, z.date()),
-        updated: z.date().optional().nullable(),
         title: z.string(),
         tags: z.array(z.string()).default(["其他"]),
         cover: image().or(z.string()).optional(),
@@ -59,7 +58,6 @@ const blog = defineCollection({
       .transform(data => ({
         ...data,
         author: normalizeAuthor(data.author, data.authors),
-        updated: data.updated ?? null,
       })),
 });
 
@@ -84,7 +82,6 @@ const clip = defineCollection({
           .nullable()
           .optional(),
         published: z.preprocess(parsePublishedDate, z.date()),
-        updated: z.date().optional().nullable(),
         title: z.string(),
         tags: z
           .array(z.string())
@@ -105,7 +102,6 @@ const clip = defineCollection({
       .transform(data => ({
         ...data,
         author: normalizeAuthor(data.author, data.authors),
-        updated: data.updated ?? null,
       })),
 });
 

@@ -13,7 +13,7 @@ export interface Props extends CollectionEntry<"blog"> {
 
 const { variant = "h2", itemClass, hidden, data, id, filePath } = Astro.props;
 
-const { title, description, published, updated, timezone } = data;
+const { title, description, published, timezone } = data;
 
 const headerProps = {
   style: { viewTransitionName: slugifyStr(title) },
@@ -62,7 +62,7 @@ const headerProps = {
           )
         }
       </a>
-      <Datetime {published} {updated} {timezone} />
+      <Datetime {published} {timezone} />
       <p>{description}</p>
     </div>
   </div>

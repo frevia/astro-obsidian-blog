@@ -14,19 +14,16 @@ export interface Props {
   size?: "sm" | "lg";
   timezone: string | undefined;
   published: string | Date;
-  updated: string | Date | undefined | null;
 }
 
 const {
   published,
-  updated,
   size = "sm",
   class: className = "",
   timezone: postTimezone,
 } = Astro.props;
 
-const isModified = updated && updated > published;
-const displaySource = isModified ? updated : published;
+const displaySource = published;
 
 const hasExplicitTime = (value: string | Date | undefined | null) => {
   if (!value) return false;
@@ -44,14 +41,14 @@ const hasExplicitTime = (value: string | Date | undefined | null) => {
   return false;
 };
 
-const datetime = dayjs(displaySource).tz(
-  postTimezone || SITE_TIMEZONE
-);
+const datetime = dayjs(displaySource).tz(postTimezone || SITE_TIMEZONE);
 
 const date = datetime
   .locale("zh-cn")
   .format(
-    hasExplicitTime(displaySource) ? "ddd / YYYY-MM-DD HH:mm" : "ddd / YYYY-MM-DD"
+    hasExplicitTime(displaySource)
+      ? "ddd / YYYY-MM-DD HH:mm"
+      : "ddd / YYYY-MM-DD"
   );
 ---
 
@@ -62,13 +59,7 @@ const date = datetime
       { "scale-90": size === "sm" },
     ]}
   />
-  {
-    isModified && (
-      <span class:list={["text-sm", { "sm:text-base": size === "lg" }]}>
-        Updated:
-      </span>
-    )
-  }
+
   <time
     class:list={["text-sm", { "sm:text-base": size === "lg" }]}
     datetime={datetime.toISOString()}>{date}</time
