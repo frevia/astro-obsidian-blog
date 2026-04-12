@@ -34,4 +34,9 @@ export const SITE = {
   // 邻居 feeds 配置
   feedsPerIndex: 12,
   feedsPerPage: 12,
+  // RSS 配置
+  rss: {
+    // 构建时是否拉取 RSS 数据 (true: 拉取, false: 不拉取)
+    fetchDuringBuild: false,
+  },
 } as const;

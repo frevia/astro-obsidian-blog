@@ -65,20 +65,60 @@ const hasTwikooEnv =
 <Layout title={`邻居 | ${SITE.title}`}>
   <Header />
   <Main pageTitle="邻居" pageDesc="订阅的其他博客更新">
+    <!-- 页面描述区域 -->
+    <div
+      class="mb-8 rounded-xl border-l-4 border-accent/60 bg-accent/5 px-4 py-4 text-sm text-foreground/80"
+    >
+      <div class="flex items-start gap-3">
+        <span class="mt-0.5 text-accent/80 text-lg">🌐</span>
+        <div class="flex-1">
+          <p class="font-semibold text-foreground/90 text-base mb-2">博客订阅</p>
+          <p class="mb-2">这里是我订阅的其他博客更新，按更新时间排序。</p>
+          <!-- <div class="flex flex-wrap gap-4 text-xs text-foreground/60">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-accent/60"></span>
+              自动加载更多内容
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-accent/40"></span>
+              支持滚动加载
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-accent/20"></span>
+              实时更新显示
+            </span>
+          </div> -->
+        </div>
+      </div>
+    </div>
+
     <section id="feeds-list-section" class="px-0">
-      <!-- 加载提示 -->
       <!-- 加载提示（骨架屏） -->
       <div id="feeds-loading">
-        <ul class="mb-10 animate-pulse list-none">
+        <ul class="mb-12 animate-pulse list-none">
           {
             Array.from({ length: SITE.feedsPerIndex }).map(() => (
-              <li class="mb-4">
-                <div class="relative block pr-12">
-                  <div class="flex items-center gap-3">
-                    <div class="bg-skeleton h-[50px] w-[50px] shrink-0 rounded-md" />
-                    <div class="min-w-0 flex-1">
-                      <div class="bg-skeleton mb-2 h-5 w-2/3 rounded" />
-                      <div class="bg-skeleton h-4 w-1/2 rounded" />
+              <li class="mb-4 rounded-xl border border-border/40 bg-muted/10 p-4 shadow-sm transition-all hover:shadow-md">
+                <div class="relative">
+                  <div class="flex items-start gap-4">
+                    <!-- 头像骨架 -->
+                    <div class="bg-skeleton h-14 w-14 shrink-0 rounded-full" />
+                    <!-- 内容骨架 -->
+                    <div class="min-w-0 flex-1 space-y-3">
+                      <div class="space-y-2">
+                        <div class="bg-skeleton h-5 w-3/4 rounded-lg" />
+                        <div class="bg-skeleton h-4 w-1/2 rounded" />
+                      </div>
+                      <!-- 描述和日期骨架 -->
+                      <div class="space-y-1.5">
+                        <div class="bg-skeleton h-3.5 w-full rounded" />
+                        <div class="bg-skeleton h-3.5 w-2/3 rounded" />
+                      </div>
+                      <!-- 标签骨架 -->
+                      <div class="flex flex-wrap gap-1.5">
+                        <div class="bg-skeleton h-6 w-16 rounded-full" />
+                        <div class="bg-skeleton h-6 w-20 rounded-full" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -88,43 +128,87 @@ const hasTwikooEnv =
         </ul>
       </div>
       <!-- 错误提示 -->
-      <div id="feeds-error" class="text-error my-6 hidden text-center">
-        <p>加载 Feeds 失败，请稍后重试或检查网络连接。</p>
+      <div id="feeds-error" class="my-8 hidden">
+        <div class="rounded-xl border border-error/30 bg-error/5 p-6 text-center">
+          <div class="mb-3 text-4xl">⚠️</div>
+          <p class="text-error font-medium mb-2">加载失败</p>
+          <p class="text-error/80 text-sm">
+            无法加载博客订阅内容，请稍后重试或检查网络连接。
+          </p>
+          <button
+            onclick="window.location.reload()"
+            class="mt-4 rounded-full bg-error/10 px-4 py-2 text-sm font-medium text-error transition-colors hover:bg-error/20"
+          >
+            重新加载
+          </button>
+        </div>
       </div>
       <!-- 无内容提示 -->
-      <div id="feeds-no-content" class="my-6 hidden text-center">
-        <p>暂无内容。</p>
+      <div id="feeds-no-content" class="my-12 hidden">
+        <div class="rounded-xl border border-border/40 bg-muted/10 p-8 text-center">
+          <div class="mb-4 text-5xl text-foreground/40">📚</div>
+          <p class="text-foreground/80 font-medium mb-2">暂无内容</p>
+          <p class="text-foreground/60 text-sm">当前没有可显示的博客订阅内容。</p>
+        </div>
       </div>
       <!-- Feeds 列表容器 -->
-      <ul id="feeds-list" class="mb-10 list-none"></ul>
-      <!-- 加载更多触发器 -->
+      <ul id="feeds-list" class="mb-12 list-none"></ul>
+      <!-- 加载更多触发器和状态指示器 -->
       <div id="load-more-trigger" class="h-10" style="display: none;"></div>
+      
+      <!-- 加载更多状态指示器 -->
+      <div id="loading-more-indicator" class="my-8 hidden">
+        <div class="flex items-center justify-center gap-3">
+          <div class="h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent"></div>
+          <span class="text-sm text-foreground/60">正在加载更多内容...</span>
+        </div>
+      </div>
+      
+      <!-- 已加载全部内容提示 -->
+      <div id="all-loaded-indicator" class="my-8 hidden">
+        <div class="text-center">
+          <div class="mb-2 text-2xl">🎉</div>
+          <p class="text-sm text-foreground/60">已加载全部内容</p>
+        </div>
+      </div>
     </section>
 
+    <!-- 评论区域 -->
     {
       commentsEnabled && (
-        <>
-          <hr class="my-8 border-dashed" />
-          <h2 class="mb-4 text-xl font-semibold">留言</h2>
-        </>
-      )
-    }
+        <section class="mt-16 pt-8 border-t border-border/30">
+          <div class="mb-8">
+            <h2 class="text-2xl font-semibold text-foreground/90 mb-2">留言</h2>
+            <p class="text-foreground/60 text-sm">
+              欢迎分享您对博客订阅内容的看法和建议
+            </p>
+          </div>
 
-    {commentsEnabled && hasTwikooEnv && <Twikoo />}
+          {commentsEnabled && hasTwikooEnv && <Twikoo />}
 
-    {
-      commentsEnabled && !hasTwikooEnv && (
-        <div class="mt-8 rounded-xl border border-border/60 bg-muted/15 px-4 py-3 text-sm text-foreground/80">
-          留言功能已开启，但尚未完成 Twikoo 配置。请在环境变量中设置
-          <code class="mx-1 rounded bg-muted/30 px-1.5 py-0.5 text-xs">
-            PUBLIC_TWIKOO_ENV_ID
-          </code>
-          与
-          <code class="mx-1 rounded bg-muted/30 px-1.5 py-0.5 text-xs">
-            PUBLIC_TWIKOO_REGION
-          </code>
-          后重新部署。
-        </div>
+          {
+            commentsEnabled && !hasTwikooEnv && (
+              <div class="rounded-xl border border-border/40 bg-muted/10 p-6 text-center">
+                <div class="mb-3 text-3xl">💬</div>
+                <p class="font-medium text-foreground/80 mb-2">留言功能已开启</p>
+                <p class="text-foreground/60 text-sm mb-4">
+                  但尚未完成 Twikoo 配置，暂时无法显示留言区域。
+                </p>
+                <div class="bg-muted/20 rounded-lg p-3 text-xs">
+                  <p class="font-medium mb-1">需要配置的环境变量：</p>
+                  <div class="flex flex-wrap justify-center gap-2">
+                    <code class="rounded bg-muted/40 px-2 py-1">
+                      PUBLIC_TWIKOO_ENV_ID
+                    </code>
+                    <code class="rounded bg-muted/40 px-2 py-1">
+                      PUBLIC_TWIKOO_REGION
+                    </code>
+                  </div>
+                </div>
+              </div>
+            )
+          }
+        </section>
       )
     }
   </Main>
@@ -183,38 +267,101 @@ const hasTwikooEnv =
 
   #feeds-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
   }
 
   #feeds-loading ul {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
   }
 
   #feeds-loading li {
     margin-bottom: 0;
   }
 
-  /* 调整卡片内部间距 */
+  /* 优化卡片样式 */
   #feeds-list li {
-    padding: 1rem;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid color-mix(in oklab, var(--border) 40%, transparent);
+    background: color-mix(in oklab, var(--muted) 5%, transparent);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  #feeds-list li:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    border-color: color-mix(in oklab, var(--accent) 30%, var(--border));
+    background: color-mix(in oklab, var(--accent) 3%, transparent);
   }
 
   #feeds-list li > div {
-    gap: 0.75rem;
+    gap: 1rem;
   }
 
   #feeds-list h3 {
-    margin-bottom: 0.125rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--foreground);
   }
 
   #feeds-list p {
-    margin: 0.125rem 0;
+    margin: 0.25rem 0;
+    line-height: 1.5;
+    color: color-mix(in oklab, var(--foreground) 70%, transparent);
   }
 
   #feeds-list li > div > div > div {
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    #feeds-list {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    #feeds-loading ul {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    #feeds-list li {
+      padding: 1.25rem;
+      border-radius: 0.75rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    #feeds-list li {
+      padding: 1rem;
+    }
+  }
+
+  /* 优化骨架屏动画 */
+  .bg-skeleton {
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--muted) 30%, transparent) 25%,
+      color-mix(in oklab, var(--muted) 20%, transparent) 50%,
+      color-mix(in oklab, var(--muted) 30%, transparent) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes skeleton-pulse {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
   }
 </style>

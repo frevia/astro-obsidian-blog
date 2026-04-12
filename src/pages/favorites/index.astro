@@ -1,5 +1,5 @@
 ---
-import { getCollection } from "astro:content";
+import { getCollection, type CollectionEntry } from "astro:content";
 import Main from "@/layouts/Main.astro";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
@@ -47,6 +47,11 @@ const getFavoritePath = (
   const favoriteSlug = resolveFavoriteSlug(slug, title);
   return [basePath, favoriteSlug].join("/");
 };
+
+// 辅助函数：获取用于分组的日期（优先使用 created，不存在时使用 published）
+const getGroupingDate = (post: CollectionEntry<"clip">) => {
+  return post.data.created || post.data.published;
+};
 ---
 
 <Layout title={`收藏 | ${SITE.title}`}>
@@ -55,20 +60,28 @@ const getFavoritePath = (
     pageTitle="收藏"
     pageDesc="文章转载或收集自互联网，仅作学习与整理使用。"
   >
-    <div
-      class="mb-6 rounded-lg border border-border/60 bg-muted/20 px-4 py-3 text-sm text-foreground/80"
+    <!-- 转载说明卡片 -->
+    <!-- <div
+      class="mb-6 rounded-xl border-l-4 border-accent/60 bg-accent/5 px-4 py-3 text-sm text-foreground/80"
     >
-      若内容涉及侵权，请联系删除。
-    </div>
+      <div class="flex items-start gap-2">
+        <span class="mt-0.5 text-accent/80">📚</span>
+        <div class="flex-1">
+          <p class="font-medium text-foreground/90">转载说明</p>
+          <p class="mt-1">文章转载或收集自互联网，仅作学习与整理使用。</p>
+          <p class="mt-2 text-foreground/70">若内容涉及侵权，请联系删除。</p>
+        </div>
+      </div>
+    </div> -->
     {
       allTags.length > 0 && (
         <div class="mb-6" id="favorites-tag-filter">
           <p class="mb-2 text-sm font-medium">标签筛选</p>
-          <div class="flex flex-wrap gap-2">
+          <div class="flex flex-wrap gap-1.5">
             <button
               type="button"
               data-filter-tag=""
-              class="favorite-filter-btn is-active rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:text-accent"
+              class="favorite-filter-btn is-active rounded-full border border-border px-3.5 py-1.5 text-sm font-medium transition-all hover:border-accent/50 hover:text-accent"
             >
               全部
             </button>
@@ -76,7 +89,7 @@ const getFavoritePath = (
               <button
                 type="button"
                 data-filter-tag={tag}
-                class="favorite-filter-btn rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:text-accent"
+                class="favorite-filter-btn rounded-full border border-border/60 px-3 py-1.5 text-sm font-medium transition-all hover:border-accent/30 hover:text-accent"
               >
                 #{tag}
               </button>
@@ -89,28 +102,39 @@ const getFavoritePath = (
       Object.entries(
         getPostsByGroupCondition(
           clips,
-          post => getYearMonthInTimeZone(post.data.published).year
+          post => getYearMonthInTimeZone(getGroupingDate(post)).year
         )
       )
         .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
         .map(([year, yearGroup]) => (
-          <div data-year-group>
-            <span class="text-2xl font-bold">{year}</span>
-            <sup class="text-sm">{yearGroup.length}</sup>
+          <div data-year-group class="mb-8">
+            <div class="mb-6 flex items-center justify-between border-b border-border/30 pb-3">
+              <div class="flex items-baseline gap-3">
+                <span class="text-2xl font-bold text-foreground/90">
+                  {year}
+                </span>
+                <sup class="rounded-full bg-accent/10 px-2.5 py-1 text-sm font-medium text-accent">
+                  {yearGroup.length} 篇
+                </sup>
+              </div>
+              <div class="text-xs text-foreground/40">按收录时间排序</div>
+            </div>
             {Object.entries(
               getPostsByGroupCondition(
                 yearGroup,
                 post =>
-                  getYearMonthInTimeZone(post.data.published).monthIndex + 1
+                  getYearMonthInTimeZone(getGroupingDate(post)).monthIndex + 1
               )
             )
               .sort(([monthA], [monthB]) => Number(monthB) - Number(monthA))
               .map(([month, monthGroup]) => (
-                <div class="flex flex-col sm:flex-row" data-month-group>
-                  <div class="mt-6 min-w-36 text-lg sm:my-6">
-                    <span class="font-bold">{months[Number(month) - 1]}</span>
+                <div class="flex flex-col gap-4 sm:flex-row" data-month-group>
+                  <div class="mt-4 mb-1 min-w-32 sm:mt-6 sm:mb-0">
+                    <span class="border-l-3 border-accent pl-3 text-base font-semibold tracking-wide text-foreground/80 sm:border-l-0 sm:pl-0">
+                      {months[Number(month) - 1]}
+                    </span>
                   </div>
-                  <ul>
+                  <ul class="sm:flex-1">
                     {monthGroup
                       .sort(
                         (a, b) =>
@@ -123,7 +147,7 @@ const getFavoritePath = (
                       )
                       .map(post => (
                         <li
-                          class="my-6"
+                          class="mb-3 border-b border-border/20 pb-3 last:mb-0 last:border-b-0"
                           data-favorite-item
                           data-tags={post.data.tags.join("||")}
                         >
@@ -132,19 +156,57 @@ const getFavoritePath = (
                               post.data.slug,
                               post.data.title
                             )}
-                            class="inline-block text-lg font-medium text-accent decoration-dashed underline-offset-4 focus-visible:no-underline focus-visible:underline-offset-0"
+                            class="group block"
                           >
-                            <h2 class="text-lg font-medium decoration-dashed hover:underline">
+                            <h3 class="mb-1.5 text-base leading-relaxed font-semibold text-foreground/90 transition-colors group-hover:text-accent">
                               {post.data.title}
-                            </h2>
+                            </h3>
+                            <div class="flex flex-wrap items-center gap-1.5 text-sm text-foreground/70">
+                              <div class="flex items-center gap-1.5">
+                                <Datetime
+                                  published={post.data.published}
+                                  created={post.data.created}
+                                  timezone={post.data.timezone}
+                                  showCreated={true}
+                                />
+                              </div>
+
+                              {post.data.tags.length > 0 && (
+                                <>
+                                  <span class="mx-0.5 hidden text-foreground/40 sm:inline">
+                                    ·
+                                  </span>
+                                  <span class="flex items-center gap-1">
+                                    {post.data.tags.slice(0, 2).map(tag => (
+                                      <span class="rounded-full bg-muted/40 px-2 py-0.5 text-xs font-medium tracking-wide">
+                                        #{tag}
+                                      </span>
+                                    ))}
+                                    {post.data.tags.length > 2 && (
+                                      <span class="text-xs text-foreground/50">
+                                        +{post.data.tags.length - 2}
+                                      </span>
+                                    )}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+
+                            {post.data.source && (
+                              <div class="mt-1 text-xs leading-tight text-foreground/50">
+                                <span class="inline-flex max-w-full items-center">
+                                  来源:{" "}
+                                  <span
+                                    class="truncate font-medium"
+                                    title={post.data.source}
+                                    style="max-width: 550px;"
+                                  >
+                                    {post.data.source}
+                                  </span>
+                                </span>
+                              </div>
+                            )}
                           </a>
-                          <Datetime
-                            published={post.data.published}
-                            timezone={post.data.timezone}
-                          />
-                          {/* {post.data.description && (
-                            <p>{post.data.description}</p>
-                          )} */}
                         </li>
                       ))}
                   </ul>
@@ -153,21 +215,118 @@ const getFavoritePath = (
           </div>
         ))
     }
-    <p
-      id="favorites-empty"
-      class="hidden py-8 text-center text-sm text-foreground/70"
-    >
-      当前标签下暂无收藏内容
-    </p>
+    <div id="favorites-empty" class="hidden py-16 text-center">
+      <div class="mb-4 text-5xl text-foreground/40">📚</div>
+      <p class="text-base font-medium text-foreground/70">
+        当前标签下暂无收藏内容
+      </p>
+      <p class="mt-2 text-sm text-foreground/50">
+        试试选择其他标签或查看全部内容
+      </p>
+      <button
+        onclick="applyFilter('')"
+        class="mt-4 rounded-full bg-accent/10 px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/20"
+      >
+        查看全部内容
+      </button>
+    </div>
   </Main>
   <Footer />
 </Layout>
 
 <style>
+  .favorite-filter-btn {
+    transition: all 0.2s ease;
+  }
+
   .favorite-filter-btn.is-active {
     color: var(--accent);
     border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
     background: color-mix(in oklab, var(--accent) 12%, transparent);
+  }
+
+  [data-favorite-item] {
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
+  }
+
+  [data-favorite-item].filtering {
+    opacity: 0.5;
+    transform: translateX(-10px);
+  }
+
+  /* 优化列表项交互效果 */
+  [data-favorite-item] {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  [data-favorite-item] a {
+    transition: all 0.2s ease;
+  }
+
+  [data-favorite-item]:hover {
+    background: color-mix(in oklab, var(--accent) 3%, transparent);
+    border-radius: 0.5rem;
+    margin: 0 -0.75rem;
+    padding: 0.5rem 0.75rem;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  /* 移动端优化 */
+  @media (max-width: 640px) {
+    [data-month-group] {
+      position: relative;
+      padding-left: 1.25rem;
+      margin-left: 0.75rem;
+    }
+
+    [data-month-group]::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.25rem;
+      bottom: 0.25rem;
+      width: 4px;
+      background: linear-gradient(
+        to bottom,
+        var(--accent),
+        color-mix(in oklab, var(--accent) 70%, transparent)
+      );
+      border-radius: 4px;
+    }
+
+    [data-month-group] > div:first-child {
+      margin-bottom: 0.5rem;
+    }
+
+    [data-month-group] > div:first-child span {
+      border-left: none !important;
+      padding-left: 0 !important;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .favorite-filter-btn {
+      font-size: 0.875rem;
+      padding: 0.5rem 0.75rem;
+    }
+
+    /* 移动端列表项优化 */
+    [data-favorite-item] {
+      margin-left: -0.25rem;
+      margin-right: -0.25rem;
+      padding-left: 0.25rem;
+      padding-right: 0.25rem;
+    }
+
+    [data-favorite-item]:hover {
+      margin: 0 -0.5rem;
+      padding: 0.5rem 0.5rem;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
   }
 </style>
 

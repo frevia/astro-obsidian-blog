@@ -205,7 +205,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
             className={
               isNationalView
                 ? canClickProvince
-                  ? "fill-muted/16 stroke-foreground/55 transition-colors hover:fill-accent/12"
+                  ? "fill-muted/16 stroke-foreground/55 hover:fill-accent/12 transition-colors"
                   : "fill-muted/16 stroke-foreground/55"
                 : "fill-muted/16 stroke-foreground/55"
             }
@@ -225,7 +225,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
       <p className="text-skin-muted mb-4 text-sm">
         已经点亮{" "}
         <span
-          className="font-semibold text-accent"
+          className="text-accent font-semibold"
           style={{
             display: "inline-block",
             minWidth: `${String(provinceCount).length}ch`,
@@ -235,7 +235,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         </span>{" "}
         个省、
         <span
-          className="font-semibold text-accent"
+          className="text-accent font-semibold"
           style={{
             display: "inline-block",
             minWidth: `${String(cityCount).length}ch`,
@@ -245,7 +245,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         </span>{" "}
         个市、
         <span
-          className="font-semibold text-accent"
+          className="text-accent font-semibold"
           style={{
             display: "inline-block",
             minWidth: `${String(placeCount).length}ch`,
@@ -258,16 +258,16 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
       <div
         className={
           focusedProvinceKey
-            ? "relative overflow-hidden rounded-lg border border-border bg-background"
-            : "relative overflow-hidden rounded-lg border border-border bg-background p-2 sm:p-3"
+            ? "border-border bg-background relative overflow-hidden rounded-lg border"
+            : "border-border bg-background relative overflow-hidden rounded-lg border p-2 sm:p-3"
         }
       >
         {focusedProvinceKey ? (
-          <div className="pointer-events-none absolute top-2 right-2 z-10 sm:top-3 sm:right-3">
+          <div className="pointer-events-none absolute right-2 top-2 z-10 sm:right-3 sm:top-3">
             <button
               type="button"
               onClick={handleResetMapView}
-              className="pointer-events-auto rounded-md border border-border/60 bg-background/90 px-2.5 py-1 text-sm font-medium text-accent shadow-sm backdrop-blur-sm hover:underline"
+              className="border-border/60 bg-background/90 text-accent pointer-events-auto rounded-md border px-2.5 py-1 text-sm font-medium shadow-sm backdrop-blur-sm hover:underline"
             >
               显示全国
             </button>
@@ -343,7 +343,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                               textAnchor="middle"
                               dominantBaseline="central"
                               pointerEvents="none"
-                              className="pointer-events-none fill-foreground/38 stroke-background/55 font-serif font-medium select-none"
+                              className="fill-foreground/38 stroke-background/55 pointer-events-none select-none font-serif font-medium"
                               style={{
                                 fontSize: renderedFs,
                                 letterSpacing: "0.03em",
@@ -363,7 +363,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                             textAnchor="middle"
                             dominantBaseline="central"
                             pointerEvents="none"
-                            className="pointer-events-none fill-foreground/38 stroke-background/55 font-serif font-medium select-none"
+                            className="fill-foreground/38 stroke-background/55 pointer-events-none select-none font-serif font-medium"
                             style={{
                               fontSize: renderedFs,
                               letterSpacing: "0.03em",
@@ -427,7 +427,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                               textAnchor="middle"
                               dominantBaseline="central"
                               pointerEvents="none"
-                              className="pointer-events-none fill-foreground/38 stroke-background/55 font-serif font-medium select-none"
+                              className="fill-foreground/38 stroke-background/55 pointer-events-none select-none font-serif font-medium"
                               style={{
                                 fontSize: renderedFs,
                                 letterSpacing: "0.03em",
@@ -447,7 +447,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                             textAnchor="middle"
                             dominantBaseline="central"
                             pointerEvents="none"
-                            className="pointer-events-none fill-foreground/38 stroke-background/55 font-serif font-medium select-none"
+                            className="fill-foreground/38 stroke-background/55 pointer-events-none select-none font-serif font-medium"
                             style={{
                               fontSize: renderedFs,
                               letterSpacing: "0.03em",
@@ -489,10 +489,10 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         （注：地图仅用于大致轮廓展示与地点示意，不代表精确边界。）
       </p>
 
-      <div className="mt-4 rounded-xl border border-border/45 bg-background/70 p-4 shadow-sm backdrop-blur-sm">
+      <div className="border-border/45 bg-background/70 mt-4 rounded-xl border p-4 shadow-sm backdrop-blur-sm">
         {selectedCity ? (
           <>
-            <p className="text-base font-semibold text-foreground sm:text-lg">
+            <p className="text-foreground text-base font-semibold sm:text-lg">
               {selectedCity.provinceName} - {selectedCity.cityName}
             </p>
             {selectedCity.posts.length > 0 ? (
@@ -518,7 +518,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         ) : focusedProvinceKey ? (
           <p className="text-muted-foreground text-sm">
             已放大至{" "}
-            <span className="font-medium text-foreground">
+            <span className="text-foreground font-medium">
               {PROVINCE_NAME_MAP[focusedProvinceKey] ?? focusedProvinceKey}
             </span>
             。请点击地图中的

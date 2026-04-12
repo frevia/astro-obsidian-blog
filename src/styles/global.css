@@ -61,12 +61,12 @@ html[data-theme="dark"] {
     @apply overflow-x-hidden overflow-y-scroll scroll-smooth leading-7;
   }
   body {
-    @apply flex min-h-svh flex-col overflow-x-hidden bg-background font-serif text-foreground selection:bg-accent/75 selection:text-background;
+    @apply bg-background text-foreground selection:bg-accent/75 selection:text-background flex min-h-svh flex-col overflow-x-hidden font-serif;
     padding-top: var(--site-header-height, 0px);
   }
   a,
   button {
-    @apply outline-offset-1 outline-accent focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-dashed;
+    @apply outline-accent outline-offset-1 focus-visible:no-underline focus-visible:outline-dashed focus-visible:outline-2;
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {
@@ -74,7 +74,7 @@ html[data-theme="dark"] {
   }
   section,
   footer {
-    @apply mx-auto max-w-app px-4;
+    @apply max-w-app mx-auto px-4;
   }
 }
 
@@ -88,7 +88,7 @@ html[data-theme="dark"] {
   &:after {
     view-transition-name: nav-slider;
     content: "";
-    @apply absolute top-0 left-0 h-full w-full rounded-md bg-accent/5;
+    @apply bg-accent/5 absolute left-0 top-0 h-full w-full rounded-md;
   }
 }
 
@@ -103,7 +103,7 @@ html[data-theme="dark"] {
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply rounded-full bg-accent;
+  @apply bg-accent rounded-full;
 }
 
 ::-webkit-scrollbar-track {
@@ -163,7 +163,7 @@ h6 {
 }
 
 #article .footnotes {
-  @apply mt-6 border-t border-border/70 pt-4;
+  @apply border-border/70 mt-6 border-t pt-4;
 }
 
 .footnote-item {
@@ -189,7 +189,7 @@ h6 {
 }
 
 .footnote-tooltip {
-  @apply pointer-events-none absolute left-1/2 z-50 w-max max-w-72 -translate-x-1/2 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground opacity-0 shadow-sm;
+  @apply border-border bg-background text-foreground pointer-events-none absolute left-1/2 z-50 w-max max-w-72 -translate-x-1/2 rounded-md border px-2 py-1 text-xs opacity-0 shadow-sm;
   bottom: 1.6rem;
   white-space: pre-line;
   transition:
@@ -282,7 +282,7 @@ h6 {
 
 /* rehype-autolink-headings：标题旁 # 用伪元素显示，不写入 DOM，避免 tocbot 侧边栏多出 # */
 .icon-link::before {
-  @apply ml-1 inline-block text-accent opacity-0 transition-opacity duration-200;
+  @apply text-accent ml-1 inline-block opacity-0 transition-opacity duration-200;
   content: "#";
 }
 h1:hover .icon-link::before,
@@ -296,7 +296,7 @@ h6:hover .icon-link::before {
 
 /* tocbot styles */
 .toc-title {
-  @apply text-base font-semibold text-foreground/85;
+  @apply text-foreground/85 text-base font-semibold;
 }
 
 .toc-list {
@@ -346,13 +346,13 @@ h6:hover .icon-link::before {
 @layer utilities {
   /* basic sidebar container used for tocbot */
   #sidebar {
-    @apply fixed z-40 transform overflow-y-auto bg-background text-sm;
+    @apply bg-background fixed z-40 transform overflow-y-auto text-sm;
   }
 
   /* Mobile styles */
   @media (max-width: 1023px) {
     #sidebar {
-      @apply fixed top-0 right-0 bottom-0 left-auto flex h-full max-h-none w-4/5 max-w-70 translate-x-full flex-col justify-end rounded-none p-6 pb-8;
+      @apply max-w-70 fixed bottom-0 left-auto right-0 top-0 flex h-full max-h-none w-4/5 translate-x-full flex-col justify-end rounded-none p-6 pb-8;
     }
 
     #sidebar.mobile-open {

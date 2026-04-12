@@ -15,10 +15,56 @@ let tags = getUniqueTags(posts);
 
 <Layout title={`标签 | ${SITE.title}`}>
   <Header />
-  <Main pageTitle="标签" pageDesc="">
-    <ul>
-      {tags.map(({ tag, tagName }) => <Tag {tag} {tagName} size="lg" />)}
-    </ul>
+  <Main pageTitle="标签" pageDesc="按主题分类的文章标签集合">
+    <!-- 页面描述区域 -->
+    <div
+      class="mb-8 rounded-xl border-l-4 border-accent/60 bg-accent/5 px-4 py-4 text-sm text-foreground/80"
+    >
+      <div class="flex items-start gap-3">
+        <span class="mt-0.5 text-lg text-accent/80">🏷️</span>
+        <div class="flex-1">
+          <p class="mb-2 text-base font-semibold text-foreground/90">
+            文章标签
+          </p>
+          <p class="mb-2">
+            这里按主题分类整理了所有文章的标签，方便您按兴趣浏览。
+          </p>
+          <div class="flex flex-wrap gap-4 text-xs text-foreground/60">
+            <span class="flex items-center gap-1.5">
+              <span class="h-2 w-2 rounded-full bg-accent/60"></span>
+              按主题分类浏览
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="h-2 w-2 rounded-full bg-accent/40"></span>
+              快速定位感兴趣内容
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="h-2 w-2 rounded-full bg-accent/20"></span>
+              完整的标签云系统
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-12">
+      <ul class="flex flex-wrap gap-3">
+        {tags.map(({ tag, tagName }) => <Tag {tag} {tagName} size="lg" />)}
+      </ul>
+    </div>
+
+    <!-- 无标签提示 -->
+    {
+      tags.length === 0 && (
+        <div class="my-12">
+          <div class="rounded-xl border border-border/40 bg-muted/10 p-8 text-center">
+            <div class="mb-4 text-5xl text-foreground/40">🏷️</div>
+            <p class="mb-2 font-medium text-foreground/80">暂无标签</p>
+            <p class="text-sm text-foreground/60">当前没有可显示的文章标签。</p>
+          </div>
+        </div>
+      )
+    }
   </Main>
   <Footer />
 </Layout>
