@@ -82,10 +82,11 @@ export default function TwikooThread({
   const envId = PUBLIC_TWIKOO_ENV_ID?.trim();
   const hasRequiredEnv = Boolean(envId);
   const [expanded, setExpanded] = useState(!collapsedWhenEmpty);
+  const [commentCount, setCommentCount] = useState<number | null>(null);
 
-  // 有评论时默认展开：调用 getCommentsCount（无需先 init）
+  // 获取评论数量
   useEffect(() => {
-    if (!commentsEnabled || !hasRequiredEnv || !collapsedWhenEmpty) return;
+    if (!commentsEnabled || !hasRequiredEnv) return;
     const resolvedEnvId = envId;
     if (!resolvedEnvId) return;
 
@@ -109,7 +110,9 @@ export default function TwikooThread({
         const res = await window.twikoo.getCommentsCount(opts);
         // 返回顺序与 urls 一致，只传了一个 path 故取 res[0]
         const count = res?.[0]?.count ?? 0;
-        if (count > 0) setExpanded(true);
+        setCommentCount(count);
+        // 有评论时默认展开（保持原有逻辑）
+        if (count > 0 && !collapsedWhenEmpty) setExpanded(true);
       } catch {
         // 忽略错误，保持折叠
       }
@@ -174,16 +177,21 @@ export default function TwikooThread({
 
   // diary 区折叠态：右下角纯图标+文字，点击展开
   if (collapsedWhenEmpty && !expanded) {
+    const hasComments = commentCount !== null && commentCount > 0;
+    const ariaLabel = hasComments
+      ? `展开评论区（${commentCount} 条评论）`
+      : "展开评论区";
+
     return (
       <div className="twikoo-diary-collapsed flex justify-end">
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="twikoo-diary-trigger text-skin-base inline-flex items-center gap-1 border-0 bg-transparent p-1 text-sm font-medium shadow-none transition-colors hover:text-accent focus:outline-none focus-visible:underline focus-visible:underline-offset-4"
-          aria-label="展开评论区"
+          className="twikoo-diary-trigger text-skin-base group relative inline-flex items-center gap-1.5 border-0 bg-transparent p-1.5 text-sm font-medium shadow-none transition-all hover:text-accent focus:outline-none focus-visible:underline focus-visible:underline-offset-4"
+          aria-label={ariaLabel}
         >
           <svg
-            className="h-5 w-5 shrink-0 text-accent"
+            className="h-5 w-5 shrink-0 text-accent transition-transform group-hover:scale-110"
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -202,11 +210,54 @@ export default function TwikooThread({
             <circle cx="12" cy="10.5" r="0.9" fill="currentColor" />
             <circle cx="15" cy="10.5" r="0.9" fill="currentColor" />
           </svg>
-          {/* <span className="text-sm leading-none font-medium">评论</span> */}
+
+          {/* 评论数量徽章 */}
+          {hasComments && (
+            <span className="absolute -top-1 -right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-accent px-1 text-xs font-medium text-white shadow-sm">
+              {commentCount > 99 ? "99+" : commentCount}
+            </span>
+          )}
+
+          {/* 评论文字 */}
+          <span className="text-sm leading-none font-medium">评论</span>
         </button>
       </div>
     );
   }
 
-  return <div id={threadKey} className="twikoo mt-6" />;
+  return (
+    <div className="twikoo-container">
+      {/* 展开后的评论区域 */}
+      <div id={threadKey} className="twikoo mt-6" />
+
+      {/* 展开后的折叠按钮 */}
+      {collapsedWhenEmpty && expanded && (
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            onClick={() => setExpanded(false)}
+            className="text-skin-base inline-flex items-center gap-2 border-0 bg-transparent p-1 text-sm font-medium shadow-none transition-colors hover:text-accent focus:outline-none focus-visible:underline focus-visible:underline-offset-4"
+            aria-label="折叠评论区"
+          >
+            <span>收起评论</span>
+            <svg
+              className="h-4 w-4 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden
+            >
+              <path
+                d="M6 15l6-6 6 6"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }

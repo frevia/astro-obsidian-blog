@@ -82,6 +82,18 @@ const clip = defineCollection({
           .nullable()
           .optional(),
         published: z.preprocess(parsePublishedDate, z.date()),
+        created: z.preprocess(val => {
+          if (!val || val === "") return new Date();
+          if (val instanceof Date) return val;
+          if (typeof val === "string") {
+            try {
+              return new Date(val);
+            } catch {
+              return new Date();
+            }
+          }
+          return new Date();
+        }, z.date().optional()),
         title: z.string(),
         tags: z
           .array(z.string())

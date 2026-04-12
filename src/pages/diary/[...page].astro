@@ -82,18 +82,20 @@ const paginationInfo = {
   <main
     id="main-content"
     class:list={[
-      "mx-auto mt-4 w-full max-w-app px-4 pb-12",
-      { "mt-8": !SITE.showBackButton },
+      "mx-auto w-full max-w-app px-4 pb-12",
+      { "mt-8": !SITE.showBackButton, "mt-4": SITE.showBackButton },
     ]}
     data-pagefind-body
   >
-    <h1 class="inline-block text-2xl font-bold text-accent sm:text-3xl">
+    <h1
+      class="mb-6 inline-block text-2xl leading-tight font-bold text-accent sm:mb-8 sm:text-3xl"
+    >
       {pageTitle}
     </h1>
 
     <!-- 主要内容区域 -->
-    <div class="py-8">
-      <div id="diary-content">
+    <div class="py-6 sm:py-8">
+      <div id="diary-content" class="space-y-6 sm:space-y-8">
         {
           parsedEntries.length > 0 ? (
             <DiaryTimeline
@@ -103,8 +105,12 @@ const paginationInfo = {
               hideYear={true}
             />
           ) : (
-            <div class="py-8 text-center">
-              <p class="text-skin-base">这个季度还没有日记</p>
+            <div class="py-16 text-center sm:py-20">
+              <div class="mb-4 text-4xl opacity-40">📝</div>
+              <p class="text-skin-base text-lg opacity-70">
+                这个季度还没有日记
+              </p>
+              <p class="mt-2 text-sm opacity-50">开始记录您的日常吧</p>
             </div>
           )
         }

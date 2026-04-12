@@ -141,7 +141,7 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
           aria-labelledby={`date-${entry.date}`}
           aria-describedby={`content-${entry.date}`}
           tabIndex={0}
-          className="focus:ring-skin-accent focus:ring-offset-skin-fill rounded-lg focus:outline-none"
+          className="focus:ring-skin-accent focus:ring-offset-skin-fill hover:bg-skin-fill/30 -mx-4 rounded-lg p-4 transition-all duration-200 focus:outline-none"
         >
           <DiaryEntryReact
             date={entry.date}
@@ -152,21 +152,29 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
       ))}
 
       {displayedEntries.length === 0 && (
-        <article role="article" className="py-12 text-center">
+        <article role="article" className="py-16 text-center sm:py-20">
           <div role="status" aria-live="polite">
-            <p className="text-skin-base opacity-60">还没有任何日记...</p>
+            <div className="mb-4 text-4xl opacity-40">📝</div>
+            <p className="text-skin-base text-lg opacity-70">
+              还没有任何日记...
+            </p>
+            <p className="mt-2 text-sm opacity-50">开始记录您的日常吧</p>
           </div>
         </article>
       )}
 
       {isLoading && (
-        <article role="article" className="loading py-8 text-center">
+        <article role="article" className="loading py-6 text-center sm:py-8">
           <div
             role="status"
             aria-live="assertive"
             aria-label="正在加载更多日记条目"
           >
-            <p className="text-skin-base opacity-60">加载中...</p>
+            <div className="animate-pulse space-y-2">
+              <div className="bg-skin-muted mx-auto h-4 w-1/4 rounded"></div>
+              <div className="bg-skin-muted mx-auto h-3 w-1/6 rounded"></div>
+            </div>
+            <p className="text-skin-base mt-2 opacity-60">加载中...</p>
             <div className="sr-only">正在为您加载更多日记内容，请稍候</div>
           </div>
         </article>
@@ -175,7 +183,11 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
       {!hasMore && displayedEntries.length > 0 && (
         <article role="article" className="no-more py-8 text-center">
           <div role="status" aria-live="polite">
-            <p className="text-skin-base opacity-60">没有更多内容了</p>
+            <div className="mb-2 text-2xl opacity-40">✨</div>
+            <p className="text-skin-base opacity-70">
+              已显示全部 {displayedEntries.length} 条日记记录
+            </p>
+            <p className="mt-1 text-sm opacity-50">没有更多内容了</p>
             <div className="sr-only">
               已显示全部 {displayedEntries.length} 条日记记录
             </div>
