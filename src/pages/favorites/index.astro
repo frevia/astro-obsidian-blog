@@ -75,7 +75,7 @@ const getGroupingDate = (post: CollectionEntry<"clip">) => {
     </div> -->
     {
       allTags.length > 0 && (
-        <div class="mb-6" id="favorites-tag-filter">
+        <div class="mb-6" id="favorites-tag-filter" data-pagefind-ignore>
           <p class="mb-2 text-sm font-medium">标签筛选</p>
           <div class="flex flex-wrap gap-1.5">
             <button
@@ -98,16 +98,17 @@ const getGroupingDate = (post: CollectionEntry<"clip">) => {
         </div>
       )
     }
-    {
-      Object.entries(
-        getPostsByGroupCondition(
-          clips,
-          post => getYearMonthInTimeZone(getGroupingDate(post)).year
+    <div data-pagefind-body data-pagefind-weight="4">
+      {
+        Object.entries(
+          getPostsByGroupCondition(
+            clips,
+            post => getYearMonthInTimeZone(getGroupingDate(post)).year
+          )
         )
-      )
-        .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
-        .map(([year, yearGroup]) => (
-          <div data-year-group class="mb-8">
+          .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
+          .map(([year, yearGroup]) => (
+            <div data-year-group class="mb-8">
             <div class="mb-6 flex items-center justify-between border-b border-border/30 pb-3">
               <div class="flex items-baseline gap-3">
                 <span class="text-2xl font-bold text-foreground/90">
@@ -212,23 +213,24 @@ const getGroupingDate = (post: CollectionEntry<"clip">) => {
                   </ul>
                 </div>
               ))}
-          </div>
-        ))
-    }
-    <div id="favorites-empty" class="hidden py-16 text-center">
-      <div class="mb-4 text-5xl text-foreground/40">📚</div>
-      <p class="text-base font-medium text-foreground/70">
-        当前标签下暂无收藏内容
-      </p>
-      <p class="mt-2 text-sm text-foreground/50">
-        试试选择其他标签或查看全部内容
-      </p>
-      <button
-        onclick="applyFilter('')"
-        class="mt-4 rounded-full bg-accent/10 px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/20"
-      >
-        查看全部内容
-      </button>
+            </div>
+          ))
+      }
+      <div id="favorites-empty" class="hidden py-16 text-center" data-pagefind-ignore>
+        <div class="mb-4 text-5xl text-foreground/40">📚</div>
+        <p class="text-base font-medium text-foreground/70">
+          当前标签下暂无收藏内容
+        </p>
+        <p class="mt-2 text-sm text-foreground/50">
+          试试选择其他标签或查看全部内容
+        </p>
+        <button
+          onclick="applyFilter('')"
+          class="mt-4 rounded-full bg-accent/10 px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/20"
+        >
+          查看全部内容
+        </button>
+      </div>
     </div>
   </Main>
   <Footer />

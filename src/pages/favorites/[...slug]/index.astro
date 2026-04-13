@@ -7,6 +7,8 @@ import Footer from "@/components/Footer.astro";
 import BackButton from "@/components/BackButton.astro";
 import BackToTopButton from "@/components/BackToTopButton.astro";
 import Datetime from "@/components/Datetime.astro";
+import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
+import IconChevronRight from "@/assets/icons/IconChevronRight.svg";
 import { SITE } from "@/config";
 import { slugifyStr } from "@/utils/slugify";
 
@@ -31,7 +33,8 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content } = await render(post);
 
-const { title, description, published, created, timezone, source } = post.data;
+const { title, description, published, created, timezone, source, tags } =
+  post.data;
 
 const layoutProps = {
   title: `${title} | ${SITE.title}`,
@@ -39,18 +42,61 @@ const layoutProps = {
   published,
   scrollSmooth: true,
 };
+
+const favoritePosts = (await getCollection("clip")).sort(
+  (a, b) =>
+    Math.floor(new Date(b.data.published).getTime() / 1000) -
+    Math.floor(new Date(a.data.published).getTime() / 1000)
+);
+
+const allFavorites = favoritePosts.map(({ data: { title, slug }, id }) => ({
+  id,
+  title,
+  slug,
+}));
+
+const resolveFavoriteSlug = (slug: string | undefined, title: string) => {
+  const trimmedSlug = slug?.trim();
+  if (trimmedSlug) return trimmedSlug;
+  return slugifyStr(title);
+};
+
+const getFavoritePath = (slug: string | undefined, title: string) => {
+  return `/favorites/${resolveFavoriteSlug(slug, title)}`;
+};
+
+const currentPostIndex = allFavorites.findIndex(item => item.id === post.id);
+const prevPost =
+  currentPostIndex > 0 ? allFavorites[currentPostIndex - 1] : null;
+const nextPost =
+  currentPostIndex >= 0 && currentPostIndex < allFavorites.length - 1
+    ? allFavorites[currentPostIndex + 1]
+    : null;
 ---
 
 <Layout {...layoutProps}>
   <Header />
   <BackButton />
-  <main id="main-content" class="mx-auto mt-4 w-full max-w-app px-4 pb-12">
+  <main
+    id="main-content"
+    class="mx-auto mt-4 w-full max-w-app px-4 pb-12"
+    data-pagefind-body
+    data-pagefind-weight="5"
+  >
     <h1
       transition:name={slugifyStr(title)}
       class="inline-block text-2xl font-bold text-accent sm:text-3xl"
+      data-pagefind-meta="title"
     >
       {title}
     </h1>
+    {
+      tags.length > 0 && (
+        <div class="sr-only" data-pagefind-meta="tag">
+          {tags.join(", ")}
+        </div>
+      )
+    }
     <div class="my-2">
       <Datetime
         {published}
@@ -105,6 +151,37 @@ const layoutProps = {
       <div class="toc-title mb-2 text-sm font-medium">页面导航</div>
       <div id="toc-container" class="js-toc"></div>
     </aside>
+
+    <div data-pagefind-ignore class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      {
+        prevPost && (
+          <a
+            href={getFavoritePath(prevPost.slug, prevPost.title)}
+            class="flex w-full gap-1 hover:opacity-75"
+          >
+            <IconChevronLeft class="inline-block flex-none rtl:rotate-180" />
+            <div>
+              <span>上一篇</span>
+              <div class="text-sm text-accent/85">{prevPost.title}</div>
+            </div>
+          </a>
+        )
+      }
+      {
+        nextPost && (
+          <a
+            href={getFavoritePath(nextPost.slug, nextPost.title)}
+            class="flex w-full justify-end gap-1 text-end hover:opacity-75 sm:col-start-2"
+          >
+            <div>
+              <span>下一篇</span>
+              <div class="text-sm text-accent/85">{nextPost.title}</div>
+            </div>
+            <IconChevronRight class="inline-block flex-none rtl:rotate-180" />
+          </a>
+        )
+      }
+    </div>
   </main>
   <Footer />
 </Layout>
