@@ -1,6 +1,7 @@
 ---
 import Footer from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
 import BackButton from "@/components/BackButton.astro";
 import BackToTopButton from "@/components/BackToTopButton.astro";
 import { SITE } from "@/config";
@@ -78,6 +79,7 @@ const paginationInfo = {
 
 <Layout title={`${pageTitle} | ${SITE.title}`}>
   <Header />
+  <Breadcrumb />
   <BackButton />
   <main
     id="main-content"
