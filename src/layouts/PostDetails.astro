@@ -18,7 +18,6 @@ import { SITE } from "@/config";
 import MediaCard from "../components/MediaCard.astro";
 import Twikoo from "@/components/Twikoo.astro";
 import { PUBLIC_TWIKOO_ENV_ID } from "astro:env/client";
-import "photosuite/dist/photosuite.css";
 
 const commentsEnabled = SITE.comments.enabled;
 const hasTwikooEnv = Boolean(PUBLIC_TWIKOO_ENV_ID?.trim());
