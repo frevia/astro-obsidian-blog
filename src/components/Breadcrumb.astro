@@ -8,6 +8,7 @@ currentUrlPath = currentUrlPath.replace(/\.html$/, "");
 // Get url array from path
 // eg: /tags/tailwindcss => ['tags', 'tailwindcss']
 const breadcrumbList = currentUrlPath.split("/").slice(1);
+const isHomePage = breadcrumbList.length === 0;
 
 // if breadcrumb is Home > Posts > 1 <etc>
 // replace Posts with Posts (page number)
@@ -49,6 +50,15 @@ if (breadcrumbList[0] === "posts" && !isNaN(Number(breadcrumbList[2]))) {
       <span aria-hidden="true" class="opacity-80">&raquo;</span>
     </li>
     {
+      isHomePage && (
+        <li>
+          <span class="capitalize opacity-75" aria-current="page">
+            日记
+          </span>
+        </li>
+      )
+    }
+    {
       breadcrumbList.map((breadcrumb, index) =>
         index + 1 === breadcrumbList.length ? (
           <li>
@@ -68,9 +78,9 @@ if (breadcrumbList[0] === "posts" && !isNaN(Number(breadcrumbList[2]))) {
                       ? "关于"
                       : breadcrumb === "search"
                         ? "搜索"
-                    : breadcrumb === "footprint"
-                      ? "足迹"
-                      : decodeURIComponent(breadcrumb)}
+                        : breadcrumb === "footprint"
+                          ? "足迹"
+                          : decodeURIComponent(breadcrumb)}
             </span>
           </li>
         ) : (
@@ -86,11 +96,11 @@ if (breadcrumbList[0] === "posts" && !isNaN(Number(breadcrumbList[2]))) {
                       ? "关于"
                       : breadcrumb === "search"
                         ? "搜索"
-                    : breadcrumb === "footprint"
-                      ? "足迹"
-                    : breadcrumb === "favorites"
-                      ? "收藏"
-                      : decodeURIComponent(breadcrumb)}
+                        : breadcrumb === "footprint"
+                          ? "足迹"
+                          : breadcrumb === "favorites"
+                            ? "收藏"
+                            : decodeURIComponent(breadcrumb)}
             </a>
             <span aria-hidden="true">&raquo;</span>
           </li>
