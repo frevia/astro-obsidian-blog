@@ -20,12 +20,42 @@ const parsePublishedDate = (value: unknown) => {
   const raw = value.trim();
   if (!raw) return value;
 
+  // Support common frontmatter datetime formats like:
+  // 2024-01-28 19:12, 2024-01-28 19:12:00, 2024/01/28 19:12
+  const dateTime = raw.match(
+    /^(\d{4})[-/](\d{2})[-/](\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/
+  );
+  if (dateTime) {
+    const [, y, m, d, hh, mm, ss = "00"] = dateTime;
+    const parsed = new Date(
+      Number(y),
+      Number(m) - 1,
+      Number(d),
+      Number(hh),
+      Number(mm),
+      Number(ss)
+    );
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
+
+  const ymd = raw.match(/^(\d{4})[-/](\d{2})[-/](\d{2})$/);
+  if (ymd) {
+    const [, year, month, day] = ymd;
+    const parsed = new Date(Number(year), Number(month) - 1, Number(day));
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
+
   const ym = raw.match(/^(\d{4})-(\d{2})$/);
   if (ym) {
     const year = Number(ym[1]);
     const month = Number(ym[2]);
     return new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
   }
+
+  // Keep default Date parsing as a fallback for ISO-like values.
+  const fallback = new Date(raw);
+  if (!Number.isNaN(fallback.getTime())) return fallback;
+
   return value;
 };
 
