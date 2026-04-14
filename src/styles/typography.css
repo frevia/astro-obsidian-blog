@@ -35,12 +35,20 @@
       @apply sm:my-0 sm:flex-1;
     }
 
-    .rehype-figure figcaption {
-      @apply mt-0 text-center;
+    .rehype-figure {
+      @apply my-4;
     }
 
     .rehype-figure img {
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
       @apply max-h-[60vh] object-cover!;
+    }
+
+    .rehype-figure figcaption {
+      /* Override typography plugin defaults to keep image caption closer */
+      margin-top: 0.25rem !important;
+      @apply text-center leading-6;
     }
 
     a {
