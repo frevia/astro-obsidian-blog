@@ -109,114 +109,122 @@ const getGroupingDate = (post: CollectionEntry<"clip">) => {
           .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
           .map(([year, yearGroup]) => (
             <div data-year-group class="mb-8">
-            <div class="mb-6 flex items-center justify-between border-b border-border/30 pb-3">
-              <div class="flex items-baseline gap-3">
-                <span class="text-2xl font-bold text-foreground/90">
-                  {year}
-                </span>
-                <sup class="rounded-full bg-accent/10 px-2.5 py-1 text-sm font-medium text-accent">
-                  {yearGroup.length} 篇
-                </sup>
-              </div>
-              <div class="text-xs text-foreground/40">按收录时间排序</div>
-            </div>
-            {Object.entries(
-              getPostsByGroupCondition(
-                yearGroup,
-                post =>
-                  getYearMonthInTimeZone(getGroupingDate(post)).monthIndex + 1
-              )
-            )
-              .sort(([monthA], [monthB]) => Number(monthB) - Number(monthA))
-              .map(([month, monthGroup]) => (
-                <div class="flex flex-col gap-4 sm:flex-row" data-month-group>
-                  <div class="mt-4 mb-1 min-w-32 sm:mt-6 sm:mb-0">
-                    <span class="border-l-3 border-accent pl-3 text-base font-semibold tracking-wide text-foreground/80 sm:border-l-0 sm:pl-0">
-                      {months[Number(month) - 1]}
-                    </span>
-                  </div>
-                  <ul class="sm:flex-1">
-                    {monthGroup
-                      .sort(
-                        (a, b) =>
-                          Math.floor(
-                            new Date(b.data.published).getTime() / 1000
-                          ) -
-                          Math.floor(
-                            new Date(a.data.published).getTime() / 1000
-                          )
-                      )
-                      .map(post => (
-                        <li
-                          class="mb-3 border-b border-border/20 pb-3 last:mb-0 last:border-b-0"
-                          data-favorite-item
-                          data-tags={post.data.tags.join("||")}
-                        >
-                          <a
-                            href={getFavoritePath(
-                              post.data.slug,
-                              post.data.title
-                            )}
-                            class="group block"
-                          >
-                            <h3 class="mb-1.5 text-base leading-relaxed font-semibold text-foreground/90 transition-colors group-hover:text-accent">
-                              {post.data.title}
-                            </h3>
-                            <div class="flex flex-wrap items-center gap-1.5 text-sm text-foreground/70">
-                              <div class="flex items-center gap-1.5">
-                                <Datetime
-                                  published={post.data.published}
-                                  created={post.data.created}
-                                  timezone={post.data.timezone}
-                                  showCreated={true}
-                                />
-                              </div>
-
-                              {post.data.tags.length > 0 && (
-                                <>
-                                  <span class="mx-0.5 hidden text-foreground/40 sm:inline">
-                                    ·
-                                  </span>
-                                  <span class="flex items-center gap-1">
-                                    {post.data.tags.slice(0, 2).map(tag => (
-                                      <span class="rounded-full bg-muted/40 px-2 py-0.5 text-xs font-medium tracking-wide">
-                                        #{tag}
-                                      </span>
-                                    ))}
-                                    {post.data.tags.length > 2 && (
-                                      <span class="text-xs text-foreground/50">
-                                        +{post.data.tags.length - 2}
-                                      </span>
-                                    )}
-                                  </span>
-                                </>
-                              )}
-                            </div>
-
-                            {post.data.source && (
-                              <div class="mt-1 text-xs leading-tight text-foreground/50">
-                                <span class="inline-flex max-w-full items-center">
-                                  来源:{" "}
-                                  <span
-                                    class="truncate font-medium"
-                                    title={post.data.source}
-                                    style="max-width: 550px;"
-                                  >
-                                    {post.data.source}
-                                  </span>
-                                </span>
-                              </div>
-                            )}
-                          </a>
-                        </li>
-                      ))}
-                  </ul>
+              <div class="mb-6 flex items-center justify-between border-b border-border/30 pb-3">
+                <div class="flex items-baseline gap-3">
+                  <span class="text-2xl font-bold text-foreground/90">
+                    {year}
+                  </span>
+                  <sup class="rounded-full bg-accent/10 px-2.5 py-1 text-sm font-medium text-accent">
+                    {yearGroup.length} 篇
+                  </sup>
                 </div>
-              ))}
+                <div class="text-xs text-foreground/40">按收录时间排序</div>
+              </div>
+              {Object.entries(
+                getPostsByGroupCondition(
+                  yearGroup,
+                  post =>
+                    getYearMonthInTimeZone(getGroupingDate(post)).monthIndex + 1
+                )
+              )
+                .sort(([monthA], [monthB]) => Number(monthB) - Number(monthA))
+                .map(([month, monthGroup]) => (
+                  <div class="flex flex-col gap-4 sm:flex-row" data-month-group>
+                    <div class="mt-4 mb-1 min-w-32 sm:mt-6 sm:mb-0">
+                      <span class="border-l-3 border-accent pl-3 text-base font-semibold tracking-wide text-foreground/80 sm:border-l-0 sm:pl-0">
+                        {months[Number(month) - 1]}
+                      </span>
+                    </div>
+                    <ul class="sm:flex-1">
+                      {monthGroup
+                        .sort(
+                          (a, b) =>
+                            Math.floor(
+                              new Date(
+                                b.data.created ?? b.data.published
+                              ).getTime() / 1000
+                            ) -
+                            Math.floor(
+                              new Date(
+                                a.data.created ?? a.data.published
+                              ).getTime() / 1000
+                            )
+                        )
+                        .map(post => (
+                          <li
+                            class="mb-3 border-b border-border/20 pb-3 last:mb-0 last:border-b-0"
+                            data-favorite-item
+                            data-tags={post.data.tags.join("||")}
+                          >
+                            <a
+                              href={getFavoritePath(
+                                post.data.slug,
+                                post.data.title
+                              )}
+                              class="group block"
+                            >
+                              <h3 class="mb-1.5 text-base leading-relaxed font-semibold text-foreground/90 transition-colors group-hover:text-accent">
+                                {post.data.title}
+                              </h3>
+                              <div class="flex flex-wrap items-center gap-1.5 text-sm text-foreground/70">
+                                <div class="flex items-center gap-1.5">
+                                  <Datetime
+                                    published={post.data.published}
+                                    created={post.data.created}
+                                    timezone={post.data.timezone}
+                                    showCreated={true}
+                                  />
+                                </div>
+
+                                {post.data.tags.length > 0 && (
+                                  <>
+                                    <span class="mx-0.5 hidden text-foreground/40 sm:inline">
+                                      ·
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                      {post.data.tags.slice(0, 2).map(tag => (
+                                        <span class="rounded-full bg-muted/40 px-2 py-0.5 text-xs font-medium tracking-wide">
+                                          #{tag}
+                                        </span>
+                                      ))}
+                                      {post.data.tags.length > 2 && (
+                                        <span class="text-xs text-foreground/50">
+                                          +{post.data.tags.length - 2}
+                                        </span>
+                                      )}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+
+                              {post.data.source && (
+                                <div class="mt-1 text-xs leading-tight text-foreground/50">
+                                  <span class="inline-flex max-w-full items-center">
+                                    来源:{" "}
+                                    <span
+                                      class="truncate font-medium"
+                                      title={post.data.source}
+                                      style="max-width: 550px;"
+                                    >
+                                      {post.data.source}
+                                    </span>
+                                  </span>
+                                </div>
+                              )}
+                            </a>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                ))}
             </div>
           ))
       }
-      <div id="favorites-empty" class="hidden py-16 text-center" data-pagefind-ignore>
+      <div
+        id="favorites-empty"
+        class="hidden py-16 text-center"
+        data-pagefind-ignore
+      >
         <div class="mb-4 text-5xl text-foreground/40">📚</div>
         <p class="text-base font-medium text-foreground/70">
           当前标签下暂无收藏内容
