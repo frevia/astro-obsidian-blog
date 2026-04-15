@@ -11,6 +11,8 @@ import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
 import IconChevronRight from "@/assets/icons/IconChevronRight.svg";
 import { SITE } from "@/config";
 import { slugifyStr } from "@/utils/slugify";
+import getPostsByGroupCondition from "@/utils/getPostsByGroupCondition";
+import { getYearMonthInTimeZone } from "@/utils/calendarDate";
 
 export interface Props {
   post: CollectionEntry<"clip">;
@@ -43,11 +45,37 @@ const layoutProps = {
   scrollSmooth: true,
 };
 
-const favoritePosts = (await getCollection("clip")).sort(
-  (a, b) =>
-    Math.floor(new Date(b.data.published).getTime() / 1000) -
-    Math.floor(new Date(a.data.published).getTime() / 1000)
-);
+const allClips = await getCollection("clip");
+const getGroupingDate = (item: CollectionEntry<"clip">) =>
+  item.data.created || item.data.published;
+
+const favoritePosts = Object.entries(
+  getPostsByGroupCondition(
+    allClips,
+    item => getYearMonthInTimeZone(getGroupingDate(item)).year
+  )
+)
+  .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
+  .flatMap(([, yearGroup]) =>
+    Object.entries(
+      getPostsByGroupCondition(
+        yearGroup,
+        item => getYearMonthInTimeZone(getGroupingDate(item)).monthIndex + 1
+      )
+    )
+      .sort(([monthA], [monthB]) => Number(monthB) - Number(monthA))
+      .flatMap(([, monthGroup]) =>
+        [...monthGroup].sort(
+          (a, b) =>
+            Math.floor(
+              new Date(b.data.created ?? b.data.published).getTime() / 1000
+            ) -
+            Math.floor(
+              new Date(a.data.created ?? a.data.published).getTime() / 1000
+            )
+        )
+      )
+  );
 
 const allFavorites = favoritePosts.map(({ data: { title, slug }, id }) => ({
   id,
