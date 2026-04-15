@@ -2,6 +2,7 @@
 import { slugifyStr } from "@/utils/slugify";
 import type { CollectionEntry } from "astro:content";
 import { getPath } from "@/utils/getPath";
+import { SITE } from "@/config";
 import Datetime from "./Datetime.astro";
 import { Image } from "astro:assets";
 
@@ -19,6 +20,11 @@ const headerProps = {
   style: { viewTransitionName: slugifyStr(title) },
   class: "text-lg font-medium decoration-dashed hover:underline",
 };
+
+const fallbackCover = SITE.dynamicOgImage
+  ? `${getPath(id, filePath)}/cover.png`
+  : undefined;
+const cardCover = data.cover ?? fallbackCover;
 ---
 
 <li class:list={["my-6", itemClass]} hidden={hidden}>
@@ -27,10 +33,10 @@ const headerProps = {
       class="hidden md:mb-0 md:block md:h-[100px] md:w-[100px] md:flex-shrink-0"
     >
       {
-        data.cover &&
-          (typeof data.cover === "string" ? (
+        cardCover &&
+          (typeof cardCover === "string" ? (
             <Image
-              src={data.cover}
+              src={cardCover}
               alt={title}
               width={100}
               height={100}
@@ -38,7 +44,7 @@ const headerProps = {
             />
           ) : (
             <Image
-              src={data.cover}
+              src={cardCover}
               alt={title}
               width={100}
               height={100}
