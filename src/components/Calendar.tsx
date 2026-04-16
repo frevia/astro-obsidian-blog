@@ -230,6 +230,18 @@ const Calendar: React.FC<CalendarProps> = ({
     };
     document.addEventListener("visibilitychange", onVisibility);
 
+    // 窗口重新获得焦点（切应用/锁屏恢复）时检查日期
+    const onFocus = () => checkDateChange();
+    window.addEventListener("focus", onFocus);
+
+    // Safari/bfcache 恢复页面时检查日期
+    const onPageShow = () => checkDateChange();
+    window.addEventListener("pageshow", onPageShow);
+
+    // Astro 客户端路由完成后检查日期
+    const onPageLoad = () => checkDateChange();
+    document.addEventListener("astro:page-load", onPageLoad);
+
     // Astro 页面切换时检查日期
     const onAfterSwap = () => checkDateChange();
     document.addEventListener("astro:after-swap", onAfterSwap);
@@ -238,18 +250,14 @@ const Calendar: React.FC<CalendarProps> = ({
     const onModalOpen = () => checkDateChange();
     document.addEventListener("calendar-modal-open", onModalOpen);
 
-    // 页面刷新时检查日期
-    const onBeforeUnload = () => {
-      // 页面刷新前不需要做什么，但可以确保下次加载时会重新检查日期
-    };
-    window.addEventListener("beforeunload", onBeforeUnload);
-
     return () => {
       window.clearInterval(intervalId);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("pageshow", onPageShow);
+      document.removeEventListener("astro:page-load", onPageLoad);
       document.removeEventListener("astro:after-swap", onAfterSwap);
       document.removeEventListener("calendar-modal-open", onModalOpen);
-      window.removeEventListener("beforeunload", onBeforeUnload);
     };
   }, []);
 
