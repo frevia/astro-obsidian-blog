@@ -179,11 +179,15 @@ const Calendar: React.FC<CalendarProps> = ({
   compact = false,
 }) => {
   const [viewYM, setViewYM] = useState(() => getSiteYearMonth(new Date()));
-  const [todayKey, setTodayKey] = useState(() => toSiteYMD(new Date()));
+  // SSR (Astro 构建期) 阶段刻意不标 today：
+  // 构建时的 `new Date()` 会把「今天」固化成构建当天，用户刷新后 React 18 在 hydration 时
+  // 并不会把已有 DOM 的 className 改回客户端计算值，导致 today 色块/角标停留在构建当天（即昨天）。
+  // 这里初始化为空串，交给下方 useEffect 在客户端挂载后填入真正的今天，从而触发一次正常的 re-render。
+  const [todayKey, setTodayKey] = useState<string>("");
   const [selected, setSelected] = useState<{
     dateKey: string;
     events: { type: string; url: string; title?: string }[];
-  }>({ dateKey: todayKey, events: eventsByDate[todayKey] ?? [] });
+  } | null>(null);
 
   const todayKeyRef = React.useRef(todayKey);
   const selectedRef = React.useRef(selected);
@@ -204,7 +208,8 @@ const Calendar: React.FC<CalendarProps> = ({
       const ev = eventsByDateRef.current;
       if (currentDate !== tk) {
         setTodayKey(currentDate);
-        if (sel.dateKey === tk) {
+        // 首次挂载时 sel 为 null；此外若原先选中的就是旧的 today，也同步到新 today
+        if (!sel || sel.dateKey === tk) {
           setSelected({
             dateKey: currentDate,
             events: ev[currentDate] ?? [],
@@ -298,10 +303,14 @@ const Calendar: React.FC<CalendarProps> = ({
 
   // 当 eventsByDate 变化时，更新选中日期的事件
   React.useEffect(() => {
-    setSelected(prev => ({
-      dateKey: prev.dateKey,
-      events: eventsByDate[prev.dateKey] ?? [],
-    }));
+    setSelected(prev =>
+      prev
+        ? {
+            dateKey: prev.dateKey,
+            events: eventsByDate[prev.dateKey] ?? [],
+          }
+        : prev
+    );
   }, [eventsByDate]);
 
   const handleDayClick = (
