@@ -13,7 +13,7 @@ import DiaryTimeline from "@/components/DiaryTimeline.tsx";
 export async function getStaticPaths() {
   const diaryEntries = await getCollection("diary");
 
-  // 按季度分组日记条目
+  // 按季度分组碎片条目
   const quarterGroups = new Map();
 
   diaryEntries.forEach(entry => {
@@ -110,7 +110,7 @@ const paginationInfo = {
             <div class="py-16 text-center sm:py-20">
               <div class="mb-4 text-4xl opacity-40">📝</div>
               <p class="text-skin-base text-lg opacity-70">
-                这个季度还没有日记
+                这个季度还没有碎片
               </p>
               <p class="mt-2 text-sm opacity-50">开始记录您的日常吧</p>
             </div>

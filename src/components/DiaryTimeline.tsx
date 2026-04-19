@@ -156,7 +156,7 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
           <div role="status" aria-live="polite">
             <div className="mb-4 text-4xl opacity-40">📝</div>
             <p className="text-skin-base text-lg opacity-70">
-              还没有任何日记...
+              还没有任何碎片...
             </p>
             <p className="mt-2 text-sm opacity-50">开始记录您的日常吧</p>
           </div>
@@ -168,14 +168,14 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
           <div
             role="status"
             aria-live="assertive"
-            aria-label="正在加载更多日记条目"
+            aria-label="正在加载更多碎片条目"
           >
             <div className="animate-pulse space-y-2">
               <div className="bg-skin-muted mx-auto h-4 w-1/4 rounded"></div>
               <div className="bg-skin-muted mx-auto h-3 w-1/6 rounded"></div>
             </div>
             <p className="text-skin-base mt-2 opacity-60">加载中...</p>
-            <div className="sr-only">正在为您加载更多日记内容，请稍候</div>
+            <div className="sr-only">正在为您加载更多碎片内容，请稍候</div>
           </div>
         </article>
       )}
@@ -185,11 +185,11 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
           <div role="status" aria-live="polite">
             <div className="mb-2 text-2xl opacity-40">✨</div>
             <p className="text-skin-base opacity-70">
-              已显示全部 {displayedEntries.length} 条日记记录
+              已显示全部 {displayedEntries.length} 条碎片记录
             </p>
             <p className="mt-1 text-sm opacity-50">没有更多内容了</p>
             <div className="sr-only">
-              已显示全部 {displayedEntries.length} 条日记记录
+              已显示全部 {displayedEntries.length} 条碎片记录
             </div>
           </div>
         </article>
@@ -203,10 +203,10 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
             className="bg-skin-accent text-skin-inverted hover:bg-skin-accent/90 focus:ring-skin-accent focus:ring-offset-skin-fill rounded-lg px-6 py-3 transition-colors focus:outline-none"
             aria-describedby="load-more-description"
           >
-            加载更多日记
+            加载更多碎片
           </button>
           <div id="load-more-description" className="sr-only">
-            点击此按钮加载更多日记条目，或继续向下滚动自动加载
+            点击此按钮加载更多碎片条目，或继续向下滚动自动加载
           </div>
         </article>
       )}

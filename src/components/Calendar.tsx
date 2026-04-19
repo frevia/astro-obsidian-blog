@@ -761,7 +761,7 @@ const Calendar: React.FC<CalendarProps> = ({
                   {selected.events.map((ev, idx) => {
                     const isDiary = ev.type === "diary";
                     const label = isDiary
-                      ? "日记"
+                      ? "碎片"
                       : ev.type === "blog" && ev.title
                         ? ev.title
                         : "文章";
@@ -783,10 +783,10 @@ const Calendar: React.FC<CalendarProps> = ({
                                 : "bg-sky-500/15 text-sky-800 dark:text-sky-300",
                             ].join(" ")}
                           >
-                            {isDiary ? "日记" : "文章"}
+                            {isDiary ? "碎片" : "文章"}
                           </span>
                           <span className="text-skin-base min-w-0 flex-1 text-xs leading-snug group-hover:text-accent">
-                            {isDiary ? "当日日记" : label}
+                            {isDiary ? "当日碎片" : label}
                           </span>
                           <span
                             className="text-skin-muted shrink-0 text-[10px] opacity-0 transition-opacity group-hover:opacity-100"
@@ -801,7 +801,7 @@ const Calendar: React.FC<CalendarProps> = ({
                 </ul>
               ) : (
                 <div className="bg-skin-muted/5 text-skin-muted dark:bg-skin-muted/10 border-skin-muted/25 rounded-lg border border-dashed px-3 py-4 text-center text-xs leading-relaxed">
-                  该日暂无日记或文章
+                  该日暂无碎片或文章
                 </div>
               )}
             </div>

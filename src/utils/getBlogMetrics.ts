@@ -35,7 +35,7 @@ import { parseYMDAsUTC, toSiteYMD } from "@/utils/calendarDate";
  * @property runningDays - 博客运行天数（从 SITE.createdAt 到当前日期）
  * @property totalPosts - 文章总数（包括 blog 和 diary）
  * @property blogPosts - 博客文章数
- * @property diaryPosts - 日记文章数
+ * @property diaryPosts - 碎片文章数
  * @property totalWords - 总字数（估算值）
  * @property totalWordsInWan - 总字数（万为单位，保留一位小数）
  */
@@ -55,7 +55,7 @@ export interface BlogMetrics {
  * 1. 运行天数：从 SITE.createdAt 00:00:00 到当前日期的完整天数
  * 2. 文章总数：blog 与 diary 文章数量之和
  * 3. 博客文章数：blog 文章数量
- * 4. 日记文章数：diary 文章数量
+ * 4. 碎片文章数：diary 文章数量
  * 5. 总字数估算：按每篇文章 1500 字计算
  * 6. 总字数（万）：总字数除以 10000，保留一位小数
  *
@@ -63,7 +63,7 @@ export interface BlogMetrics {
  *
  * @example
  * const metrics = await getBlogMetrics();
- * console.log(`运行 ${metrics.runningDays} 天，共 ${metrics.totalPosts} 篇文章（博客 ${metrics.blogPosts} 篇，日记 ${metrics.diaryPosts} 篇），${metrics.totalWordsInWan} 万字`);
+ * console.log(`运行 ${metrics.runningDays} 天，共 ${metrics.totalPosts} 篇文章（博客 ${metrics.blogPosts} 篇，碎片 ${metrics.diaryPosts} 篇），${metrics.totalWordsInWan} 万字`);
  */
 export async function getBlogMetrics(): Promise<BlogMetrics> {
   // 博客创建日期：从配置中获取
@@ -118,7 +118,7 @@ export async function getBlogMetrics(): Promise<BlogMetrics> {
    * - runningDays: 运行天数（数字类型）
    * - totalPosts: 文章总数（数字类型，包括 blog 和 diary）
    * - blogPosts: 博客文章数（数字类型）
-   * - diaryPosts: 日记文章数（数字类型）
+   * - diaryPosts: 碎片文章数（数字类型）
    * - totalWords: 总字数（数字类型）
    * - totalWordsInWan: 总字数万单位（字符串类型，如 "12.5"）
    */

@@ -77,7 +77,7 @@ interface LocalMusicData {
   url?: string;
 }
 
-// 解析日记条目的函数
+// 解析碎片条目的函数
 export async function parseEntry(entry: CollectionEntry<"diary">) {
   const date = entry.id.split("/").pop()!.replace(".md", "");
   const currentFilePath =
@@ -369,7 +369,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
           ? `<span id="${tipId}" role="tooltip" class="footnote-tooltip">${escapeHtml(tip)}</span>`
           : "";
         const describedBy = tip ? ` aria-describedby="${tipId}"` : "";
-        // 日记不渲染底部脚注列表，用 button 避免 href 指向不存在的 #fn- 锚点
+        // 碎片不渲染底部脚注列表，用 button 避免 href 指向不存在的 #fn- 锚点
         return `<sup id="${refId}" class="footnote-ref inline-block align-super text-sm"><button type="button" class="text-accent/85 hover:text-accent hover:underline px-0.5 align-baseline border-0 bg-transparent p-0 font-inherit text-inherit leading-none cursor-pointer"${describedBy}>${id}</button>${tooltipHtml}</sup>`;
       });
 
@@ -379,7 +379,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
     text = applyFootnotesToText(text);
     postText = applyFootnotesToText(postText);
 
-    // 日记仅用语义上的悬停/聚焦提示（.footnote-tooltip），不渲染文末脚注列表
+    // 碎片仅用语义上的悬停/聚焦提示（.footnote-tooltip），不渲染文末脚注列表
 
     // 提取图片并优化
     const images = [];
