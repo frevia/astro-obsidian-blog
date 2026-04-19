@@ -127,7 +127,7 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
           <h2
             id={`date-${date}`}
             className="text-skin-accent m-0 text-3xl leading-none font-bold"
-            aria-label={`${relativeLabel ?? absoluteLabel} ${weekdayLabel} ${!hideYear ? yearLabel : ""} 的日记`}
+            aria-label={`${relativeLabel ?? absoluteLabel} ${weekdayLabel} ${!hideYear ? yearLabel : ""} 的碎片`}
           >
             {/* SSR 时渲染 absoluteLabel；CSR 完成后若有相对文案则替换。
                suppressHydrationWarning 防止首帧文本差异触发水合警告 */}

@@ -1,5 +1,5 @@
 export const BLOG_PATH = "src/data/blog";
-export const DIARY_PATH = "src/data/diary";
+export const DIARY_PATH = "src/data/snippets";
 export const CLIP_PATH = "src/data/clip";
 
 export const SITE = {

@@ -21,7 +21,7 @@ function getQuarterKey(dateStr: string): string {
 
 /**
  * 聚合 blog（published）和 diary（文件名日期）为日历事件列表。
- * 用于日历组件：某日有事件则标记，点击跳转到对应文章或日记。
+ * 用于日历组件：某日有事件则标记，点击跳转到对应文章或碎片。
  */
 export function getCalendarEvents(
   blogEntries: CollectionEntry<"blog">[],

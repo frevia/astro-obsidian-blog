@@ -17,7 +17,7 @@ export const GET: APIRoute = async ({ params }) => {
     const page = parseInt(params.page || "1");
     const ITEMS_PER_PAGE = 5;
 
-    // 获取所有日记条目
+    // 获取所有碎片条目
     const diaryEntries = await getCollection("diary");
 
     // 按文件名（日期）排序，最新的在前
