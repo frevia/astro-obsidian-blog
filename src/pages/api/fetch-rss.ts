@@ -1,8 +1,11 @@
 import type { APIRoute } from "astro";
 import { execSync } from "child_process";
+import fs from "node:fs";
+import path from "node:path";
 import { SITE } from "@/config";
+import { FEEDS_BLOB_PATHNAME } from "@/utils/feedsBlobPathname";
 
-export const GET: APIRoute = () => {
+export const GET: APIRoute = async () => {
   // 检查是否为构建环境
   const isBuildProcess =
     process.env.NODE_ENV === "production" &&
@@ -36,10 +39,32 @@ export const GET: APIRoute = () => {
     // 执行RSS数据抓取脚本
     execSync("node scripts/fetch-rss-feeds.js", { stdio: "inherit" });
 
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    const feedsPath = path.join(
+      process.cwd(),
+      "public",
+      "data",
+      "feeds",
+      "feeds.json"
+    );
+    if (token && fs.existsSync(feedsPath)) {
+      const { put } = await import("@vercel/blob");
+      const body = fs.readFileSync(feedsPath);
+      await put(FEEDS_BLOB_PATHNAME, body, {
+        access: "public",
+        addRandomSuffix: false,
+        allowOverwrite: true,
+        contentType: "application/json",
+        token,
+      });
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
-        message: "RSS data fetched successfully",
+        message: token
+          ? "RSS data fetched and synced to Blob"
+          : "RSS data fetched successfully",
       }),
       {
         status: 200,
