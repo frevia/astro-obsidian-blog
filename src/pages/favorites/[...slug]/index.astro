@@ -142,18 +142,19 @@ const nextPost =
     >
       <div class="flex items-start gap-2">
         <span class="mt-0.5 text-accent/80">📚</span>
-        <div class="flex-1">
+        <div class="min-w-0 flex-1">
           <p class="font-medium text-foreground/90">转载说明</p>
           <p class="mt-1">本文转载或收集自互联网，仅作学习与整理使用。</p>
           {
             source ? (
-              <p class="mt-2">
-                原文链接：
+              <p class="mt-2 flex min-w-0 items-center gap-1">
+                <span class="shrink-0">原文链接：</span>
                 <a
                   href={source}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="font-medium text-accent underline-offset-4 hover:underline"
+                  class="block min-w-0 flex-1 truncate font-medium text-accent underline-offset-4 hover:underline"
+                  title={source}
                 >
                   {source}
                 </a>
