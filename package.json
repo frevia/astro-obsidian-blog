@@ -28,6 +28,7 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vercel/analytics": "^1.5.0",
+    "@vercel/blob": "^2.3.3",
     "@vercel/speed-insights": "^1.2.0",
     "astro": "^5.12.0",
     "astro-pagefind": "^1.8.3",
