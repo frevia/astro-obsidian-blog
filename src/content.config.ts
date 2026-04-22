@@ -136,6 +136,7 @@ const clip = defineCollection({
           .nullable()
           .optional()
           .transform(value => value ?? ""),
+        summary: z.string().optional(),
         source: z.string().optional(),
         canonicalURL: z.string().optional(),
         timezone: z.string().optional(),
