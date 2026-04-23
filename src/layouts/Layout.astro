@@ -137,5 +137,119 @@ const structuredData = {
         </CalendarModal>
       )
     }
+    <script>
+      import mermaid from "mermaid";
+
+      const mermaidRoot = document.documentElement;
+      const globalState = window as typeof window & {
+        __mermaidObserverBound?: boolean;
+      };
+      let renderSeq = 0;
+
+      const getMermaidTheme = () =>
+        mermaidRoot.getAttribute("data-theme") === "dark" ? "dark" : "default";
+
+      const isMermaidCodeBlock = (pre: HTMLPreElement) => {
+        const code = pre.querySelector("code");
+        if (!code) return false;
+
+        const preLang = pre.getAttribute("data-language")?.toLowerCase();
+        const codeLang = code.getAttribute("data-language")?.toLowerCase();
+        if (preLang === "mermaid" || codeLang === "mermaid") return true;
+
+        const classText = `${pre.className} ${code.className}`.toLowerCase();
+        return /\blanguage-mermaid\b/.test(classText);
+      };
+
+      const getMermaidSource = (pre: HTMLPreElement) => {
+        const code = pre.querySelector("code");
+        return (code?.textContent ?? "").trim();
+      };
+
+      async function renderMermaidBlocks() {
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: "loose",
+          theme: getMermaidTheme(),
+        });
+
+        const preBlocks = Array.from(document.querySelectorAll("pre"));
+        for (const preEl of preBlocks) {
+          if (!(preEl instanceof HTMLPreElement)) continue;
+          if (!isMermaidCodeBlock(preEl)) continue;
+          if (preEl.dataset.mermaidProcessed === "true") continue;
+
+          const source = getMermaidSource(preEl);
+          if (!source) continue;
+
+          const host = document.createElement("div");
+          host.className = "mermaid-diagram my-6 overflow-x-auto";
+          host.dataset.mermaidSource = source;
+
+          try {
+            const id = `mermaid-diagram-${renderSeq++}`;
+            const { svg, bindFunctions } = await mermaid.render(id, source);
+            host.innerHTML = svg;
+            bindFunctions?.(host);
+            preEl.insertAdjacentElement("afterend", host);
+            preEl.dataset.mermaidProcessed = "true";
+            preEl.classList.add("hidden");
+          } catch (error) {
+            console.error("Failed to render mermaid diagram:", error);
+          }
+        }
+      }
+
+      async function rerenderMermaidByTheme() {
+        const hosts = Array.from(
+          document.querySelectorAll(".mermaid-diagram[data-mermaid-source]")
+        );
+        if (hosts.length === 0) return;
+
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: "loose",
+          theme: getMermaidTheme(),
+        });
+
+        for (const hostEl of hosts) {
+          if (!(hostEl instanceof HTMLElement)) continue;
+          const source = hostEl.dataset.mermaidSource?.trim();
+          if (!source) continue;
+          try {
+            const id = `mermaid-diagram-${renderSeq++}`;
+            const { svg, bindFunctions } = await mermaid.render(id, source);
+            hostEl.innerHTML = svg;
+            bindFunctions?.(hostEl);
+          } catch (error) {
+            console.error("Failed to re-render mermaid diagram:", error);
+          }
+        }
+      }
+
+      const initMermaid = () => {
+        renderMermaidBlocks();
+      };
+
+      document.addEventListener("astro:page-load", initMermaid);
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initMermaid, {
+          once: true,
+        });
+      } else {
+        initMermaid();
+      }
+
+      if (!globalState.__mermaidObserverBound) {
+        const themeObserver = new MutationObserver(() => {
+          rerenderMermaidByTheme();
+        });
+        themeObserver.observe(mermaidRoot, {
+          attributes: true,
+          attributeFilter: ["data-theme"],
+        });
+        globalState.__mermaidObserverBound = true;
+      }
+    </script>
   </body>
 </html>
