@@ -141,7 +141,7 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
           aria-labelledby={`date-${entry.date}`}
           aria-describedby={`content-${entry.date}`}
           tabIndex={0}
-          className="focus:ring-skin-accent focus:ring-offset-skin-fill hover:bg-skin-fill/30 -mx-4 rounded-lg p-4 transition-all duration-200 focus:outline-none"
+          className="focus:ring-skin-accent focus:ring-offset-skin-fill hover:bg-skin-fill/30 -mx-3 rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border/70 focus:outline-none"
         >
           <DiaryEntryReact
             date={entry.date}
@@ -152,7 +152,7 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
       ))}
 
       {displayedEntries.length === 0 && (
-        <article role="article" className="py-16 text-center sm:py-20">
+        <article role="article" className="py-12 text-center sm:py-14">
           <div role="status" aria-live="polite">
             <div className="mb-4 text-4xl opacity-40">📝</div>
             <p className="text-skin-base text-lg opacity-70">
@@ -164,7 +164,7 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
       )}
 
       {isLoading && (
-        <article role="article" className="loading py-6 text-center sm:py-8">
+        <article role="article" className="loading py-4 text-center sm:py-6">
           <div
             role="status"
             aria-live="assertive"
@@ -181,7 +181,7 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
       )}
 
       {!hasMore && displayedEntries.length > 0 && (
-        <article role="article" className="no-more py-8 text-center">
+        <article role="article" className="no-more py-6 text-center">
           <div role="status" aria-live="polite">
             <div className="mb-2 text-2xl opacity-40">✨</div>
             <p className="text-skin-base opacity-70">
@@ -197,7 +197,7 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
 
       {/* 手动加载更多按钮，为键盘用户提供替代方案 */}
       {hasMore && !isLoading && (
-        <article role="article" className="py-8 text-center">
+        <article role="article" className="py-6 text-center">
           <button
             onClick={loadMore}
             className="bg-skin-accent text-skin-inverted hover:bg-skin-accent/90 focus:ring-skin-accent focus:ring-offset-skin-fill rounded-lg px-6 py-3 transition-colors focus:outline-none"
