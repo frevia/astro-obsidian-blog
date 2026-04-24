@@ -152,7 +152,9 @@ const nextPost =
         <span class="mt-0.5 text-accent/80">📚</span>
         <div class="min-w-0 flex-1">
           <p class="font-medium text-foreground/90">转载说明</p>
-          <p class="mt-1">本文转载或收集自互联网，仅作学习与整理使用。</p>
+          <p class="mt-1">
+            本文转载或收集自互联网，仅作学习与整理使用。若内容涉及侵权，请联系删除。
+          </p>
           {
             source ? (
               <p class="mt-2 flex min-w-0 items-center gap-1">
@@ -167,11 +169,7 @@ const nextPost =
                   {source}
                 </a>
               </p>
-            ) : (
-              <p class="mt-2 text-foreground/70">
-                若内容涉及侵权，请联系删除。
-              </p>
-            )
+            ) : null
           }
         </div>
       </div>

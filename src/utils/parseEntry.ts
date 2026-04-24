@@ -370,7 +370,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
           : "";
         const describedBy = tip ? ` aria-describedby="${tipId}"` : "";
         // 碎片不渲染底部脚注列表，用 button 避免 href 指向不存在的 #fn- 锚点
-        return `<sup id="${refId}" class="footnote-ref inline-block align-super text-sm"><button type="button" class="text-accent/85 hover:text-accent hover:underline px-0.5 align-baseline border-0 bg-transparent p-0 font-inherit text-inherit leading-none cursor-pointer"${describedBy}>${id}</button>${tooltipHtml}</sup>`;
+        return `<sup id="${refId}" class="footnote-ref inline-block align-super text-sm"><button type="button" class="text-accent/85 hover:text-accent hover:underline px-0.5 align-baseline border-0 bg-transparent p-0 font-inherit leading-none cursor-pointer"${describedBy}>${id}</button>${tooltipHtml}</sup>`;
       });
 
       return t;
