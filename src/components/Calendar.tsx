@@ -6,6 +6,7 @@ import {
   parseYMDAsUTC,
   toSiteYMD,
 } from "@/utils/calendarDate";
+import { getSolarTermForSiteYMD } from "@/utils/solarTermsCache";
 
 export interface CalendarProps {
   /** 按日期分组的事件，key 为 YYYY-MM-DD */
@@ -97,26 +98,6 @@ function useChineseDaysForMonth(
         };
       }
 
-      const solarTerms = chineseDays.getSolarTermsInRange(start, end) as Array<{
-        date: string;
-        name: string;
-        index?: number;
-      }>;
-      for (const st of solarTerms) {
-        if (st.index === 1 && st.date) {
-          if (!result[st.date])
-            result[st.date] = {
-              lunar: "",
-              lunarMonth: "",
-              lunarDay: "",
-              isInLieu: false,
-              work: true,
-              dayTag: null,
-            };
-          result[st.date].solarTerm = st.name;
-        }
-      }
-
       const [sy, sm, sd] = start.split("-").map(Number);
       const [ey, em, ed] = end.split("-").map(Number);
       const startTs = Date.UTC(sy, sm - 1, sd);
@@ -144,6 +125,9 @@ function useChineseDaysForMonth(
             work: true,
             dayTag: null,
           };
+        const solarName = getSolarTermForSiteYMD(dateKey);
+        if (solarName) result[dateKey].solarTerm = solarName;
+
         result[dateKey].isInLieu = isInLieu;
         result[dateKey].work = work;
 
@@ -179,11 +163,11 @@ const Calendar: React.FC<CalendarProps> = ({
   compact = false,
 }) => {
   const [viewYM, setViewYM] = useState(() => getSiteYearMonth(new Date()));
-  // SSR (Astro 构建期) 阶段刻意不标 today：
-  // 构建时的 `new Date()` 会把「今天」固化成构建当天，用户刷新后 React 18 在 hydration 时
-  // 并不会把已有 DOM 的 className 改回客户端计算值，导致 today 色块/角标停留在构建当天（即昨天）。
-  // 这里初始化为空串，交给下方 useEffect 在客户端挂载后填入真正的今天，从而触发一次正常的 re-render。
-  const [todayKey, setTodayKey] = useState<string>("");
+  // client:load 下日历主要在浏览器挂载；首帧即用站点时区的「今天」，避免依赖 effect 前 today 高亮缺失。
+  // 仍保留下方 effect：跨日、回前台、开弹窗时校正。
+  const [todayKey, setTodayKey] = useState<string>(() =>
+    typeof window !== "undefined" ? toSiteYMD(new Date()) : ""
+  );
   const [selected, setSelected] = useState<{
     dateKey: string;
     events: { type: string; url: string; title?: string }[];
@@ -219,6 +203,12 @@ const Calendar: React.FC<CalendarProps> = ({
         if (todayYM.year !== vm.year || todayYM.monthIndex !== vm.monthIndex) {
           setViewYM(todayYM);
         }
+      } else if (!sel) {
+        // todayKey 首帧已对齐时不会走进上一分支，仍需默认选中今天以免详情区空白
+        setSelected({
+          dateKey: currentDate,
+          events: ev[currentDate] ?? [],
+        });
       }
     };
 
@@ -430,18 +420,17 @@ const Calendar: React.FC<CalendarProps> = ({
           const weekday = parseYMDAsUTC(dateKey).getUTCDay();
           const isWeekend = weekday === 0 || weekday === 6;
 
-          const dayBg =
-            isToday && !tag
-              ? "bg-[#5268FF] dark:bg-[#5268FF]"
-              : tag === "rest"
-                ? "bg-rose-50 dark:bg-rose-500/15"
-                : tag === "makeup"
-                  ? "bg-sky-500/15 dark:bg-sky-500/20"
-                  : tag === "inLieu"
-                    ? "bg-rose-50 dark:bg-rose-500/15"
-                    : "hover:bg-skin-muted/30";
+          const dayBg = !isToday
+            ? tag === "rest"
+              ? "bg-rose-50 dark:bg-rose-500/15"
+              : tag === "makeup"
+                ? "bg-sky-500/15 dark:bg-sky-500/20"
+                : tag === "inLieu"
+                  ? "bg-rose-50 dark:bg-rose-500/15"
+                  : "hover:bg-skin-muted/30"
+            : "";
           const dayText =
-            isToday && !tag
+            isToday
               ? "text-white font-medium"
               : tag === "rest" || tag === "inLieu"
                 ? "text-red-600 dark:text-red-400"
@@ -450,6 +439,11 @@ const Calendar: React.FC<CalendarProps> = ({
                   : isWeekend
                     ? "text-red-600 dark:text-red-400"
                     : "text-skin-base";
+
+          const cornerBadgeText = tagLabel ?? (isToday ? "今" : null);
+          const todayInlineStyle = isToday
+            ? ({ backgroundColor: "#5268FF" } as const)
+            : undefined;
 
           const primarySubLabel: null | {
             type: "solarTerm" | "holiday" | "lunar";
@@ -477,6 +471,7 @@ const Calendar: React.FC<CalendarProps> = ({
               type="button"
               onClick={() => handleDayClick(dateKey, events)}
               disabled={!inCurrentMonth}
+              style={todayInlineStyle}
               className={[
                 "relative flex flex-col items-center justify-start overflow-visible rounded-lg text-sm transition-colors",
                 cellMinH,
@@ -508,7 +503,7 @@ const Calendar: React.FC<CalendarProps> = ({
               }
               aria-disabled={!inCurrentMonth}
             >
-              {(tagLabel || isToday) && (
+              {cornerBadgeText && (
                 <span
                   className={[
                     "absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 rounded leading-none font-medium shadow-sm",
@@ -526,7 +521,7 @@ const Calendar: React.FC<CalendarProps> = ({
                       "bg-[#8B99FF] text-white dark:bg-[#8B99FF] dark:text-white",
                   ].join(" ")}
                 >
-                  {tagLabel ?? "今"}
+                  {cornerBadgeText}
                 </span>
               )}
               <span className="leading-tight">{day}</span>
@@ -544,11 +539,11 @@ const Calendar: React.FC<CalendarProps> = ({
                         ? "max-w-full truncate leading-none"
                         : "max-w-full truncate rounded-sm leading-none",
                       primarySubLabel.type === "solarTerm"
-                        ? isToday && !tag
+                        ? isToday
                           ? "border border-white/60 bg-white/15 px-1 py-0.5 text-white"
                           : "border border-amber-500/40 bg-amber-500/15 px-1 py-0.5 text-amber-800 dark:border-amber-400/35 dark:text-amber-200"
                         : primarySubLabel.type === "holiday"
-                          ? isToday && !tag
+                          ? isToday
                             ? "px-0.5 text-white/90"
                             : tag === "rest"
                               ? "px-0.5 text-red-700 dark:text-red-300"
@@ -560,7 +555,7 @@ const Calendar: React.FC<CalendarProps> = ({
                                     ? "px-0.5 text-red-600/75 dark:text-red-400/75"
                                     : "text-skin-muted px-0.5"
                           : // lunar
-                            isToday && !tag
+                            isToday
                             ? "text-white/90"
                             : tag === "rest" || tag === "inLieu"
                               ? "text-red-600/90 dark:text-red-400/90"

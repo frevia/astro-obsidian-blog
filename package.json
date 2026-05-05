@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "lint": "eslint .",
     "generate:footprint-labels": "tsx scripts/generate-footprint-city-labels.ts",
-    "fetch:rss-feeds": "node scripts/fetch-rss-feeds.js"
+    "fetch:rss-feeds": "node scripts/fetch-rss-feeds.js",
+    "generate:solar-terms": "node scripts/generate-solar-terms-cache.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.1",

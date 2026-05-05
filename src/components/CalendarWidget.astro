@@ -28,5 +28,5 @@ const eventsByDate = Object.fromEntries(byDate);
 ---
 
 <div class="calendar-widget">
-  <Calendar client:load eventsByDate={eventsByDate} compact={compact} />
+  <Calendar client:only="react" eventsByDate={eventsByDate} compact={compact} />
 </div>
