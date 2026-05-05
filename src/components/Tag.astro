@@ -12,8 +12,8 @@ const { tag, tagName, size = "sm" } = Astro.props;
 
 <li
   class:list={[
-    "group inline-block group-hover:cursor-pointer",
-    size === "sm" ? "my-1 underline-offset-4" : "my-3 pr-2 underline-offset-8",
+    "group inline-block shrink-0 group-hover:cursor-pointer",
+    size === "sm" ? "my-1 pr-2 underline-offset-4" : "underline-offset-8",
   ]}
 >
   <a
