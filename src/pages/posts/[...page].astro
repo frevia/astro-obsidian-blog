@@ -28,7 +28,7 @@ const { page } = Astro.props;
 <Layout title={`文章 | ${SITE.title}`}>
   <Header />
   <Main pageTitle="全部文章" pageDesc="">
-    <ul>
+    <ul class="mb-6 flex flex-wrap gap-3">
       {tags.map(({ tag, tagName }) => <Tag {tag} {tagName} size="lg" />)}
     </ul>
 
