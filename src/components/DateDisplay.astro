@@ -191,6 +191,7 @@
 <script>
   import chineseDays from "chinese-days";
   import { formatSiteDate, toSiteYMD } from "@/utils/calendarDate";
+  import { getSolarTermForSiteYMD } from "@/utils/solarTermsCache";
 
   const globalWindow = window as Window & {
     __dateDisplayBound?: boolean;
@@ -204,8 +205,15 @@
     const month = Number(ms);
     const day = Number(ds);
     const weekdayText = formatSiteDate(now, "zh-CN", { weekday: "short" });
-    const weekdayEn = formatSiteDate(now, "en-US", { weekday: "short" });
-    const isWorkday = weekdayEn !== "Sat" && weekdayEn !== "Sun";
+    // 与 Calendar.tsx 一致：以中国节假日数据为准（法定休、周末补班等），不能只看周六日
+    let isWorkday = true;
+    try {
+      const detail = chineseDays.getDayDetail(dateKey) as { work?: boolean };
+      isWorkday = detail?.work ?? true;
+    } catch {
+      const weekdayEn = formatSiteDate(now, "en-US", { weekday: "short" });
+      isWorkday = weekdayEn !== "Sat" && weekdayEn !== "Sun";
+    }
 
     let lunarText = "";
     try {
@@ -216,21 +224,7 @@
       }
     } catch {}
 
-    let solarTerm = "";
-    try {
-      const solarTerms = chineseDays.getSolarTermsInRange(
-        dateKey,
-        dateKey
-      ) as Array<{
-        date: string;
-        name: string;
-        index?: number;
-      }>;
-      const todaySolarTerm = solarTerms.find(
-        item => item.date === dateKey && item.index === 1
-      );
-      solarTerm = todaySolarTerm?.name ?? "";
-    } catch {}
+    const solarTerm = getSolarTermForSiteYMD(dateKey) ?? "";
 
     return {
       month,
