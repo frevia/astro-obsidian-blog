@@ -1,92 +1,66 @@
 import type { APIRoute } from "astro";
-import { execSync } from "child_process";
-import fs from "node:fs";
-import path from "node:path";
-import { SITE } from "@/config";
 import { FEEDS_BLOB_PATHNAME } from "@/utils/feedsBlobPathname";
+import { fetchAndBuildFeeds } from "@/utils/fetchFeeds";
 
-export const GET: APIRoute = async () => {
-  // 检查是否为构建环境
-  const isBuildProcess =
-    process.env.NODE_ENV === "production" &&
-    (process.env.ASTRO_BUILD ||
-      import.meta.env?.ASTRO_BUILD ||
-      process.argv.includes("build") ||
-      process.argv.some(arg => arg.includes("astro") && arg.includes("build")));
+export const prerender = false;
 
-  // 如果是构建环境，根据配置决定是否执行 RSS 抓取
-  if (isBuildProcess) {
-    if (SITE.rss.fetchDuringBuild) {
-      console.log("📡 RSS fetching enabled during build process");
-    } else {
-      console.log("🚫 RSS fetching disabled during build process (config)");
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: "RSS fetching disabled during build process (config)",
-        }),
-        {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+const json = (status: number, body: unknown) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+
+/**
+ * Vercel Cron 调用入口。
+ * 必须以 Serverless Function 形式部署（prerender=false）。
+ *
+ * 鉴权：若设置了 CRON_SECRET，则要求请求头 `Authorization: Bearer <secret>`，
+ * 这正是 Vercel Cron 默认行为。未设置时不校验，方便本地/手动调用。
+ */
+export const GET: APIRoute = async ({ request }) => {
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const auth = request.headers.get("authorization");
+    if (auth !== `Bearer ${cronSecret}`) {
+      return json(401, { success: false, message: "Unauthorized" });
     }
   }
 
   try {
-    // 执行RSS数据抓取脚本
-    execSync("node scripts/fetch-rss-feeds.js", { stdio: "inherit" });
+    const feeds = await fetchAndBuildFeeds();
+    const body = JSON.stringify(feeds, null, 2);
 
     const token = process.env.BLOB_READ_WRITE_TOKEN;
-    const feedsPath = path.join(
-      process.cwd(),
-      "public",
-      "data",
-      "feeds",
-      "feeds.json"
-    );
-    if (token && fs.existsSync(feedsPath)) {
-      const { put } = await import("@vercel/blob");
-      const body = fs.readFileSync(feedsPath);
-      await put(FEEDS_BLOB_PATHNAME, body, {
-        access: "public",
-        addRandomSuffix: false,
-        allowOverwrite: true,
-        contentType: "application/json",
-        token,
+    if (!token) {
+      return json(500, {
+        success: false,
+        message:
+          "BLOB_READ_WRITE_TOKEN is not configured; cannot persist feeds.",
+        itemCount: feeds.items.length,
       });
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: token
-          ? "RSS data fetched and synced to Blob"
-          : "RSS data fetched successfully",
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const { put } = await import("@vercel/blob");
+    await put(FEEDS_BLOB_PATHNAME, body, {
+      access: "public",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      contentType: "application/json",
+      token,
+    });
+
+    return json(200, {
+      success: true,
+      message: "RSS data fetched and synced to Blob",
+      itemCount: feeds.items.length,
+      updated: feeds.updated,
+    });
   } catch (error) {
     console.error("Error fetching RSS data:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        message: "Failed to fetch RSS data",
-        error: error instanceof Error ? error.message : String(error),
-      }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    return json(500, {
+      success: false,
+      message: "Failed to fetch RSS data",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
