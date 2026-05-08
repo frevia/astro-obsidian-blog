@@ -26,10 +26,13 @@ import pagefind from "astro-pagefind";
 import photosuite from "photosuite";
 
 import compress from "astro-compress";
+import vercel from "@astrojs/vercel";
 
 // https://astro.build/config
 export default defineConfig({
   site: SITE.website,
+  output: "static",
+  adapter: vercel(),
   build: {
     format: "directory",
   },
