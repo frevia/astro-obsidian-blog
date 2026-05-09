@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { FEEDS_BLOB_PATHNAME } from "@/utils/feedsBlobPathname";
+import { FEEDS_BLOB_PATHNAME, feedsBlobAccess } from "@/utils/feedsBlobPathname";
 import { fetchAndBuildFeeds } from "@/utils/fetchFeeds";
 
 export const prerender = false;
@@ -42,7 +42,7 @@ export const GET: APIRoute = async ({ request }) => {
 
     const { put } = await import("@vercel/blob");
     await put(FEEDS_BLOB_PATHNAME, body, {
-      access: "public",
+      access: feedsBlobAccess(),
       addRandomSuffix: false,
       allowOverwrite: true,
       contentType: "application/json",
