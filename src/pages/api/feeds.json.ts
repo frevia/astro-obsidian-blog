@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { FEEDS_BLOB_PATHNAME } from "@/utils/feedsBlobPathname";
+import { FEEDS_BLOB_PATHNAME, feedsBlobAccess } from "@/utils/feedsBlobPathname";
 
 export const prerender = false;
 
@@ -20,13 +20,19 @@ export const GET: APIRoute = async ({ request }) => {
 
   if (token) {
     try {
-      const { head } = await import("@vercel/blob");
-      const meta = await head(FEEDS_BLOB_PATHNAME, { token });
-      const blobRes = await fetch(meta.url, {
-        headers: { "Cache-Control": "no-cache" },
+      const access = feedsBlobAccess();
+      const { get } = await import("@vercel/blob");
+      const blobRes = await get(FEEDS_BLOB_PATHNAME, {
+        token,
+        access,
+        useCache: access === "private" ? false : undefined,
       });
-      if (blobRes.ok) {
-        return new Response(await blobRes.text(), { headers: jsonHeaders });
+      if (
+        blobRes?.statusCode === 200 &&
+        blobRes.stream != null
+      ) {
+        const text = await new Response(blobRes.stream).text();
+        return new Response(text, { headers: jsonHeaders });
       }
     } catch (err) {
       console.warn(
