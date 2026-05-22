@@ -48,10 +48,16 @@ const getFavoritePath = (
   return [basePath, favoriteSlug].join("/");
 };
 
-// 辅助函数：获取用于分组的日期（优先使用 created，不存在时使用 published）
 const getGroupingDate = (post: CollectionEntry<"clip">) => {
   return post.data.created || post.data.published;
 };
+
+const yearGroups = Object.entries(
+  getPostsByGroupCondition(
+    clips,
+    post => getYearMonthInTimeZone(getGroupingDate(post)).year
+  )
+).sort(([yearA], [yearB]) => Number(yearB) - Number(yearA));
 ---
 
 <Layout title={`收藏 | ${SITE.title}`}>
@@ -60,183 +66,173 @@ const getGroupingDate = (post: CollectionEntry<"clip">) => {
     pageTitle="收藏"
     pageDesc="文章转载或收集自互联网，仅作学习与整理使用。"
   >
-    <!-- 转载说明卡片 -->
-    <!-- <div
-      class="mb-6 rounded-xl border-l-4 border-accent/60 bg-accent/5 px-4 py-3 text-sm text-foreground/80"
-    >
-      <div class="flex items-start gap-2">
-        <span class="mt-0.5 text-accent/80">📚</span>
-        <div class="flex-1">
-          <p class="font-medium text-foreground/90">转载说明</p>
-          <p class="mt-1">文章转载或收集自互联网，仅作学习与整理使用。</p>
-          <p class="mt-2 text-foreground/70">若内容涉及侵权，请联系删除。</p>
-        </div>
-      </div>
-    </div> -->
     {
       allTags.length > 0 && (
-        <div class="mb-6" id="favorites-tag-filter" data-pagefind-ignore>
-          <p class="mb-2 text-sm font-medium">标签筛选</p>
-          <div class="flex flex-wrap gap-1.5">
+        <div
+          class="favorites-toolbar mb-8 border-b border-border/40 pb-5"
+          id="favorites-tag-filter"
+          data-pagefind-ignore
+        >
+          <p class="mb-2.5 text-xs font-medium tracking-wide text-foreground/50 uppercase">
+            标签筛选
+          </p>
+          <div class="flex flex-wrap gap-2">
             <button
               type="button"
               data-filter-tag=""
-              class="favorite-filter-btn is-active rounded-full border border-border px-3.5 py-1.5 text-sm font-medium transition-all hover:border-accent/50 hover:text-accent"
+              class="favorite-filter-btn is-active"
             >
               全部
             </button>
             {allTags.map(tag => (
-              <button
-                type="button"
-                data-filter-tag={tag}
-                class="favorite-filter-btn rounded-full border border-border/60 px-3 py-1.5 text-sm font-medium transition-all hover:border-accent/30 hover:text-accent"
-              >
-                #{tag}
+              <button type="button" data-filter-tag={tag} class="favorite-filter-btn">
+                {tag}
               </button>
             ))}
           </div>
         </div>
       )
     }
-    <div data-pagefind-body data-pagefind-weight="4">
-      {
-        Object.entries(
-          getPostsByGroupCondition(
-            clips,
-            post => getYearMonthInTimeZone(getGroupingDate(post)).year
-          )
-        )
-          .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
-          .map(([year, yearGroup]) => (
-            <div data-year-group class="mb-8">
-              <div class="mb-6 flex items-center justify-between border-b border-border/30 pb-3">
-                <div class="flex items-baseline gap-3">
-                  <span class="text-2xl font-bold text-foreground/90">
-                    {year}
-                  </span>
-                  <sup class="rounded-full bg-accent/10 px-2.5 py-1 text-sm font-medium text-accent">
-                    {yearGroup.length} 篇
-                  </sup>
-                </div>
-                <div class="text-xs text-foreground/40">按收录时间排序</div>
-              </div>
-              {Object.entries(
-                getPostsByGroupCondition(
-                  yearGroup,
-                  post =>
-                    getYearMonthInTimeZone(getGroupingDate(post)).monthIndex + 1
-                )
-              )
-                .sort(([monthA], [monthB]) => Number(monthB) - Number(monthA))
-                .map(([month, monthGroup]) => (
-                  <div class="flex flex-col gap-4 sm:flex-row" data-month-group>
-                    <div class="mt-4 mb-1 min-w-32 sm:mt-6 sm:mb-0">
-                      <span class="border-l-3 border-accent pl-3 text-base font-semibold tracking-wide text-foreground/80 sm:border-l-0 sm:pl-0">
-                        {months[Number(month) - 1]}
-                      </span>
-                    </div>
-                    <ul class="sm:flex-1">
-                      {monthGroup
-                        .sort(
-                          (a, b) =>
-                            Math.floor(
-                              new Date(
-                                b.data.created ?? b.data.published
-                              ).getTime() / 1000
-                            ) -
-                            Math.floor(
-                              new Date(
-                                a.data.created ?? a.data.published
-                              ).getTime() / 1000
-                            )
-                        )
-                        .map(post => (
-                          <li
-                            class="mb-3 border-b border-border/20 pb-3 last:mb-0 last:border-b-0"
-                            data-favorite-item
-                            data-tags={post.data.tags.join("||")}
-                          >
-                            <a
-                              href={getFavoritePath(
-                                post.data.slug,
-                                post.data.title
-                              )}
-                              class="group block"
-                            >
-                              <h3 class="mb-1.5 text-lg leading-relaxed font-medium text-foreground/90 transition-colors group-hover:text-accent">
-                                {post.data.title}
-                              </h3>
-                              <div class="flex flex-wrap items-center gap-1.5 text-sm text-foreground/70">
-                                <div class="flex items-center gap-1.5">
-                                  <Datetime
-                                    published={post.data.published}
-                                    created={post.data.created}
-                                    timezone={post.data.timezone}
-                                    showCreated={true}
-                                  />
-                                </div>
 
-                                {post.data.tags.length > 0 && (
-                                  <>
-                                    <span class="mx-0.5 hidden text-foreground/40 sm:inline">
-                                      ·
-                                    </span>
-                                    <span class="flex items-center gap-1">
-                                      {post.data.tags.slice(0, 2).map(tag => (
-                                        <span class="rounded-full bg-muted/40 px-2 py-0.5 text-xs font-medium tracking-wide">
-                                          #{tag}
-                                        </span>
-                                      ))}
-                                      {post.data.tags.length > 2 && (
-                                        <span class="text-xs text-foreground/50">
-                                          +{post.data.tags.length - 2}
+    <div class="favorites-catalog" data-pagefind-body data-pagefind-weight="4">
+      {
+        yearGroups.map(([year, yearGroup]) => (
+          <section class="favorites-year" data-year-group>
+            <div class="favorites-year-head">
+              <h2 class="favorites-year-title">{year}</h2>
+              <span class="favorites-year-count">{yearGroup.length} 篇</span>
+            </div>
+
+            {Object.entries(
+              getPostsByGroupCondition(
+                yearGroup,
+                post =>
+                  getYearMonthInTimeZone(getGroupingDate(post)).monthIndex + 1
+              )
+            )
+              .sort(([monthA], [monthB]) => Number(monthB) - Number(monthA))
+              .map(([month, monthGroup]) => (
+                <div class="favorites-month" data-month-group>
+                  <h3 class="favorites-month-title">
+                    {months[Number(month) - 1]}
+                  </h3>
+                  <ul class="favorites-list">
+                    {monthGroup
+                      .sort(
+                        (a, b) =>
+                          Math.floor(
+                            new Date(
+                              b.data.created ?? b.data.published
+                            ).getTime() / 1000
+                          ) -
+                          Math.floor(
+                            new Date(
+                              a.data.created ?? a.data.published
+                            ).getTime() / 1000
+                          )
+                      )
+                      .map(post => (
+                        <li
+                          class="favorites-item"
+                          data-favorite-item
+                          data-tags={post.data.tags.join("||")}
+                        >
+                          <a
+                            href={getFavoritePath(
+                              post.data.slug,
+                              post.data.title
+                            )}
+                            class="favorites-item-link group"
+                          >
+                            <div class="favorites-item-top">
+                              <div class="favorites-item-head">
+                                <span class="favorites-item-title">
+                                  {post.data.title}
+                                </span>
+                                <Datetime
+                                  layout="meta"
+                                  compact
+                                  class="favorites-item-dates"
+                                  published={post.data.published}
+                                  created={post.data.created}
+                                  timezone={post.data.timezone}
+                                  showCreated={true}
+                                />
+                              </div>
+                              {
+                                (post.data.description?.trim() ||
+                                  post.data.summary?.trim()) && (
+                                  <p class="favorites-item-desc">
+                                    {post.data.description?.trim() ||
+                                      post.data.summary?.trim()}
+                                  </p>
+                                )
+                              }
+                            </div>
+                            {
+                              (post.data.source ||
+                                post.data.tags.length > 0) && (
+                                <div class="favorites-item-foot">
+                                  {post.data.source ? (
+                                    <div class="favorites-item-source-wrap">
+                                      <span
+                                        class="favorites-item-source"
+                                        title={post.data.source}
+                                      >
+                                        来源 · {post.data.source}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span class="favorites-item-foot-spacer" />
+                                  )}
+                                  {post.data.tags.length > 0 && (
+                                    <div class="favorites-item-tags">
+                                      {post.data.tags
+                                        .slice(0, 3)
+                                        .map(tag => (
+                                          <span
+                                            class="favorites-tag favorites-tag--action"
+                                            data-action="filter-tag"
+                                            data-filter-tag={tag}
+                                            role="button"
+                                            tabindex="0"
+                                          >
+                                            {tag}
+                                          </span>
+                                        ))}
+                                      {post.data.tags.length > 3 && (
+                                        <span class="favorites-tag-more">
+                                          +{post.data.tags.length - 3}
                                         </span>
                                       )}
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-
-                              {post.data.source && (
-                                <div class="mt-1 text-sm leading-tight text-foreground/50">
-                                  <span class="inline-flex max-w-full items-center">
-                                    来源:{" "}
-                                    <span
-                                      class="truncate font-medium"
-                                      title={post.data.source}
-                                      style="max-width: 550px;"
-                                    >
-                                      {post.data.source}
-                                    </span>
-                                  </span>
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </a>
-                          </li>
-                        ))}
-                    </ul>
-                  </div>
-                ))}
-            </div>
-          ))
+                              )
+                            }
+                          </a>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              ))}
+          </section>
+        ))
       }
+
       <div
         id="favorites-empty"
-        class="hidden py-16 text-center"
+        class="favorites-empty hidden"
         data-pagefind-ignore
       >
-        <div class="mb-4 text-5xl text-foreground/40">📚</div>
-        <p class="text-base font-medium text-foreground/70">
-          当前标签下暂无收藏内容
-        </p>
-        <p class="mt-2 text-sm text-foreground/50">
-          试试选择其他标签或查看全部内容
-        </p>
+        <p class="favorites-empty-title">当前标签下暂无收藏</p>
+        <p class="favorites-empty-desc">试试其他标签，或查看全部内容</p>
         <button
+          type="button"
           onclick="applyFilter('')"
-          class="mt-4 rounded-full bg-accent/10 px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/20"
+          class="favorite-filter-btn is-active mt-4"
         >
-          查看全部内容
+          查看全部
         </button>
       </div>
     </div>
@@ -245,97 +241,319 @@ const getGroupingDate = (post: CollectionEntry<"clip">) => {
 </Layout>
 
 <style>
+  .favorites-toolbar {
+    scroll-margin-top: var(--site-header-height, 4rem);
+  }
+
   .favorite-filter-btn {
-    transition: all 0.2s ease;
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: color-mix(in oklab, var(--foreground) 72%, transparent);
+    background: transparent;
+    transition:
+      color 0.15s ease,
+      border-color 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  .favorite-filter-btn:hover {
+    border-color: color-mix(in oklab, var(--accent) 35%, var(--border));
+    color: var(--accent);
   }
 
   .favorite-filter-btn.is-active {
     color: var(--accent);
-    border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
+    border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+    background: color-mix(in oklab, var(--accent) 10%, transparent);
+  }
+
+  .favorites-catalog {
+    --favorites-pad-x: 0.75rem;
+  }
+
+  .favorites-year {
+    margin-bottom: 2.5rem;
+  }
+
+  .favorites-year:last-child {
+    margin-bottom: 0;
+  }
+
+  .favorites-year-head {
+    position: sticky;
+    top: var(--site-header-height, 4rem);
+    z-index: 10;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid color-mix(in oklab, var(--border) 65%, transparent);
+    background: color-mix(in oklab, var(--background) 92%, transparent);
+    backdrop-filter: blur(8px);
+  }
+
+  .favorites-year-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .favorites-year-count {
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: color-mix(in oklab, var(--foreground) 45%, transparent);
+    white-space: nowrap;
+  }
+
+  .favorites-month {
+    margin-bottom: 1.75rem;
+  }
+
+  .favorites-month:last-child {
+    margin-bottom: 0;
+  }
+
+  .favorites-month-title {
+    margin: 0 0 0.65rem;
+    padding-left: 0.65rem;
+    border-left: 2px solid color-mix(in oklab, var(--accent) 55%, transparent);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: color-mix(in oklab, var(--foreground) 78%, transparent);
+  }
+
+  .favorites-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .favorites-item {
+    border-bottom: 1px solid color-mix(in oklab, var(--border) 35%, transparent);
+  }
+
+  .favorites-item:last-child {
+    border-bottom: none;
+  }
+
+  .favorites-item-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.85rem var(--favorites-pad-x);
+    padding-left: calc(var(--favorites-pad-x) + 0.15rem);
+    margin-inline: calc(var(--favorites-pad-x) * -1);
+    border-left: 2px solid transparent;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    overflow: visible;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .favorites-item-top {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .favorites-item-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.35rem 0.75rem;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .favorites-item-link:hover,
+  .favorites-item-link:focus-visible {
+    background: color-mix(in oklab, var(--muted) 22%, transparent);
+    border-left-color: color-mix(in oklab, var(--accent) 45%, transparent);
+    outline: none;
+  }
+
+  .favorites-item-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 1.0625rem;
+    font-weight: 500;
+    line-height: 1.55;
+    color: color-mix(in oklab, var(--foreground) 92%, transparent);
+    transition: color 0.15s ease;
+  }
+
+  .favorites-item-link:hover .favorites-item-title,
+  .favorites-item-link:focus-visible .favorites-item-title {
+    color: var(--accent);
+  }
+
+  .favorites-item-desc {
+    margin: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: color-mix(in oklab, var(--foreground) 55%, transparent);
+  }
+
+  .favorites-item-head :global(.favorites-item-dates) {
+    flex: 0 0 auto;
+    margin-left: auto;
+    max-width: min(52%, 18rem);
+    text-align: right;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    color: color-mix(in oklab, var(--foreground) 42%, transparent);
+  }
+
+  .favorites-item-foot .favorites-item-tags {
+    display: inline-flex;
+    flex: 0 0 auto;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    margin-left: auto;
+  }
+
+  .favorites-tag {
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+    padding: 0.1rem 0.45rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: color-mix(in oklab, var(--foreground) 58%, transparent);
+    background: color-mix(in oklab, var(--muted) 35%, transparent);
+    transition:
+      color 0.15s ease,
+      border-color 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  .favorites-tag--action {
+    cursor: pointer;
+  }
+
+  .favorites-tag--action:hover {
+    color: var(--accent);
+    border-color: color-mix(in oklab, var(--accent) 35%, transparent);
+    background: color-mix(in oklab, var(--accent) 8%, transparent);
+  }
+
+  .favorites-tag--action.is-active {
+    color: var(--accent);
+    border-color: color-mix(in oklab, var(--accent) 40%, transparent);
     background: color-mix(in oklab, var(--accent) 12%, transparent);
   }
 
-  [data-favorite-item] {
-    transition:
-      opacity 0.3s ease,
-      transform 0.3s ease;
+  .favorites-tag-more {
+    font-size: 0.6875rem;
+    color: color-mix(in oklab, var(--foreground) 42%, transparent);
   }
 
-  [data-favorite-item].filtering {
-    opacity: 0.5;
-    transform: translateX(-10px);
+  .favorites-item-source {
+    font-size: 0.75rem;
+    line-height: 1.35;
+    color: color-mix(in oklab, var(--foreground) 38%, transparent);
   }
 
-  /* 优化列表项交互效果 */
-  [data-favorite-item] {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  .favorites-empty {
+    padding: 3rem 1rem;
+    text-align: center;
   }
 
-  [data-favorite-item] a {
-    transition: all 0.2s ease;
+  .favorites-empty-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: color-mix(in oklab, var(--foreground) 72%, transparent);
   }
 
-  [data-favorite-item]:hover {
-    background: color-mix(in oklab, var(--accent) 3%, transparent);
-    border-radius: 0.5rem;
-    margin: 0 -0.75rem;
-    padding: 0.5rem 0.75rem;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  .favorites-empty-desc {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    color: color-mix(in oklab, var(--foreground) 48%, transparent);
   }
 
-  /* 移动端优化 */
-  @media (max-width: 640px) {
-    [data-month-group] {
-      position: relative;
-      padding-left: 1.25rem;
-      margin-left: 0.75rem;
+  @media (min-width: 640px) {
+    .favorites-item-title {
+      font-size: 1.125rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .favorites-item-head :global(.favorites-item-dates) {
+      flex: 1 1 100%;
+      max-width: 100%;
+      margin-left: 0;
     }
 
-    [data-month-group]::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0.25rem;
-      bottom: 0.25rem;
-      width: 4px;
-      background: linear-gradient(
-        to bottom,
-        var(--accent),
-        color-mix(in oklab, var(--accent) 70%, transparent)
-      );
-      border-radius: 4px;
+    .favorites-item-foot .favorites-item-tags {
+      flex: 1 1 100%;
+      justify-content: flex-start;
+      max-width: 100%;
+      margin-left: 0;
+    }
+  }
+
+  .favorites-item-foot {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.65rem 1rem;
+    width: 100%;
+    min-width: 0;
+    padding-top: 0.2rem;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: color-mix(in oklab, var(--foreground) 42%, transparent);
+  }
+
+  .favorites-item-foot-spacer {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
+  .favorites-item-source-wrap {
+    flex: 1 1 0%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .favorites-item-foot .favorites-item-source {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+  }
+
+  @media (max-width: 480px) {
+    .favorites-item-foot {
+      flex-wrap: wrap;
+      row-gap: 0.35rem;
     }
 
-    [data-month-group] > div:first-child {
-      margin-bottom: 0.5rem;
-    }
-
-    [data-month-group] > div:first-child span {
-      border-left: none !important;
-      padding-left: 0 !important;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-
-    .favorite-filter-btn {
-      font-size: 0.875rem;
-      padding: 0.5rem 0.75rem;
-    }
-
-    /* 移动端列表项优化 */
-    [data-favorite-item] {
-      margin-left: -0.25rem;
-      margin-right: -0.25rem;
-      padding-left: 0.25rem;
-      padding-right: 0.25rem;
-    }
-
-    [data-favorite-item]:hover {
-      margin: 0 -0.5rem;
-      padding: 0.5rem 0.5rem;
-      transform: translateY(-1px);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    .favorites-item-source-wrap {
+      flex: 1 1 100%;
+      max-width: 100%;
     }
   }
 </style>
@@ -357,11 +575,22 @@ const getGroupingDate = (post: CollectionEntry<"clip">) => {
     );
     const emptyHint = document.getElementById("favorites-empty");
 
+    const listTagButtons = Array.from(
+      document.querySelectorAll('[data-action="filter-tag"]')
+    );
+
     const applyFilter = activeTag => {
       buttons.forEach(btn => {
         btn.classList.toggle(
           "is-active",
           (btn.dataset.filterTag ?? "") === activeTag
+        );
+      });
+
+      listTagButtons.forEach(btn => {
+        btn.classList.toggle(
+          "is-active",
+          activeTag !== "" && (btn.dataset.filterTag ?? "") === activeTag
         );
       });
 
@@ -390,11 +619,33 @@ const getGroupingDate = (post: CollectionEntry<"clip">) => {
       if (emptyHint) emptyHint.classList.toggle("hidden", anyVisible);
     };
 
+    window.applyFilter = applyFilter;
+
     buttons.forEach(btn => {
       btn.addEventListener("click", () => {
         applyFilter(btn.dataset.filterTag ?? "");
       });
     });
+
+    const catalog = document.querySelector(".favorites-catalog");
+    if (catalog) {
+      catalog.addEventListener("click", event => {
+        const tagBtn = event.target.closest('[data-action="filter-tag"]');
+        if (!tagBtn) return;
+        event.preventDefault();
+        event.stopPropagation();
+        applyFilter(tagBtn.dataset.filterTag ?? "");
+      });
+
+      catalog.addEventListener("keydown", event => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        const tagBtn = event.target.closest('[data-action="filter-tag"]');
+        if (!tagBtn) return;
+        event.preventDefault();
+        event.stopPropagation();
+        applyFilter(tagBtn.dataset.filterTag ?? "");
+      });
+    }
 
     applyFilter("");
   };

@@ -13,6 +13,7 @@ import {
   type CityLabelLayout,
   type CityPathItem,
   buildCityLabelMap,
+  PROVINCE_VIEW_LABEL_SCALE,
   computeCityLabelLayoutForCity,
   nationProvinceLabelKey,
 } from "@/components/footprint/computeCityLabels";
@@ -31,11 +32,30 @@ export interface FootprintRecord {
   lat: number;
 }
 
+export function footprintPlaceKey(place: {
+  name: string;
+  lng: number;
+  lat: number;
+}): string {
+  return `${place.name}:${place.lng},${place.lat}`;
+}
+
+function recordsAtPlace(
+  place: FootprintPlace,
+  allRecords: FootprintRecord[]
+): FootprintRecord[] {
+  return allRecords.filter(
+    r =>
+      Math.abs(r.lng - place.lng) < 1e-5 && Math.abs(r.lat - place.lat) < 1e-5
+  );
+}
+
 export function useFootprintMap(places: FootprintPlace[], records: FootprintRecord[]) {
   const [focusedProvinceKey, setFocusedProvinceKey] = useState<string | null>(
     null
   );
   const [selectedCityKey, setSelectedCityKey] = useState<string | null>(null);
+  const [selectedPlaceKey, setSelectedPlaceKey] = useState<string | null>(null);
 
   const focusedProvinceFeature = useMemo(() => {
     if (!focusedProvinceKey) return null;
@@ -311,30 +331,57 @@ export function useFootprintMap(places: FootprintPlace[], records: FootprintReco
     };
   }, [selectedCityKey, visibleCityPaths, records]);
 
+  const selectedPlace = useMemo(() => {
+    if (!selectedPlaceKey) return null;
+    const place = visibleMarkerPoints.find(
+      p => footprintPlaceKey(p) === selectedPlaceKey
+    );
+    if (!place) return null;
+    return {
+      key: selectedPlaceKey,
+      name: place.name,
+      lng: place.lng,
+      lat: place.lat,
+      posts: recordsAtPlace(place, records),
+    };
+  }, [selectedPlaceKey, visibleMarkerPoints, records]);
+
   const handleCityClick = useCallback(
     (provinceKey: string, cityKey: string) => {
       setFocusedProvinceKey(provinceKey);
       setSelectedCityKey(cityKey);
+      setSelectedPlaceKey(null);
     },
     []
   );
+
+  const handleMarkerClick = useCallback((place: FootprintPlace) => {
+    setSelectedPlaceKey(footprintPlaceKey(place));
+    setSelectedCityKey(null);
+  }, []);
 
   const handleProvinceClick = useCallback((regionShortName: string) => {
     const provinceKey = SHORT_NAME_TO_PROVINCE_KEY[regionShortName];
     if (!provinceKey) return;
     setFocusedProvinceKey(provinceKey);
     setSelectedCityKey(null);
+    setSelectedPlaceKey(null);
   }, []);
 
   const handleResetMapView = useCallback(() => {
     setFocusedProvinceKey(null);
     setSelectedCityKey(null);
+    setSelectedPlaceKey(null);
   }, []);
 
   /** 弦数据来自预计算 JSON，此处仅投影 + 字号（无 Turf） */
   const cityLabelByKey = useMemo(() => {
     if (!focusedProvinceKey) return new Map<string, CityLabelLayout>();
-    return buildCityLabelMap(visibleCityPaths, ll => projection(ll) ?? null);
+    return buildCityLabelMap(
+      visibleCityPaths,
+      ll => projection(ll) ?? null,
+      PROVINCE_VIEW_LABEL_SCALE
+    );
   }, [focusedProvinceKey, visibleCityPaths, projection]);
 
   /** 全国省：与省内市共用 buildCityLabelMap（弦 + 避让 + 哑铃拆字） */
@@ -416,6 +463,8 @@ export function useFootprintMap(places: FootprintPlace[], records: FootprintReco
     visitedCityKeys,
     visibleMarkerPoints,
     selectedCity,
+    selectedPlace,
+    selectedPlaceKey,
     cityLabelByKey,
     nationalProvinceLabelItems,
     nationalProvinceLabelByKey,
@@ -423,6 +472,7 @@ export function useFootprintMap(places: FootprintPlace[], records: FootprintReco
     focusedProvinceKey,
     selectedCityKey,
     handleCityClick,
+    handleMarkerClick,
     handleProvinceClick,
     handleResetMapView,
     provinceCount,

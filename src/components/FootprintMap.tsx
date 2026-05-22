@@ -6,11 +6,17 @@ import {
   SHORT_NAME_TO_PROVINCE_KEY,
 } from "@/components/footprint/mapConstants";
 import {
+  footprintPlaceKey,
   useFootprintMap,
   type FootprintPlace,
   type FootprintRecord,
 } from "@/components/footprint/useFootprintMap";
 import type { CityPathItem } from "@/components/footprint/computeCityLabels";
+import { FOOTPRINT_MAP_THEME as T } from "@/styles/footprint-map-theme";
+
+const labelClassName = `${T.labelFill} ${T.labelStroke} ${T.labelFont}`;
+const regionBase = `${T.regionFill} ${T.regionStroke}`;
+const regionInteractive = `${regionBase} ${T.regionHoverFill} ${T.regionTransition}`;
 
 export type { FootprintPlace };
 
@@ -33,6 +39,8 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
     visitedCityKeys,
     visibleMarkerPoints,
     selectedCity,
+    selectedPlace,
+    selectedPlaceKey,
     cityLabelByKey,
     nationalProvinceLabelItems,
     nationalProvinceLabelByKey,
@@ -40,6 +48,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
     focusedProvinceKey,
     selectedCityKey,
     handleCityClick,
+    handleMarkerClick,
     handleProvinceClick,
     handleResetMapView,
     provinceCount,
@@ -175,6 +184,11 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
   const shownCityCount = useCountUpNumber(cityCount, 850, 200);
   const shownPlaceCount = useCountUpNumber(placeCount, 800, 400);
 
+  /** 全国视图地图需全宽；仅放大省或选中市时用侧栏 */
+  const useDetailColumn = Boolean(
+    focusedProvinceKey || selectedCity || selectedPlace
+  );
+
   const regionPathsJsx = useMemo(
     () =>
       regionPaths.map(region => {
@@ -203,11 +217,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                 : undefined
             }
             className={
-              isNationalView
-                ? canClickProvince
-                  ? "fill-muted/16 stroke-foreground/55 hover:fill-accent/12 transition-colors"
-                  : "fill-muted/16 stroke-foreground/55"
-                : "fill-muted/16 stroke-foreground/55"
+              isNationalView && canClickProvince ? regionInteractive : regionBase
             }
             strokeWidth={isNationalView ? 1.1 : 1.05}
           >
@@ -222,10 +232,10 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
 
   return (
     <div className="w-full">
-      <p className="text-skin-muted mb-4 text-sm">
+      <p className="mb-4 text-sm text-foreground/55">
         已经点亮{" "}
         <span
-          className="text-accent font-semibold"
+          className="font-semibold tabular-nums text-accent"
           style={{
             display: "inline-block",
             minWidth: `${String(provinceCount).length}ch`,
@@ -235,7 +245,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         </span>{" "}
         个省、
         <span
-          className="text-accent font-semibold"
+          className="font-semibold tabular-nums text-accent"
           style={{
             display: "inline-block",
             minWidth: `${String(cityCount).length}ch`,
@@ -245,7 +255,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         </span>{" "}
         个市、
         <span
-          className="text-accent font-semibold"
+          className="font-semibold tabular-nums text-accent"
           style={{
             display: "inline-block",
             minWidth: `${String(placeCount).length}ch`,
@@ -255,6 +265,14 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         </span>{" "}
         个地点。
       </p>
+      <div
+        className={
+          useDetailColumn
+            ? "mt-2 lg:grid lg:grid-cols-[minmax(0,1fr)_min(18rem,32%)] lg:items-start lg:gap-6"
+            : "mt-2"
+        }
+      >
+        <div className="min-w-0">
       <div
         className={
           focusedProvinceKey
@@ -305,8 +323,8 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                           }}
                           className={
                             visited
-                              ? "fill-[#ff5a36]/75 stroke-[#ff3b30]"
-                              : "fill-muted/10 stroke-foreground/22"
+                              ? `${T.visitedNationalFill} ${T.visitedNationalStroke}`
+                              : `${T.cityDefaultFill} ${T.cityDefaultStroke}`
                           }
                           strokeWidth={visited ? 0.85 : 0.35}
                         >
@@ -315,7 +333,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                         {isSpotlightTarget ? (
                           <path
                             d={city.d}
-                            className="footprint-national-spot-fade-cycle fill-[#ff5a36]/80 stroke-[#ff3b30]"
+                            className={`footprint-national-spot-fade-cycle ${T.visitedNationalSpotlightFill} ${T.visitedNationalSpotlightStroke}`}
                             style={{ pointerEvents: "none" }}
                             strokeWidth={0.95}
                           />
@@ -343,7 +361,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                               textAnchor="middle"
                               dominantBaseline="central"
                               pointerEvents="none"
-                              className="fill-foreground/38 stroke-background/55 pointer-events-none select-none font-serif font-medium"
+                              className={labelClassName}
                               style={{
                                 fontSize: renderedFs,
                                 letterSpacing: "0.03em",
@@ -363,7 +381,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                             textAnchor="middle"
                             dominantBaseline="central"
                             pointerEvents="none"
-                            className="fill-foreground/38 stroke-background/55 pointer-events-none select-none font-serif font-medium"
+                            className={labelClassName}
                             style={{
                               fontSize: renderedFs,
                               letterSpacing: "0.03em",
@@ -406,11 +424,11 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                         className={
                           visited
                             ? selected
-                              ? "fill-[#ff5a36]/82 stroke-accent"
-                              : "fill-[#ff5a36]/75 stroke-[#9f1a10] hover:opacity-[0.97]"
+                              ? `${T.visitedProvinceSelectedFill} ${T.visitedProvinceSelectedStroke}`
+                              : `${T.visitedProvinceFill} ${T.visitedProvinceStroke} hover:opacity-[0.97]`
                             : selected
-                              ? "fill-accent/20 stroke-accent"
-                              : "fill-muted/14 stroke-foreground/70 hover:fill-accent/18"
+                              ? `${T.cityProvinceSelectedFill} ${T.cityProvinceSelectedStroke}`
+                              : `${T.cityProvinceDefaultFill} ${T.cityProvinceDefaultStroke} ${T.cityProvinceHoverFill}`
                         }
                         strokeWidth={strokeW}
                       >
@@ -427,7 +445,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                               textAnchor="middle"
                               dominantBaseline="central"
                               pointerEvents="none"
-                              className="fill-foreground/38 stroke-background/55 pointer-events-none select-none font-serif font-medium"
+                              className={labelClassName}
                               style={{
                                 fontSize: renderedFs,
                                 letterSpacing: "0.03em",
@@ -447,7 +465,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                             textAnchor="middle"
                             dominantBaseline="central"
                             pointerEvents="none"
-                            className="fill-foreground/38 stroke-background/55 pointer-events-none select-none font-serif font-medium"
+                            className={labelClassName}
                             style={{
                               fontSize: renderedFs,
                               letterSpacing: "0.03em",
@@ -466,31 +484,117 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
             ) : null}
             {visibleMarkerPoints.length > 0 ? (
               <g style={{ pointerEvents: "auto" }}>
-                {visibleMarkerPoints.map((p, idx) => (
-                  <g key={`${p.name}-${idx}`}>
-                    <circle
-                      cx={p.x}
-                      cy={p.y}
-                      r={4.2}
-                      className="fill-accent/90 stroke-background"
-                      strokeWidth={2}
+                {visibleMarkerPoints.map((p, idx) => {
+                  const placeKey = footprintPlaceKey(p);
+                  const isSelected = selectedPlaceKey === placeKey;
+                  return (
+                    <g
+                      key={`${p.name}-${idx}`}
+                      style={{ cursor: "pointer" }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        handleMarkerClick(p);
+                      }}
                     >
-                      <title>{`${p.name} (${p.lng}, ${p.lat})`}</title>
-                    </circle>
-                  </g>
-                ))}
+                      <circle
+                        cx={p.x}
+                        cy={p.y}
+                        r={12}
+                        fill="transparent"
+                        stroke="none"
+                        pointerEvents="all"
+                      />
+                      <circle
+                        cx={p.x}
+                        cy={p.y}
+                        r={isSelected ? 5.5 : 4.2}
+                        className={`${T.markerFill} ${T.markerStroke}`}
+                        strokeWidth={isSelected ? 2.5 : 2}
+                        pointerEvents="none"
+                      />
+                      <title>{`${p.name}（点击查看文章）`}</title>
+                    </g>
+                  );
+                })}
               </g>
             ) : null}
           </svg>
         </div>
       </div>
 
-      <p className="text-muted-foreground mt-4 text-xs">
-        （注：地图仅用于大致轮廓展示与地点示意，不代表精确边界。）
-      </p>
+      <div
+        className="mt-3 flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between"
+        aria-label="地图图例"
+      >
+        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+          <li className="inline-flex items-center gap-1.5">
+            <span
+              className="inline-block h-2.5 w-4 rounded-sm border border-foreground/25 bg-muted/30"
+              aria-hidden="true"
+            />
+            省界
+          </li>
+          <li className="inline-flex items-center gap-1.5">
+            <span
+              className={`inline-block h-2.5 w-4 rounded-sm border ${T.visitedProvinceFill} ${T.visitedProvinceStroke}`}
+              aria-hidden="true"
+            />
+            已点亮
+          </li>
+          <li className="inline-flex items-center gap-1.5">
+            <span
+              className={`inline-block h-2 w-2 rounded-full border ${T.markerFill} ${T.markerStroke}`}
+              aria-hidden="true"
+            />
+            文章地点
+          </li>
+          <li className="hidden text-foreground/45 sm:inline">
+            全国视图已点亮城市会轮播高亮
+          </li>
+        </ul>
+        <p className="text-foreground/40 sm:text-right">
+          地图仅作轮廓与地点示意，不代表精确边界。
+        </p>
+      </div>
+      {!useDetailColumn ? (
+        <p className="text-muted-foreground mt-3 text-sm">
+          全国视图请点击<strong className="text-foreground">省份</strong>
+          放大；放大后再点击城市查看文章列表。
+        </p>
+      ) : null}
+        </div>
 
-      <div className="border-border/45 bg-background/70 mt-4 rounded-xl border p-4 shadow-sm backdrop-blur-sm">
-        {selectedCity ? (
+      {useDetailColumn ? (
+      <aside className="border-border/45 bg-background/70 mt-4 rounded-xl border p-4 shadow-sm backdrop-blur-sm lg:sticky lg:top-[calc(var(--site-header-height,4rem)+1rem)] lg:mt-0">
+        {selectedPlace ? (
+          <>
+            <p className="text-foreground text-base font-semibold sm:text-lg">
+              {selectedPlace.name}
+            </p>
+            <p className="text-muted-foreground mt-1 text-xs tabular-nums">
+              {selectedPlace.lng.toFixed(4)}, {selectedPlace.lat.toFixed(4)}
+            </p>
+            {selectedPlace.posts.length > 0 ? (
+              <ul className="mt-2 space-y-1.5">
+                {selectedPlace.posts.map((post, index) => (
+                  <li key={`${post.url}-${post.title}`} className="text-sm">
+                    <a
+                      href={post.url}
+                      className="text-accent hover:underline"
+                      title={post.title}
+                    >
+                      {index + 1}. {post.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted-foreground mt-2 text-sm">
+                该地点暂无已标注文章。
+              </p>
+            )}
+          </>
+        ) : selectedCity ? (
           <>
             <p className="text-foreground text-base font-semibold sm:text-lg">
               {selectedCity.provinceName} - {selectedCity.cityName}
@@ -515,22 +619,21 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
               </p>
             )}
           </>
-        ) : focusedProvinceKey ? (
+        ) : (
           <p className="text-muted-foreground text-sm">
             已放大至{" "}
             <span className="text-foreground font-medium">
-              {PROVINCE_NAME_MAP[focusedProvinceKey] ?? focusedProvinceKey}
+              {PROVINCE_NAME_MAP[focusedProvinceKey!] ?? focusedProvinceKey}
             </span>
-            。请点击地图中的
+            。请点击
             <strong className="text-foreground">城市区域</strong>
-            ，查看对应文章列表。
-          </p>
-        ) : (
-          <p className="text-muted-foreground text-sm">
-            全国视图请点击<strong className="text-foreground">省份</strong>
-            放大；放大后再点击城市查看文章列表。
+            或
+            <strong className="text-foreground">地点圆点</strong>
+            查看文章列表。
           </p>
         )}
+      </aside>
+      ) : null}
       </div>
     </div>
   );

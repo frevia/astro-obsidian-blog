@@ -36,6 +36,17 @@ const PRECOMPUTED = precomputedChords as unknown as PrecomputedMap;
 const BASE_LABEL_FONT_SCALE = 0.6;
 const MIN_LABEL_FONT_SIZE = 3.8;
 
+export type CityLabelScaleOptions = {
+  fontScaleMultiplier?: number;
+  maxFontSize?: number;
+};
+
+/** 省内放大视图：字号相对全国/默认的放大倍数 */
+export const PROVINCE_VIEW_LABEL_SCALE: CityLabelScaleOptions = {
+  fontScaleMultiplier: 1.55,
+  maxFontSize: 26,
+};
+
 /** 与 `generate-footprint-city-labels` 写入的全国省界键一致 */
 export function nationProvinceLabelKey(idx: number): string {
   return `nation-province-${idx}`;
@@ -72,10 +83,18 @@ function adaptiveSafeFontSize(
   return Math.min(baseFontSize, relaxed);
 }
 
-function scaleAndClampFontSize(fs: number): number {
+function scaleAndClampFontSize(
+  fs: number,
+  scaleOpts?: CityLabelScaleOptions
+): number {
+  const mult = scaleOpts?.fontScaleMultiplier ?? 1;
+  const max = scaleOpts?.maxFontSize ?? 20;
   return (
     Math.round(
-      Math.max(MIN_LABEL_FONT_SIZE, Math.min(20, fs * BASE_LABEL_FONT_SCALE)) * 10
+      Math.max(
+        MIN_LABEL_FONT_SIZE,
+        Math.min(max, fs * BASE_LABEL_FONT_SCALE * mult)
+      ) * 10
     ) / 10
   );
 }
@@ -150,8 +169,10 @@ export function computeCityLabelLayoutForCity(
   city: CityPathItem,
   cityIndex: number,
   siblingFeatures: unknown[],
-  project: (lngLat: [number, number]) => [number, number] | null
+  project: (lngLat: [number, number]) => [number, number] | null,
+  scaleOpts?: CityLabelScaleOptions
 ): CityLabelLayout | null {
+  const maxFs = scaleOpts?.maxFontSize ?? 20;
   const raw = PRECOMPUTED[city.key];
   if (!raw) return null;
   const chord: LabelChordResult = {
@@ -205,7 +226,7 @@ export function computeCityLabelLayoutForCity(
       const fs0 = maxFontSizeByLocalChord(lenSvg, splitTs[0], parts[0]);
       const fs1 = maxFontSizeByLocalChord(lenSvg, splitTs[1], parts[1]);
       fontSize = Math.min(fontSize, fs0, fs1);
-      fontSize = scaleAndClampFontSize(fontSize);
+      fontSize = scaleAndClampFontSize(fontSize, scaleOpts);
 
       const middleFs = maxFontSizeByLocalChord(lenSvg, 0.5, city.cityName);
       const shouldSplit = middleFs < 6.2;
@@ -228,8 +249,9 @@ export function computeCityLabelLayoutForCity(
         const middleSize = scaleAndClampFontSize(
           Math.max(
             MIN_LABEL_FONT_SIZE,
-            Math.min(label.fontSize, middleSafe, 20)
-          )
+            Math.min(label.fontSize, middleSafe, maxFs)
+          ),
+          scaleOpts
         );
         if (middleSize >= MIN_LABEL_FONT_SIZE) {
           let midCx = (pFullA[0] + pFullB[0]) / 2;
@@ -285,7 +307,7 @@ export function computeCityLabelLayoutForCity(
       if (Number.isFinite(fsMax)) {
         label.fontSize =
           Math.round(
-            Math.max(MIN_LABEL_FONT_SIZE, Math.min(label.fontSize, fsMax, 20)) *
+            Math.max(MIN_LABEL_FONT_SIZE, Math.min(label.fontSize, fsMax, maxFs)) *
               10
           ) / 10;
       }
@@ -293,14 +315,15 @@ export function computeCityLabelLayoutForCity(
   }
 
   // 统一基准缩放：普通单行标签必须也走同一套字号基准
-  label.fontSize = scaleAndClampFontSize(label.fontSize);
+  label.fontSize = scaleAndClampFontSize(label.fontSize, scaleOpts);
   if (label.fontSize < MIN_LABEL_FONT_SIZE) return null;
   return label;
 }
 
 export function buildCityLabelMap(
   cities: CityPathItem[],
-  project: (lngLat: [number, number]) => [number, number] | null
+  project: (lngLat: [number, number]) => [number, number] | null,
+  scaleOpts?: CityLabelScaleOptions
 ): Map<string, CityLabelLayout> {
   const map = new Map<string, CityLabelLayout>();
   const siblingFeatures = cities.map(c => c.feature);
@@ -310,7 +333,8 @@ export function buildCityLabelMap(
       city,
       i,
       siblingFeatures,
-      project
+      project,
+      scaleOpts
     );
     if (label) map.set(city.key, label);
   }

@@ -7,18 +7,8 @@ const { summary, title = "AI 总结" } = Astro.props;
 ---
 
 <div
-  class="mt-6 mb-8 rounded-lg border border-accent/20 bg-gradient-to-br from-accent/15 via-muted/10 to-background p-4 font-sans shadow-[inset_0_2px_6px_rgba(0,0,0,0.04)] selection:bg-accent/30"
+  class="mt-6 mb-8 rounded-md border border-border/60 border-l-4 border-l-accent/45 bg-muted/15 px-4 py-3"
 >
-  <div class="mb-3 flex items-center gap-2">
-    <svg
-      class="h-5 w-5 text-accent"
-      fill="currentColor"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      <path d="M12 2L9.1 9.1 2 12l7.1 2.9L12 22l2.9-7.1L22 12l-7.1-2.9z"></path>
-    </svg>
-    <h3 class="text-lg font-bold text-accent">{title}</h3>
-  </div>
+  <h3 class="mb-2 text-base font-semibold text-foreground/90">{title}</h3>
   <p class="text-sm leading-relaxed text-foreground/80">{summary}</p>
 </div>

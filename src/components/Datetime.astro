@@ -13,6 +13,10 @@ dayjs.extend(timezone);
 export interface Props {
   class?: string;
   size?: "sm" | "lg";
+  /** inline：横排图标+日期；stack：纵排；meta：纯文字标签（列表底栏） */
+  layout?: "inline" | "stack" | "meta";
+  /** 使用 YYYY-MM-DD 短格式（列表底栏等窄空间） */
+  compact?: boolean;
   timezone: string | undefined;
   published: Date;
   created?: Date;
@@ -24,6 +28,8 @@ const {
   published,
   created,
   size = "sm",
+  layout = "inline",
+  compact = false,
   class: className = "",
   timezone: postTimezone,
   showCreated = false,
@@ -46,7 +52,25 @@ const hasExplicitTime = (value: string | Date | undefined | null) => {
   return false;
 };
 
-const formatDate = (date: string | Date, timezone: string | undefined) => {
+const formatDate = (
+  date: string | Date,
+  timezone: string | undefined,
+  compact = false
+) => {
+  const datetime = dayjs(date).tz(timezone || SITE_TIMEZONE);
+  if (compact) {
+    return datetime
+      .locale("zh-cn")
+      .format(hasExplicitTime(date) ? "YYYY-MM-DD HH:mm" : "YYYY-MM-DD");
+  }
+  return datetime
+    .locale("zh-cn")
+    .format(
+      hasExplicitTime(date) ? "ddd / YYYY-MM-DD HH:mm" : "ddd / YYYY-MM-DD"
+    );
+};
+
+const formatDateTitle = (date: string | Date, timezone: string | undefined) => {
   const datetime = dayjs(date).tz(timezone || SITE_TIMEZONE);
   return datetime
     .locale("zh-cn")
@@ -55,8 +79,13 @@ const formatDate = (date: string | Date, timezone: string | undefined) => {
     );
 };
 
-const publishedDate = formatDate(published, postTimezone);
-const createdDate = created ? formatDate(created, postTimezone) : null;
+const useCompact = compact || layout === "stack" || layout === "meta";
+const publishedDate = formatDate(published, postTimezone, useCompact);
+const createdDate = created
+  ? formatDate(created, postTimezone, useCompact)
+  : null;
+const publishedTitle = formatDateTitle(published, postTimezone);
+const createdTitle = created ? formatDateTitle(created, postTimezone) : null;
 
 // 智能判断是否显示收录时间
 const shouldShowCreated =
@@ -67,46 +96,202 @@ const shouldShowCreated =
     7 * 24 * 60 * 60 * 1000;
 ---
 
-<div class:list={["flex items-center gap-x-2 opacity-80", className]}>
-  <IconCalendar
-    class:list={[
-      "inline-block size-6 min-w-[1.375rem]",
-      { "scale-90": size === "sm" },
-    ]}
-  />
-  <time
-    class:list={["text-sm", { "sm:text-base": size === "lg" }]}
-    datetime={dayjs(published).toISOString()}
-    title="原创发布时间"
-  >
-    {publishedDate}
-  </time>
-
-  {
-    shouldShowCreated && (
-      <>
-        <span class="text-foreground/40">|</span>
-        <IconFavorite
-          class:list={[
-            "inline-block size-6 min-w-[1.375rem] text-foreground",
-            { "scale-90": size === "sm" },
-          ]}
-        />
+{
+  layout === "meta" ? (
+    <div class:list={["datetime-meta", className]}>
+      <span class="datetime-meta-part">
+        <span class="datetime-meta-label">发布</span>
         <time
-          class:list={[
-            "text-sm",
-            { "sm:text-base": size === "lg" },
-            {
-              "text-foreground/60": !detailPage,
-              "text-foreground": detailPage,
-            },
-          ]}
-          datetime={dayjs(created).toISOString()}
-          title="收录时间"
+          class="datetime-meta-time"
+          datetime={dayjs(published).toISOString()}
+          title={`原创发布时间：${publishedTitle}`}
         >
-          {createdDate}
+          {publishedDate}
         </time>
-      </>
-    )
+      </span>
+      {
+        shouldShowCreated && (
+          <>
+            <span class="datetime-meta-sep" aria-hidden="true">
+              ·
+            </span>
+            <span class="datetime-meta-part">
+              <span class="datetime-meta-label">收录</span>
+              <time
+                class:list={[
+                  "datetime-meta-time",
+                  {
+                    "datetime-meta-time--muted": !detailPage,
+                  },
+                ]}
+                datetime={dayjs(created!).toISOString()}
+                title={`收录时间：${createdTitle}`}
+              >
+                {createdDate}
+              </time>
+            </span>
+          </>
+        )
+      }
+    </div>
+  ) : layout === "stack" ? (
+    <div class:list={["datetime-stack", className]}>
+      <div class="datetime-stack-row">
+        <span class="datetime-stack-icon" aria-hidden="true">
+          <IconCalendar />
+        </span>
+        <time
+          class="datetime-stack-time"
+          datetime={dayjs(published).toISOString()}
+          title={`原创发布时间：${publishedTitle}`}
+        >
+          {publishedDate}
+        </time>
+      </div>
+      {
+        shouldShowCreated && (
+          <div class="datetime-stack-row">
+            <span class="datetime-stack-icon" aria-hidden="true">
+              <IconFavorite />
+            </span>
+            <time
+              class:list={[
+                "datetime-stack-time",
+                {
+                  "text-foreground/60": !detailPage,
+                  "text-foreground": detailPage,
+                },
+              ]}
+              datetime={dayjs(created).toISOString()}
+              title={`收录时间：${createdTitle}`}
+            >
+              {createdDate}
+            </time>
+          </div>
+        )
+      }
+    </div>
+  ) : (
+    <div class:list={["flex items-center gap-x-2 opacity-80", className]}>
+      <IconCalendar
+        class:list={[
+          "inline-block size-6 min-w-[1.375rem]",
+          { "scale-90": size === "sm" },
+        ]}
+      />
+      <time
+        class:list={["text-sm", { "sm:text-base": size === "lg" }]}
+        datetime={dayjs(published).toISOString()}
+        title="原创发布时间"
+      >
+        {publishedDate}
+      </time>
+
+      {
+        shouldShowCreated && (
+          <>
+            <span class="text-foreground/40">|</span>
+            <IconFavorite
+              class:list={[
+                "inline-block size-6 min-w-[1.375rem] text-foreground",
+                { "scale-90": size === "sm" },
+              ]}
+            />
+            <time
+              class:list={[
+                "text-sm",
+                { "sm:text-base": size === "lg" },
+                {
+                  "text-foreground/60": !detailPage,
+                  "text-foreground": detailPage,
+                },
+              ]}
+              datetime={dayjs(created).toISOString()}
+              title="收录时间"
+            >
+              {createdDate}
+            </time>
+          </>
+        )
+      }
+    </div>
+  )
+}
+
+<style>
+  .datetime-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    overflow: visible;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    opacity: 0.8;
   }
-</div>
+
+  .datetime-stack-row {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 1.25rem;
+    overflow: visible;
+    white-space: nowrap;
+  }
+
+  .datetime-stack-icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 1.125rem;
+    height: 1.125rem;
+    overflow: visible;
+  }
+
+  .datetime-stack-icon :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .datetime-stack-time {
+    line-height: 1.5;
+  }
+
+  .datetime-meta {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+  }
+
+  .datetime-meta-part {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+  }
+
+  .datetime-meta-label {
+    color: color-mix(in oklab, currentColor 72%, transparent);
+  }
+
+  .datetime-meta-time {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .datetime-meta-time--muted {
+    opacity: 0.88;
+  }
+
+  .datetime-meta-sep {
+    opacity: 0.45;
+    user-select: none;
+  }
+</style>
