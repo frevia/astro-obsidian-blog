@@ -141,7 +141,8 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
           aria-labelledby={`date-${entry.date}`}
           aria-describedby={`content-${entry.date}`}
           tabIndex={0}
-          className="focus:ring-skin-accent focus:ring-offset-skin-fill hover:bg-skin-fill/30 -mx-3 rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border/70 focus:outline-none"
+          className="diary-entry-reveal focus:ring-skin-accent focus:ring-offset-skin-fill hover:bg-skin-fill/30 -mx-3 rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border/70 focus:outline-none"
+          style={{ animationDelay: `${Math.min(index, 8) * 70}ms` }}
         >
           <DiaryEntryReact
             date={entry.date}
