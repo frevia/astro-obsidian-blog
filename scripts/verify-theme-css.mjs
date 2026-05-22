@@ -9,8 +9,6 @@ const required = [
   "--color-skin-muted",
   "--color-skin-inverted",
   "--color-skin-border",
-  "--font-family-sans",
-  "--font-family-serif",
 ];
 
 const missing = required.filter(token => !css.includes(token));

@@ -16,7 +16,8 @@
     "generate:solar-terms": "node scripts/generate-solar-terms-cache.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify:theme": "node scripts/verify-theme-css.mjs"
+    "verify:theme": "node scripts/verify-theme-css.mjs",
+    "verify:footprint": "node scripts/verify-footprint-theme.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.1",

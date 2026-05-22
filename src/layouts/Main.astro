@@ -32,6 +32,12 @@ const { props } = Astro;
       <h1 class="text-2xl font-semibold sm:text-3xl">{props.pageTitle}</h1>
     )
   }
-  <p class:list={["mt-2 mb-6 italic", props.pageDescClass]}>{props.pageDesc}</p>
+  {
+    props.pageDesc ? (
+      <p class:list={["mt-2 mb-6 italic", props.pageDescClass]}>
+        {props.pageDesc}
+      </p>
+    ) : null
+  }
   <slot />
 </main>
