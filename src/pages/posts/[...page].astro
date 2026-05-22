@@ -9,6 +9,7 @@ import Card from "@/components/Card.astro";
 import Pagination from "@/components/Pagination.astro";
 import getSortedPosts from "@/utils/getSortedPosts";
 import { SITE } from "@/config";
+import { getSiteYear } from "@/utils/calendarDate";
 
 // tag
 import Tag from "@/components/Tag.astro";
@@ -23,6 +24,16 @@ export const getStaticPaths = (async ({ paginate }) => {
 }) satisfies GetStaticPaths;
 
 const { page } = Astro.props;
+
+const postsByYear = page.data.reduce(
+  (acc, post) => {
+    const year = String(getSiteYear(post.data.published));
+    (acc[year] ??= []).push(post);
+    return acc;
+  },
+  {} as Record<string, typeof page.data>
+);
+const years = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a));
 ---
 
 <Layout title={`文章 | ${SITE.title}`}>
@@ -32,9 +43,18 @@ const { page } = Astro.props;
       {tags.map(({ tag, tagName }) => <Tag {tag} {tagName} size="lg" />)}
     </ul>
 
-    <ul>
-      {page.data.map(data => <Card {...data} />)}
-    </ul>
+    {
+      years.map(year => (
+        <section class="mb-10">
+          <h2 class="sticky top-[var(--site-header-height,4rem)] z-10 mb-4 border-b border-border/60 bg-background/90 py-2 text-sm font-semibold tracking-widest text-accent backdrop-blur-sm">
+            {year}
+          </h2>
+          <ul>
+            {postsByYear[year].map(data => <Card {...data} />)}
+          </ul>
+        </section>
+      ))
+    }
   </Main>
 
   <Pagination {page} />
