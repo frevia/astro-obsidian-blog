@@ -3,17 +3,9 @@
 @import "tw-animate-css";
 @import "katex/dist/katex.min.css";
 
-/* 加载字体
 @import "@fontsource-variable/noto-sans-sc/index.css";
 @import "@fontsource-variable/noto-serif-sc/index.css";
 @import "@fontsource/ma-shan-zheng/400.css";
-
-@theme {
-  --font-family-sans: 'Noto Sans SC Variable', sans-serif;
-  --font-family-serif: 'Noto Serif SC Variable', serif;
-  --font-family-hand: 'Ma Shan Zheng', cursive;
-}
-*/
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
@@ -43,6 +35,19 @@ html[data-theme="dark"] {
   --color-accent: var(--accent);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-skin-fill: var(--background);
+  --color-skin-card: color-mix(in oklch, var(--background) 92%, var(--accent) 8%);
+  --color-skin-base: var(--foreground);
+  --color-skin-accent: var(--accent);
+  --color-skin-muted: var(--muted);
+  --color-skin-inverted: var(--background);
+  --color-skin-border: var(--border);
+  --font-family-sans: "Noto Sans SC Variable", sans-serif;
+  --font-family-serif: "Noto Serif SC Variable", serif;
+  --font-family-hand: "Ma Shan Zheng", cursive;
+  --font-sans: var(--font-family-sans);
+  --font-serif: var(--font-family-serif);
+  --font-hand: var(--font-family-hand);
 }
 
 @layer base {
@@ -63,6 +68,12 @@ html[data-theme="dark"] {
   body {
     @apply flex min-h-svh flex-col overflow-x-hidden bg-background font-serif text-foreground selection:bg-accent/75 selection:text-background;
     padding-top: var(--site-header-height, 0px);
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-sans;
   }
   a,
   button {
@@ -636,5 +647,39 @@ video {
   .footprint-national-spot-fade-cycle {
     animation: none;
     opacity: 1;
+  }
+}
+
+@layer utilities {
+  .bg-archive-paper {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        ellipse 120% 80% at 50% -20%,
+        color-mix(in oklch, var(--accent) 12%, transparent),
+        transparent 55%
+      ),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  }
+
+  @keyframes diary-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .diary-entry-reveal {
+    animation: diary-reveal 0.55s ease-out both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .diary-entry-reveal {
+      animation: none;
+    }
   }
 }
