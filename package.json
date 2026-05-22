@@ -13,7 +13,10 @@
     "lint": "eslint .",
     "generate:footprint-labels": "tsx scripts/generate-footprint-city-labels.ts",
     "fetch:rss-feeds": "node scripts/fetch-rss-feeds.js",
-    "generate:solar-terms": "node scripts/generate-solar-terms-cache.mjs"
+    "generate:solar-terms": "node scripts/generate-solar-terms-cache.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify:theme": "node scripts/verify-theme-css.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.1",
@@ -96,6 +99,7 @@
     "tw-animate-css": "^1.3.5",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.36.0",
-    "unified": "^11.0.5"
+    "unified": "^11.0.5",
+    "vitest": "3.2.4"
   }
 }
