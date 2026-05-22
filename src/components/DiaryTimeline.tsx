@@ -141,7 +141,7 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
           aria-labelledby={`date-${entry.date}`}
           aria-describedby={`content-${entry.date}`}
           tabIndex={0}
-          className="diary-entry-reveal focus:ring-skin-accent focus:ring-offset-skin-fill hover:bg-skin-fill/30 -mx-3 rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border/70 focus:outline-none"
+          className="diary-entry-reveal -mx-3 rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border/70 hover:bg-skin-fill/30 focus:ring-skin-accent focus:ring-offset-skin-fill focus:outline-none"
           style={{ animationDelay: `${Math.min(index, 8) * 70}ms` }}
         >
           <DiaryEntryReact
@@ -156,7 +156,7 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
         <article role="article" className="py-12 text-center sm:py-14">
           <div role="status" aria-live="polite">
             <div className="mb-4 text-4xl opacity-40">📝</div>
-            <p className="text-skin-base text-lg opacity-70">
+            <p className="text-lg text-skin-base opacity-70">
               还没有任何碎片...
             </p>
             <p className="mt-2 text-sm opacity-50">开始记录您的日常吧</p>
@@ -172,10 +172,10 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
             aria-label="正在加载更多碎片条目"
           >
             <div className="animate-pulse space-y-2">
-              <div className="bg-skin-muted mx-auto h-4 w-1/4 rounded"></div>
-              <div className="bg-skin-muted mx-auto h-3 w-1/6 rounded"></div>
+              <div className="mx-auto h-4 w-1/4 rounded bg-skin-muted"></div>
+              <div className="mx-auto h-3 w-1/6 rounded bg-skin-muted"></div>
             </div>
-            <p className="text-skin-base mt-2 opacity-60">加载中...</p>
+            <p className="mt-2 text-skin-base opacity-60">加载中...</p>
             <div className="sr-only">正在为您加载更多碎片内容，请稍候</div>
           </div>
         </article>
@@ -201,7 +201,7 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
         <article role="article" className="py-6 text-center">
           <button
             onClick={loadMore}
-            className="bg-skin-accent text-skin-inverted hover:bg-skin-accent/90 focus:ring-skin-accent focus:ring-offset-skin-fill rounded-lg px-6 py-3 transition-colors focus:outline-none"
+            className="rounded-lg bg-skin-accent px-6 py-3 text-skin-inverted transition-colors hover:bg-skin-accent/90 focus:ring-skin-accent focus:ring-offset-skin-fill focus:outline-none"
             aria-describedby="load-more-description"
           >
             加载更多碎片
