@@ -36,7 +36,11 @@ html[data-theme="dark"] {
   --color-muted: var(--muted);
   --color-border: var(--border);
   --color-skin-fill: var(--background);
-  --color-skin-card: color-mix(in oklch, var(--background) 92%, var(--accent) 8%);
+  --color-skin-card: color-mix(
+    in oklch,
+    var(--background) 92%,
+    var(--accent) 8%
+  );
   --color-skin-base: var(--foreground);
   --color-skin-accent: var(--accent);
   --color-skin-muted: var(--muted);
