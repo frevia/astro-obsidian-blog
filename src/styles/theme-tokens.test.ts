@@ -14,4 +14,24 @@ describe("SKIN_TOKEN_MAP", () => {
     }
     expect(Object.keys(SKIN_TOKEN_MAP)).toHaveLength(REQUIRED_SKIN_KEYS.length);
   });
+
+  it("includes new semantic state and reading tokens", () => {
+    const requiredNewKeys = [
+      "stateFocusRing",
+      "stateHoverFill",
+      "stateActiveFill",
+      "spaceReadingBlock",
+    ] as const;
+
+    expect(REQUIRED_SKIN_KEYS).toEqual(
+      expect.arrayContaining([...requiredNewKeys])
+    );
+
+    for (const key of requiredNewKeys) {
+      expect(SKIN_TOKEN_MAP).toHaveProperty(key);
+      const value = (SKIN_TOKEN_MAP as Record<string, string>)[key];
+      expect(value).toMatch(/^var\(--|color-mix\(/);
+    }
+  });
 });
+

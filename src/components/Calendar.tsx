@@ -7,6 +7,12 @@ import {
   toSiteYMD,
 } from "@/utils/calendarDate";
 import { getSolarTermForSiteYMD } from "@/utils/solarTermsCache";
+import {
+  getChineseHolidayName,
+  isRealHolidayName,
+  resolveDayTag,
+  type DayTagType,
+} from "@/lib/calendar/dayMeta";
 
 export interface CalendarProps {
   /** 按日期分组的事件，key 为 YYYY-MM-DD */
@@ -17,27 +23,7 @@ export interface CalendarProps {
 
 const WEEKDAYS = ["一", "二", "三", "四", "五", "六", "日"];
 
-/** chinese-days getDayDetail 对普通工作日/周末返回英文星期名，不当作节假日显示 */
-const ENGLISH_WEEKDAY_NAMES = new Set([
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-]);
-
 /** 从 chinese-days 返回的 name（如 "Spring Festival,春节,4"）中只取中文名 */
-function getChineseHolidayName(name: string): string {
-  const hasChinese = (s: string) => /[\u4e00-\u9fff]/.test(s);
-  if (hasChinese(name)) {
-    const part = name.split(",").find(p => hasChinese(p.trim()));
-    if (part) return part.trim();
-  }
-  return name;
-}
-
 /** 周一为一周第一天，返回的 grid 从左到右为 一…日（全东八区时间，与站点时区的 YYYY-MM-DD 对齐） */
 function getCalendarGridDates(year: number, month: number): Date[] {
   const first = new Date(Date.UTC(year, month, 1));
@@ -54,8 +40,6 @@ function getCalendarGridDates(year: number, month: number): Date[] {
   return dates;
 }
 
-/** 休=休息日 班=补班 调=调休日 */
-export type DayTagType = "rest" | "makeup" | "inLieu" | null;
 
 export interface DayExtraInfo {
   lunar: string;
@@ -132,23 +116,17 @@ function useChineseDaysForMonth(
         result[dateKey].work = work;
 
         const rawName = detail?.name?.trim();
-        const isRealHoliday =
-          rawName &&
-          rawName !== "工作日" &&
-          rawName !== "周末" &&
-          !ENGLISH_WEEKDAY_NAMES.has(rawName);
-        if (isRealHoliday) {
+        const isRealHoliday = isRealHolidayName(rawName);
+        if (rawName && isRealHoliday) {
           result[dateKey].holidayName = getChineseHolidayName(rawName);
         }
 
-        // 只对“特殊日”打标签：调休、节假日休、周末补班。
-        // 普通周六周日（chinese-days 往往标记为 work=false 且 name=周末/weekday）不打标签，
-        // 这样不会出现角标/背景色块。
-        let dayTag: DayTagType = null;
-        if (isInLieu) dayTag = "inLieu";
-        else if (!work && isRealHoliday) dayTag = "rest";
-        else if (work && isWeekend) dayTag = "makeup";
-        result[dateKey].dayTag = dayTag;
+        result[dateKey].dayTag = resolveDayTag({
+          isInLieu,
+          work,
+          isWeekend,
+          rawName,
+        });
       }
     } catch {
       // 日期超出 chinese-days 支持范围时忽略

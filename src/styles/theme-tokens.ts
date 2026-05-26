@@ -6,6 +6,10 @@ export const REQUIRED_SKIN_KEYS = [
   "muted",
   "inverted",
   "border",
+  "stateFocusRing",
+  "stateHoverFill",
+  "stateActiveFill",
+  "spaceReadingBlock",
 ] as const;
 
 export type SkinKey = (typeof REQUIRED_SKIN_KEYS)[number];
@@ -19,4 +23,8 @@ export const SKIN_TOKEN_MAP: Record<SkinKey, string> = {
   muted: "var(--muted)",
   inverted: "var(--background)",
   border: "var(--border)",
+  stateFocusRing: "var(--accent)",
+  stateHoverFill: "var(--muted)",
+  stateActiveFill: "color-mix(in oklab, var(--muted) 75%, var(--foreground) 25%)",
+  spaceReadingBlock: "var(--space-reading-block)",
 };

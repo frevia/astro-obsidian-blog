@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import DiaryEntryReact, { type TimeBlock } from "./DiaryEntryReact";
+import { type TimeBlock } from "./DiaryEntryReact";
+import DiaryFeedList from "./diary/DiaryFeedList";
+import DiaryLoadState from "./diary/DiaryLoadState";
 
 export interface ParsedEntry {
   date: string;
@@ -17,6 +19,7 @@ export interface DiaryTimelineProps {
   initialEntries: ParsedEntry[];
   paginationInfo: PaginationInfo;
   hideYear?: boolean;
+  density?: "comfortable" | "compact";
 }
 
 const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
@@ -28,6 +31,7 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
     itemsPerPage: 5,
   },
   hideYear = false,
+  density = "comfortable",
 }) => {
   const [displayedEntries, setDisplayedEntries] = useState<ParsedEntry[]>(
     initialEntries || []
@@ -134,83 +138,14 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
 
   return (
     <>
-      {displayedEntries.map((entry, index) => (
-        <article
-          key={`${entry.date}-${index}`}
-          role="article"
-          aria-labelledby={`date-${entry.date}`}
-          aria-describedby={`content-${entry.date}`}
-          tabIndex={0}
-          className="diary-entry-reveal -mx-3 rounded-lg border border-transparent p-3 transition-all duration-200 hover:border-border/70 hover:bg-skin-fill/30 focus:ring-skin-accent focus:ring-offset-skin-fill focus:outline-none"
-          style={{ animationDelay: `${Math.min(index, 8) * 70}ms` }}
-        >
-          <DiaryEntryReact
-            date={entry.date}
-            hideYear={hideYear}
-            timeBlocks={entry.timeBlocks}
-          />
-        </article>
-      ))}
+      <DiaryFeedList entries={displayedEntries} hideYear={hideYear} density={density} />
 
-      {displayedEntries.length === 0 && (
-        <article role="article" className="py-12 text-center sm:py-14">
-          <div role="status" aria-live="polite">
-            <div className="mb-4 text-4xl opacity-40">📝</div>
-            <p className="text-lg text-skin-base opacity-70">
-              还没有任何碎片...
-            </p>
-            <p className="mt-2 text-sm opacity-50">开始记录您的日常吧</p>
-          </div>
-        </article>
-      )}
-
-      {isLoading && (
-        <article role="article" className="loading py-4 text-center sm:py-6">
-          <div
-            role="status"
-            aria-live="assertive"
-            aria-label="正在加载更多碎片条目"
-          >
-            <div className="animate-pulse space-y-2">
-              <div className="mx-auto h-4 w-1/4 rounded bg-skin-muted"></div>
-              <div className="mx-auto h-3 w-1/6 rounded bg-skin-muted"></div>
-            </div>
-            <p className="mt-2 text-skin-base opacity-60">加载中...</p>
-            <div className="sr-only">正在为您加载更多碎片内容，请稍候</div>
-          </div>
-        </article>
-      )}
-
-      {!hasMore && displayedEntries.length > 0 && (
-        <article role="article" className="no-more py-6 text-center">
-          <div role="status" aria-live="polite">
-            <div className="mb-2 text-2xl opacity-40">✨</div>
-            <p className="text-skin-base opacity-70">
-              已显示全部 {displayedEntries.length} 条碎片记录
-            </p>
-            <p className="mt-1 text-sm opacity-50">没有更多内容了</p>
-            <div className="sr-only">
-              已显示全部 {displayedEntries.length} 条碎片记录
-            </div>
-          </div>
-        </article>
-      )}
-
-      {/* 手动加载更多按钮，为键盘用户提供替代方案 */}
-      {hasMore && !isLoading && (
-        <article role="article" className="py-6 text-center">
-          <button
-            onClick={loadMore}
-            className="rounded-lg bg-skin-accent px-6 py-3 text-skin-inverted transition-colors hover:bg-skin-accent/90 focus:ring-skin-accent focus:ring-offset-skin-fill focus:outline-none"
-            aria-describedby="load-more-description"
-          >
-            加载更多碎片
-          </button>
-          <div id="load-more-description" className="sr-only">
-            点击此按钮加载更多碎片条目，或继续向下滚动自动加载
-          </div>
-        </article>
-      )}
+      <DiaryLoadState
+        isLoading={isLoading}
+        hasMore={hasMore}
+        displayedCount={displayedEntries.length}
+        onLoadMore={loadMore}
+      />
     </>
   );
 };
