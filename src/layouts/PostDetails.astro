@@ -374,6 +374,7 @@ const nextPost =
         tocContainer.querySelector(".toc-list-item, .toc-link") !== null;
       if (sidebar) {
         sidebar.classList.toggle("toc-empty", !hasTocItem);
+        sidebar.setAttribute("aria-hidden", String(!hasTocItem));
       }
     }
   });

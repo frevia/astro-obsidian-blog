@@ -318,7 +318,9 @@ h6:hover .icon-link::before {
   @apply block text-sm leading-6 transition-colors;
 }
 .toc-link.is-active-link {
-  @apply text-accent;
+  @apply text-accent font-semibold;
+  border-left: 2px solid var(--accent);
+  padding-left: calc(0.5rem - 2px);
 }
 .toc-link::before {
   @apply !hidden;

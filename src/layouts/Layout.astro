@@ -176,6 +176,11 @@ const structuredData = {
       };
 
       async function renderMermaidBlocks() {
+        const hasMermaidBlocks = Boolean(
+          document.querySelector("pre code.language-mermaid")
+        );
+        if (!hasMermaidBlocks) return;
+
         mermaid.initialize({
           startOnLoad: false,
           securityLevel: "loose",
@@ -186,7 +191,7 @@ const structuredData = {
         for (const preEl of preBlocks) {
           if (!(preEl instanceof HTMLPreElement)) continue;
           if (!isMermaidCodeBlock(preEl)) continue;
-          if (preEl.dataset.mermaidProcessed === "true") continue;
+          if (preEl.dataset.mermaidProcessed === "true" || preEl.classList.contains("hidden")) continue;
 
           const source = getMermaidSource(preEl);
           if (!source) continue;
