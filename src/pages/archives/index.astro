@@ -35,7 +35,7 @@ const months = [
 
 <Layout title={`收集箱 | ${SITE.title}`}>
   <Header />
-  <Main pageTitle="收集箱" pageDesc="按时间顺序整理的所有文章归档">
+  <Main pageTitle="收集箱" pageDesc="按年份与月份浏览全部文章归档。">
     <!-- 页面描述区域 -->
     <!-- <div
       class="mb-8 rounded-xl border-l-4 border-accent/60 bg-accent/5 px-4 py-4 text-sm text-foreground/80"
@@ -75,15 +75,18 @@ const months = [
       )
         .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
         .map(([year, yearGroup]) => (
-          <div class="mb-8">
+          <div class="mb-8" aria-labelledby={`archive-year-${year}`}>
             <div class="mb-6 flex items-center justify-between border-b border-border/30 pb-3">
               <div class="flex items-baseline gap-3">
-                <span class="text-2xl font-bold text-foreground/90">
+                <h2
+                  id={`archive-year-${year}`}
+                  class="text-2xl font-bold text-foreground/90"
+                >
                   {year}
-                </span>
-                <sup class="rounded-full bg-accent/10 px-2.5 py-1 text-sm font-medium text-accent">
+                </h2>
+                <span class="rounded-full bg-accent/10 px-2.5 py-1 text-sm font-medium text-accent">
                   {yearGroup.length} 篇
-                </sup>
+                </span>
               </div>
               <div class="text-xs text-foreground/40">按发布时间排序</div>
             </div>
