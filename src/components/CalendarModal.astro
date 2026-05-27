@@ -6,12 +6,16 @@
 
 <div
   id="calendar-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="calendar-modal-title"
+  tabindex="-1"
   class="fixed top-20 right-4 z-50 flex hidden max-h-[min(90vh,calc(100vh-4.5rem))] w-[320px] max-w-[90vw] flex-col overflow-hidden rounded-lg border bg-white shadow-2xl dark:bg-slate-900"
 >
   <!-- 头部：标题和按钮 -->
   <div class="border-skin-muted/15 shrink-0 border-b px-4 pt-4 pb-3">
     <div class="flex items-center justify-between">
-      <h3 class="text-lg font-semibold">日历</h3>
+      <h3 id="calendar-modal-title" class="text-lg font-semibold">日历</h3>
       <div class="flex items-center gap-2">
         <!-- 关闭按钮 -->
         <button
@@ -48,11 +52,29 @@
 </div>
 
 <script>
+  let lastFocusedElement: HTMLElement | null = null;
+
+  function getFocusableElements(container: HTMLElement) {
+    return Array.from(
+      container.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    ).filter(element => !element.hasAttribute("disabled") && !element.getAttribute("aria-hidden"));
+  }
+
   // 显示日历模态框
   function showCalendarModal() {
     const modal = document.getElementById("calendar-modal");
-    if (modal) {
+    if (modal instanceof HTMLElement) {
+      const activeElement = document.activeElement;
+      lastFocusedElement = activeElement instanceof HTMLElement ? activeElement : null;
       modal.classList.remove("hidden");
+      const firstFocusableElement = getFocusableElements(modal)[0];
+      if (firstFocusableElement) {
+        firstFocusableElement.focus();
+      } else {
+        modal.focus();
+      }
     }
     // 让日历岛在打开时用当前时刻重新对齐「今天」（部署后长驻页、后台标签等场景）
     document.dispatchEvent(new CustomEvent("calendar-modal-open"));
@@ -64,6 +86,8 @@
     if (modal) {
       modal.classList.add("hidden");
     }
+    lastFocusedElement?.focus();
+    lastFocusedElement = null;
   }
 
   // 添加事件监听器的函数
@@ -95,6 +119,8 @@
     // 按 ESC 键关闭
     document.removeEventListener("keydown", handleEscKey);
     document.addEventListener("keydown", handleEscKey);
+    document.removeEventListener("keydown", trapTabKey);
+    document.addEventListener("keydown", trapTabKey);
   }
 
   // 处理日历按钮点击
@@ -112,15 +138,53 @@
 
   // 处理 ESC 键
   function handleEscKey(e: KeyboardEvent) {
+    const modal = document.getElementById("calendar-modal");
+    if (!modal || modal.classList.contains("hidden")) {
+      return;
+    }
     if (e.key === "Escape") {
       hideCalendarModal();
     }
   }
 
-  // 在 DOMContentLoaded 和 pageshow 事件中添加事件监听器
-  document.addEventListener("DOMContentLoaded", addEventListeners);
-  window.addEventListener("pageshow", addEventListeners);
+  function trapTabKey(e: KeyboardEvent) {
+    const modal = document.getElementById("calendar-modal");
+    if (e.key !== "Tab" || !modal || modal.classList.contains("hidden")) {
+      return;
+    }
 
-  // 视图切换后 DOM 被替换，需要重新给新的日历链接绑定“打开弹窗”逻辑
-  document.addEventListener("astro:after-swap", addEventListeners);
+    const focusableElements = getFocusableElements(modal);
+    const firstElement = focusableElements[0] ?? modal;
+    const lastElement = focusableElements[focusableElements.length - 1] ?? modal;
+
+    if (!(document.activeElement instanceof HTMLElement) || !modal.contains(document.activeElement)) {
+      e.preventDefault();
+      firstElement.focus();
+      return;
+    }
+
+    if (e.shiftKey && document.activeElement === firstElement) {
+      e.preventDefault();
+      lastElement.focus();
+      return;
+    }
+
+    if (!e.shiftKey && document.activeElement === lastElement) {
+      e.preventDefault();
+      firstElement.focus();
+    }
+  }
+
+  const globalState = window as typeof window & {
+    __calendarModalListenersBound?: boolean;
+  };
+
+  // 在 DOMContentLoaded 和 pageshow 事件中添加事件监听器
+  if (!globalState.__calendarModalListenersBound) {
+    document.addEventListener("DOMContentLoaded", addEventListeners);
+    window.addEventListener("pageshow", addEventListeners);
+    // 视图切换后 DOM 被替换，需要重新给新的日历链接绑定“打开弹窗”逻辑
+    document.addEventListener("astro:after-swap", addEventListeners);
+    globalState.__calendarModalListenersBound = true;
+  }
 </script>

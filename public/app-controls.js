@@ -28,15 +28,29 @@
     reflectPreference();
   }
 
+  function getThemeA11yLabel(theme) {
+    const labelMap = {
+      light: "切换主题（当前：浅色）",
+      dark: "切换主题（当前：深色）",
+      auto: "切换主题（当前：自动）",
+    };
+    return labelMap[theme] ?? labelMap.auto;
+  }
+
+  function getThemePressed(theme) {
+    return theme === "auto" ? "false" : "true";
+  }
+
   function reflectPreference() {
     document.firstElementChild.setAttribute("data-theme", themeValue);
 
-    document
-      .querySelector("#theme-btn")
-      ?.setAttribute("aria-label", themeValue);
-    document
-      .querySelector("#theme-btn-mobile")
-      ?.setAttribute("aria-label", themeValue);
+    const themeBtn = document.querySelector("#theme-btn");
+    themeBtn?.setAttribute("aria-label", getThemeA11yLabel(themeValue));
+    themeBtn?.setAttribute("aria-pressed", getThemePressed(themeValue));
+
+    const themeBtnMobile = document.querySelector("#theme-btn-mobile");
+    themeBtnMobile?.setAttribute("aria-label", getThemeA11yLabel(themeValue));
+    themeBtnMobile?.setAttribute("aria-pressed", getThemePressed(themeValue));
 
     // Get a reference to the body element
     const body = document.body;
