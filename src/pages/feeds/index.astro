@@ -9,7 +9,7 @@
  * 2. 初始显示前 N 项（INITIAL_ITEMS_TO_SHOW = 4）
  * 3. 滚动到底部自动加载更多（每次 12 项）
  * 4. 显示加载状态、错误提示、无内容提示
- * 5. 使用 initFeeds 函数初始化（定义在 public/feeds.ts）
+ * 5. 使用 initFeeds 函数初始化（定义在 public/feeds.js）
  *
  * 数据源配置：
  * - JSON: /api/feeds.json（Blob + 静态回退，见 api/feeds.json.ts）
@@ -225,7 +225,7 @@ const hasTwikooEnv =
 </div>
 
 <script>
-  import { initFeeds } from "public/feeds";
+  import { initFeeds } from "../../../public/feeds.js";
 
   /**
    * 初始化 Feeds 功能
