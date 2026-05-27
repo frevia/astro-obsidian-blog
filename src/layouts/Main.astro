@@ -34,7 +34,7 @@ const { props } = Astro;
   }
   {
     props.pageDesc ? (
-      <p class:list={["mt-2 mb-6 italic", props.pageDescClass]}>
+      <p class:list={["mt-2 mb-6 text-sm leading-7 text-foreground/75", props.pageDescClass]}>
         {props.pageDesc}
       </p>
     ) : null

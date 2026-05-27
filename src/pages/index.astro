@@ -65,14 +65,13 @@ const paginationInfo = {
         aria-labelledby="diary-heading"
       >
         <div class="min-h-screen">
-          <h1 id="diary-heading" class="sr-only">时间档案</h1>
-          <p class="sr-only">
-            按时间顺序展示的碎片条目，支持无限滚动加载更多内容
+          <h1 id="diary-heading" class="text-2xl font-semibold sm:text-3xl">时间档案</h1>
+          <p class="mt-2 mb-6 max-w-2xl text-sm leading-7 text-foreground/75">
+            按时间倒序记录碎片内容，支持持续加载与快速回到顶部。
           </p>
 
           <div class="pb-5 sm:pb-6">
             <ArchiveHero />
-
 
             <div id="diary-description" class="sr-only">
               碎片条目按时间倒序排列，每页显示 {ITEMS_PER_PAGE} 条记录，当前共有

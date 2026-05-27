@@ -28,22 +28,22 @@ const isActive = (path: string) => {
 
 <header
   id="site-header"
-  class="fixed top-0 right-0 left-0 z-50 w-full bg-transparent backdrop-blur-2xl backdrop-saturate-150 sm:border-b"
+  class="fixed top-0 right-0 left-0 z-50 w-full border-b border-border/70 bg-background/90 backdrop-blur-xl"
 >
   <a
     id="skip-to-content"
     href="#main-content"
-    class="absolute start-16 -top-[100vh] z-50 px-3 py-2 text-accent backdrop-blur-lg transition-all focus:top-4"
+    class="absolute start-4 -top-[100vh] z-50 rounded-md bg-background px-3 py-2 text-sm font-medium text-accent shadow-sm transition-all focus:top-3"
   >
     跳到主要内容
   </a>
   <div
     id="nav-container"
-    class="mx-auto flex max-w-app flex-col items-center justify-between sm:flex-row"
+    class="mx-auto flex w-full max-w-app flex-col items-center justify-between sm:flex-row"
   >
     <div
       id="top-nav-wrap"
-      class="relative flex w-full items-center justify-between bg-background p-4 sm:h-18 sm:justify-start sm:bg-transparent sm:py-0"
+      class="relative flex w-full items-center justify-between bg-background px-4 py-3 sm:h-16 sm:justify-start sm:py-0"
     >
       <!-- 左侧：网站标题 -->
       <a
@@ -57,13 +57,13 @@ const isActive = (path: string) => {
       </a>
 
       <!-- 主导航菜单（桌面端） -->
-      <nav id="main-nav" class="hidden sm:flex sm:items-center">
+      <nav id="main-nav" class="hidden sm:flex sm:items-center" aria-label="主导航">
         <ul class="flex items-center gap-x-2">
           <li>
             <a
               href="/"
               class:list={[
-                "px-3 py-2 text-base font-medium transition-colors hover:text-accent",
+                "rounded-md px-3 py-2 text-base font-medium text-foreground/85 transition-colors hover:text-accent",
                 { "active-nav": isActive("/") && currentPath === "/" },
               ]}
             >
@@ -74,7 +74,7 @@ const isActive = (path: string) => {
             <a
               href="/posts"
               class:list={[
-                "px-3 py-2 text-base font-medium transition-colors hover:text-accent",
+                "rounded-md px-3 py-2 text-base font-medium text-foreground/85 transition-colors hover:text-accent",
                 { "active-nav": isActive("/posts") },
               ]}
             >
@@ -85,7 +85,7 @@ const isActive = (path: string) => {
             <a
               href="/favorites"
               class:list={[
-                "px-3 py-2 text-base font-medium transition-colors hover:text-accent",
+                "rounded-md px-3 py-2 text-base font-medium text-foreground/85 transition-colors hover:text-accent",
                 { "active-nav": isActive("/favorites") },
               ]}
             >
@@ -96,7 +96,7 @@ const isActive = (path: string) => {
             <a
               href="/footprint"
               class:list={[
-                "px-3 py-2 text-base font-medium transition-colors hover:text-accent",
+                "rounded-md px-3 py-2 text-base font-medium text-foreground/85 transition-colors hover:text-accent",
                 { "active-nav": isActive("/footprint") },
               ]}
             >
@@ -107,7 +107,7 @@ const isActive = (path: string) => {
             <a
               href="/feeds"
               class:list={[
-                "px-3 py-2 text-base font-medium transition-colors hover:text-accent",
+                "rounded-md px-3 py-2 text-base font-medium text-foreground/85 transition-colors hover:text-accent",
                 { "active-nav": isActive("/feeds") },
               ]}
             >
@@ -118,7 +118,7 @@ const isActive = (path: string) => {
             <a
               href="/about"
               class:list={[
-                "px-3 py-2 text-base font-medium transition-colors hover:text-accent",
+                "rounded-md px-3 py-2 text-base font-medium text-foreground/85 transition-colors hover:text-accent",
                 { "active-nav": isActive("/about") },
               ]}
             >
@@ -137,7 +137,7 @@ const isActive = (path: string) => {
             <LinkButton
               href="/archives"
               class:list={[
-                "focus-outline flex p-3",
+                "focus-outline flex min-h-11 items-center rounded-md p-3",
                 {
                   "active-nav [&>svg]:stroke-accent": isActive("/archives"),
                 },
@@ -155,7 +155,7 @@ const isActive = (path: string) => {
         <LinkButton
           href="/search"
           class:list={[
-            "focus-outline flex p-3",
+            "focus-outline flex min-h-11 items-center rounded-md p-3",
             {
               "active-nav [&>svg]:stroke-accent": isActive("/search"),
             },
@@ -173,7 +173,7 @@ const isActive = (path: string) => {
         <a
           href="/rss.xml"
           target="_blank"
-          class="focus-outline flex p-3 hover:text-accent"
+          class="focus-outline flex min-h-11 items-center rounded-md p-3 hover:text-accent"
           aria-label="RSS Feed"
           title="RSS Feed"
         >
@@ -187,7 +187,7 @@ const isActive = (path: string) => {
           SITE.lightAndDarkMode && (
             <button
               id="theme-btn"
-              class="focus-outline relative flex p-3"
+              class="focus-outline relative flex min-h-11 items-center rounded-md p-3"
               title="切换主题"
               aria-label="切换主题（当前：自动）"
               aria-pressed="false"
@@ -203,8 +203,8 @@ const isActive = (path: string) => {
       <!-- 移动端菜单按钮 -->
       <button
         id="menu-btn"
-        class="focus-outline p-2 sm:hidden"
-        aria-label="Open Menu"
+        class="focus-outline min-h-11 rounded-md p-2 sm:hidden"
+        aria-label="打开菜单"
         aria-expanded="false"
         aria-controls="menu-items"
       >
@@ -214,16 +214,16 @@ const isActive = (path: string) => {
     </div>
 
     <!-- 移动端导航菜单 -->
-    <nav id="nav-menu" class="w-full sm:hidden">
+    <nav id="nav-menu" class="w-full sm:hidden" aria-label="移动端主导航">
       <ul
         id="menu-items"
         class:list={[
-          "mx-auto mt-4 grid w-44 grid-cols-2 place-content-center gap-2",
-          "[&>li>a]:block [&>li>a]:px-4 [&>li>a]:py-3 [&>li>a]:text-center [&>li>a]:text-base [&>li>a]:font-medium [&>li>a]:hover:text-accent",
+          "mx-auto mt-4 mb-2 grid w-full max-w-xs grid-cols-2 place-content-center gap-2 px-4",
+          "[&>li>a]:block [&>li>a]:min-h-11 [&>li>a]:rounded-md [&>li>a]:px-4 [&>li>a]:py-3 [&>li>a]:text-center [&>li>a]:text-base [&>li>a]:font-medium [&>li>a]:text-foreground/85 [&>li>a]:transition-colors [&>li>a]:hover:text-accent",
           "hidden",
         ]}
       >
-        <li class="col-span-6">
+        <li class="col-span-2">
           <a
             href="/"
             class:list={{ "active-nav": isActive("/") && currentPath === "/" }}
@@ -231,12 +231,12 @@ const isActive = (path: string) => {
             档案
           </a>
         </li>
-        <li class="col-span-6">
+        <li class="col-span-2">
           <a href="/posts" class:list={{ "active-nav": isActive("/posts") }}>
             文章
           </a>
         </li>
-        <li class="col-span-6">
+        <li class="col-span-2">
           <a
             href="/favorites"
             class:list={{ "active-nav": isActive("/favorites") }}
@@ -244,7 +244,7 @@ const isActive = (path: string) => {
             收藏
           </a>
         </li>
-        <li class="col-span-6">
+        <li class="col-span-2">
           <a
             href="/footprint"
             class:list={{ "active-nav": isActive("/footprint") }}
@@ -252,23 +252,23 @@ const isActive = (path: string) => {
             足迹
           </a>
         </li>
-        <li class="col-span-6">
+        <li class="col-span-2">
           <a href="/feeds" class:list={{ "active-nav": isActive("/feeds") }}>
             邻居
           </a>
         </li>
-        <li class="col-span-6">
+        <li class="col-span-2">
           <a href="/about" class:list={{ "active-nav": isActive("/about") }}>
             关于
           </a>
         </li>
         {
           SITE.showArchives && (
-            <li class="col-span-6">
+            <li class="col-span-2">
               <LinkButton
                 href="/archives"
                 class:list={[
-                  "focus-outline flex justify-center p-3",
+                  "focus-outline flex min-h-11 justify-center rounded-md p-3",
                   {
                     "active-nav [&>svg]:stroke-accent": isActive("/archives"),
                   },
@@ -276,17 +276,17 @@ const isActive = (path: string) => {
                 ariaLabel="archives"
                 title="Archives"
               >
-                <IconCalendar class="hidden w-8 sm:inline-block" />
-                <span class="sm:sr-only">收集箱</span>
+                <IconCalendar class="w-6" />
+                <span class="ml-2 text-sm">收集箱</span>
               </LinkButton>
             </li>
           )
         }
-        <li class="col-span-2 flex items-center justify-center">
+        <li class="col-span-1 flex items-center justify-center">
           <LinkButton
             href="/search"
             class:list={[
-              "focus-outline flex p-3",
+              "focus-outline flex min-h-11 items-center rounded-md p-3",
               {
                 "active-nav [&>svg]:stroke-accent": isActive("/search"),
               },
@@ -297,11 +297,11 @@ const isActive = (path: string) => {
             <IconSearch class="w-6" />
           </LinkButton>
         </li>
-        <li class="col-span-2 flex items-center justify-center">
+        <li class="col-span-1 flex items-center justify-center">
           <a
             href="/rss.xml"
             target="_blank"
-            class="focus-outline flex p-3 hover:text-accent"
+            class="focus-outline flex min-h-11 items-center rounded-md p-3 hover:text-accent"
             aria-label="RSS Feed"
             title="RSS Feed"
           >
@@ -313,14 +313,14 @@ const isActive = (path: string) => {
             <li class="col-span-2 flex items-center justify-center">
               <button
                 id="theme-btn-mobile"
-                class="focus-outline flex p-3"
+                class="focus-outline relative flex min-h-11 items-center rounded-md p-3"
                 title="切换主题"
                 aria-label="切换主题（当前：自动）"
                 aria-pressed="false"
                 aria-live="polite"
               >
-                <IconMoon class="w-6 scale-100 dark:scale-0" />
-                <IconSunHigh class="absolute w-6 scale-0 dark:scale-100" />
+                <IconMoon class="w-6 scale-100 transition-all dark:scale-0" />
+                <IconSunHigh class="absolute w-6 scale-0 transition-all dark:scale-100" />
               </button>
             </li>
           )
@@ -375,7 +375,7 @@ const isActive = (path: string) => {
       const openMenu = menuBtn.getAttribute("aria-expanded") === "true";
 
       menuBtn.setAttribute("aria-expanded", openMenu ? "false" : "true");
-      menuBtn.setAttribute("aria-label", openMenu ? "Open Menu" : "Close Menu");
+      menuBtn.setAttribute("aria-label", openMenu ? "打开菜单" : "关闭菜单");
 
       menuItems.classList.toggle("hidden");
       menuIcon.classList.toggle("hidden");

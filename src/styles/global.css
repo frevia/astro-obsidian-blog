@@ -7,22 +7,22 @@
 
 :root,
 html[data-theme="light"] {
-  --background: #fdfdfd;
-  --foreground: #282728;
-  --accent: #006658;
-  --muted: #c5ced0;
-  --border: #c6d7d8;
+  --background: #fafafa;
+  --foreground: #09090b;
+  --accent: #2563eb;
+  --muted: #475569;
+  --border: #e2e8f0;
   /* TOC link color */
-  --toc-top-text-color: #666666;
+  --toc-top-text-color: #64748b;
 }
 
 html[data-theme="dark"] {
-  --background: oklch(24.521% 0.00755 285.784);
-  --foreground: #e9edf1;
-  --accent: #6ebdb4;
-  --muted: #55716a;
-  --border: #43868663;
-  --toc-top-text-color: #cccccc;
+  --background: #0b0c0f;
+  --foreground: #f3f4f6;
+  --accent: #60a5fa;
+  --muted: #94a3b8;
+  --border: #334155;
+  --toc-top-text-color: #cbd5e1;
 }
 
 @theme inline {
@@ -38,8 +38,10 @@ html[data-theme="dark"] {
   --color-skin-muted: var(--muted);
   --color-skin-inverted: var(--background);
   --color-skin-border: var(--border);
-  --font-family-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-family-serif: ui-serif, "Songti SC", "Noto Serif SC", serif;
+  --font-family-sans:
+    "Noto Sans TC", "PingFang TC", "PingFang SC", "Microsoft YaHei", ui-sans-serif,
+    system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-family-serif: "Noto Serif TC", "Songti SC", ui-serif, serif;
   --font-sans: var(--font-family-sans);
   --font-serif: var(--font-family-serif);
 }
@@ -60,13 +62,13 @@ html[data-theme="dark"] {
     @apply overflow-x-hidden overflow-y-scroll scroll-smooth leading-7;
   }
   body {
-    @apply flex min-h-svh flex-col overflow-x-hidden bg-background font-serif text-foreground selection:bg-accent/75 selection:text-background;
+    @apply flex min-h-svh flex-col overflow-x-hidden bg-background font-sans text-foreground selection:bg-accent/75 selection:text-background;
     padding-top: var(--site-header-height, 0px);
   }
 
   a,
   button {
-    @apply outline-offset-1 outline-accent focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-dashed;
+    @apply outline-offset-2 outline-accent/90 focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-solid;
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {

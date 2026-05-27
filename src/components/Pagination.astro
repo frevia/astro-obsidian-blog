@@ -14,24 +14,38 @@ const { page } = Astro.props;
 
 {
   page.lastPage > 1 && (
-    <nav class="mt-auto mb-8 flex justify-center" aria-label="Pagination">
+    <nav class="mt-auto mb-8 flex items-center justify-center gap-3" aria-label="分页导航">
       <LinkButton
         disabled={!page.url.prev}
         href={page.url.prev as string}
-        class:list={["me-4 select-none", { "opacity-50": !page.url.prev }]}
-        ariaLabel="Previous"
+        class:list={[
+          "inline-flex min-h-11 items-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm transition-colors",
+          {
+            "opacity-50": !page.url.prev,
+            "hover:border-accent/50 hover:text-accent": page.url.prev,
+          },
+        ]}
+        ariaLabel="上一页"
       >
         <IconArrowLeft class="inline-block rtl:rotate-180" />
-        Prev
+        上一页
       </LinkButton>
-      {page.currentPage} / {page.lastPage}
+      <span class="min-w-20 text-center text-sm tabular-nums text-foreground/75">
+        {page.currentPage} / {page.lastPage}
+      </span>
       <LinkButton
         disabled={!page.url.next}
         href={page.url.next as string}
-        class:list={["ms-4 select-none", { "opacity-50": !page.url.next }]}
-        ariaLabel="Next"
+        class:list={[
+          "inline-flex min-h-11 items-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm transition-colors",
+          {
+            "opacity-50": !page.url.next,
+            "hover:border-accent/50 hover:text-accent": page.url.next,
+          },
+        ]}
+        ariaLabel="下一页"
       >
-        Next
+        下一页
         <IconArrowRight class="inline-block rtl:rotate-180" />
       </LinkButton>
     </nav>

@@ -38,15 +38,21 @@ const years = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a));
 
 <Layout title={`文章 | ${SITE.title}`}>
   <Header />
-  <Main pageTitle="全部文章" pageDesc="">
-    <ul class="mb-6 flex flex-wrap gap-3">
+  <Main
+    pageTitle="全部文章"
+    pageDesc="按时间倒序浏览全部文章，可按标签快速筛选。"
+  >
+    <ul class="mb-8 flex flex-wrap gap-3" aria-label="文章标签筛选">
       {tags.map(({ tag, tagName }) => <Tag {tag} {tagName} size="lg" />)}
     </ul>
 
     {
       years.map(year => (
-        <section class="mb-10">
-          <h2 class="sticky top-[var(--site-header-height,4rem)] z-10 mb-4 border-b border-border/60 bg-background/90 py-2 text-sm font-semibold tracking-widest text-accent backdrop-blur-sm">
+        <section class="mb-10" aria-labelledby={`year-${year}`}>
+          <h2
+            id={`year-${year}`}
+            class="sticky top-[var(--site-header-height,4rem)] z-10 mb-4 border-b border-border/60 bg-background/90 py-2 text-sm font-semibold tracking-widest text-accent backdrop-blur-sm"
+          >
             {year}
           </h2>
           <ul>

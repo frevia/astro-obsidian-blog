@@ -12,25 +12,28 @@ const { tag, tagName, size = "sm" } = Astro.props;
 
 <li
   class:list={[
-    "group inline-block shrink-0 group-hover:cursor-pointer",
-    size === "sm" ? "my-1 pr-2 underline-offset-4" : "underline-offset-8",
+    "my-1 inline-block shrink-0",
+    size === "sm" ? "pr-2" : "pr-3",
   ]}
 >
   <a
     href={`/posts/${tag}/`}
     transition:name={tag}
     class:list={[
-      "relative pe-2 text-lg underline decoration-dashed group-hover:-top-0.5 group-hover:text-accent focus-visible:p-1 focus-visible:no-underline",
-      { "text-sm": size === "sm" },
+      "inline-flex items-center rounded-full border border-border/70 bg-background text-foreground transition-colors hover:border-accent/50 hover:text-accent focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+      {
+        "gap-1 px-2.5 py-1.5 text-sm": size === "sm",
+        "gap-1.5 px-3.5 py-2 text-base": size === "lg",
+      },
     ]}
   >
     <IconHash
       class:list={[
         "inline-block opacity-80",
-        { "-me-3 size-4": size === "sm" },
-        { "-me-3 size-5": size === "lg" },
+        { "size-4": size === "sm" },
+        { "size-5": size === "lg" },
       ]}
     />
-    &nbsp;&nbsp;<span>{tagName}</span>
+    <span>{tagName}</span>
   </a>
 </li>
