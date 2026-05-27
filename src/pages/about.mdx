@@ -4,25 +4,18 @@ title: "关于"
 ---
 
 import DisintegrationImg from "../components/DisintegrationImg.tsx";
-import { Image, getImage } from "astro:assets";
-import aboutWebp from "../data/attachment/media/3aa9d4ef01bee644cc68e9b839d3ece7.jpeg";
 
-export const optimizedAbout = await getImage({
-  src: aboutWebp,
+export const aboutPlaceholder = {
+  src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'%3E%3Crect width='800' height='450' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23475569' font-size='28' font-family='sans-serif'%3EAbout%3C/text%3E%3C/svg%3E",
   width: 800,
-  format: "webp",
-  quality: 80,
-});
+  height: 450,
+  format: "svg",
+};
 
 <figure class="rehype-figure mt-12 mb-16">
   <DisintegrationImg
     client:idle
-    image={{
-      src: optimizedAbout.src,
-      width: optimizedAbout.attributes.width,
-      height: optimizedAbout.attributes.height,
-      format: "webp",
-    }}
+    image={aboutPlaceholder}
   />
   {/* <figcaption>🌞🌳🌹🦁🍽️🩸🐆</figcaption> */}
 </figure>

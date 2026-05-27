@@ -1,20 +1,20 @@
 ---
 import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
-import LinkButton from "./LinkButton.astro";
 import { SITE } from "@/config";
 ---
 
 {
   SITE.showBackButton && (
     <div class="mx-auto flex w-full max-w-app items-center justify-start px-2">
-      <LinkButton
+      <button
         id="back-button"
-        href="javascript:void(0)"
+        type="button"
         class="focus-outline mt-8 mb-2 flex hover:text-foreground/75"
+        aria-label="返回上一页"
       >
         <IconChevronLeft class="inline-block size-6 rtl:rotate-180" />
         <span>返回</span>
-      </LinkButton>
+      </button>
     </div>
   )
 }
@@ -22,7 +22,7 @@ import { SITE } from "@/config";
 <script>
   document.addEventListener("astro:page-load", function () {
     const backButton = document.getElementById("back-button");
-    if (!backButton) return;
+    if (!(backButton instanceof HTMLButtonElement)) return;
 
     const readStack = () => {
       try {
@@ -40,9 +40,7 @@ import { SITE } from "@/config";
     const currentBase = () => location.pathname + location.search;
 
     // 监听返回按钮点击事件
-    backButton.addEventListener("click", function (e) {
-      e.preventDefault();
-
+    backButton.addEventListener("click", function () {
       const stack = readStack();
       const cur = currentBase();
 

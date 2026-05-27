@@ -188,8 +188,9 @@ const isActive = (path: string) => {
             <button
               id="theme-btn"
               class="focus-outline relative flex p-3"
-              title="Toggles light & dark"
-              aria-label="auto"
+              title="切换主题"
+              aria-label="切换主题（当前：自动）"
+              aria-pressed="false"
               aria-live="polite"
             >
               <IconMoon class="absolute top-[50%] left-[50%] w-4 -translate-[50%] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
@@ -313,8 +314,9 @@ const isActive = (path: string) => {
               <button
                 id="theme-btn-mobile"
                 class="focus-outline flex p-3"
-                title="Toggles light & dark"
-                aria-label="auto"
+                title="切换主题"
+                aria-label="切换主题（当前：自动）"
+                aria-pressed="false"
                 aria-live="polite"
               >
                 <IconMoon class="w-6 scale-100 dark:scale-0" />
