@@ -20,7 +20,7 @@ export const SKIN_TOKEN_MAP: Record<SkinKey, string> = {
   card: "var(--surface)",
   base: "var(--foreground)",
   accent: "var(--accent)",
-  muted: "var(--muted)",
+  muted: "var(--foreground-muted)",
   inverted: "var(--background)",
   border: "var(--border)",
   stateFocusRing: "var(--accent)",

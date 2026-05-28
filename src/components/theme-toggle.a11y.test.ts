@@ -29,4 +29,13 @@ describe("Theme toggle accessibility naming and state", () => {
     expect(script).toContain("当前：自动");
     expect(script).not.toContain("夜间模式");
   });
+
+  it("keeps desktop and mobile theme toggles consistent", () => {
+    const header = readFileSync(headerPath, "utf-8");
+
+    expect(header).toContain('id="theme-btn"');
+    expect(header).toContain('id="theme-btn-mobile"');
+    expect(header).toContain('aria-label="切换主题（当前：自动）"');
+    expect(header).toContain('aria-pressed="false"');
+  });
 });

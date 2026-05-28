@@ -399,7 +399,7 @@ const Calendar: React.FC<CalendarProps> = ({
           const isWeekend = weekday === 0 || weekday === 6;
 
           const dayBg = isToday
-            ? "bg-accent shadow-sm"
+            ? "bg-[#5268FF] shadow-sm"
             : tag === "rest"
               ? "bg-rose-50 dark:bg-rose-950/50"
               : tag === "makeup"
@@ -491,7 +491,7 @@ const Calendar: React.FC<CalendarProps> = ({
                       "bg-red-500 text-white dark:bg-red-500 dark:text-white",
                     isToday &&
                       !tagLabel &&
-                      "bg-accent/90 text-white ring-1 ring-white/35",
+                      "bg-[#8B99FF] text-white ring-1 ring-white/35",
                   ].join(" ")}
                 >
                   {cornerBadgeText}
