@@ -22,22 +22,17 @@ describe("CollapsibleTagList integration and accessibility contract", () => {
     expect(source).toContain('toggle.textContent = isExpanded ? "收起" : "展开"');
   });
 
-  it("replaces post details tags rendering with CollapsibleTagList", () => {
+  it("removes tags block from post details page", () => {
     const source = readFileSync(postDetailsPath, "utf-8");
 
-    expect(source).toContain('import CollapsibleTagList from "@/components/CollapsibleTagList.astro"');
-    expect(source).toContain(
-      '<CollapsibleTagList tags={tags} class="rounded-lg border border-border/70 bg-surface-muted px-3 py-2" />'
-    );
-    expect(source).not.toContain("{tags.map(tag => <Tag tag={slugifyStr(tag)} tagName={tag} />)}");
+    expect(source).not.toContain('import CollapsibleTagList from "@/components/CollapsibleTagList.astro"');
+    expect(source).not.toContain("<CollapsibleTagList");
   });
 
-  it("adds CollapsibleTagList to favorite details page", () => {
+  it("removes tags block from favorite details page", () => {
     const source = readFileSync(favoriteDetailsPath, "utf-8");
 
-    expect(source).toContain('import CollapsibleTagList from "@/components/CollapsibleTagList.astro"');
-    expect(source).toContain(
-      '<CollapsibleTagList tags={tags} class="rounded-lg border border-border/70 bg-surface-muted px-3 py-2" />'
-    );
+    expect(source).not.toContain('import CollapsibleTagList from "@/components/CollapsibleTagList.astro"');
+    expect(source).not.toContain("<CollapsibleTagList");
   });
 });
