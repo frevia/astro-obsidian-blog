@@ -1,0 +1,91 @@
+---
+import Tag from "@/components/Tag.astro";
+import { slugifyStr } from "@/utils/slugify";
+
+export interface Props {
+  tags: string[];
+  class?: string;
+  compact?: boolean;
+}
+
+const {
+  tags,
+  class: className,
+  compact = false,
+} = Astro.props;
+
+const rootId = `collapsible-tag-list-${Math.random().toString(36).slice(2, 10)}`;
+const contentId = `${rootId}-content`;
+---
+
+{tags.length > 0 && (
+  <div class:list={["collapsible-tag-list", className]} data-collapsible-tag-list-root>
+    <ul
+      id={contentId}
+      class:list={[
+        "flex flex-wrap",
+        compact ? "mt-3 mb-2 gap-2.5" : "mt-5 mb-9 sm:my-9",
+      ]}
+      data-collapsible-tag-list-content
+    >
+      {tags.map(tag => <Tag tag={slugifyStr(tag)} tagName={tag} />)}
+    </ul>
+
+    <button
+      type="button"
+      class="hidden text-sm text-accent transition-colors hover:text-accent/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      data-collapsible-tag-list-toggle
+      aria-controls={contentId}
+      aria-expanded="false"
+    >
+      展开
+    </button>
+  </div>
+)}
+
+<script>
+  const ONE_LINE_HEIGHT = 36;
+
+  const initCollapsibleTagLists = () => {
+    const roots = document.querySelectorAll("[data-collapsible-tag-list-root]");
+
+    roots.forEach(root => {
+      if (!(root instanceof HTMLElement)) return;
+
+      const content = root.querySelector("[data-collapsible-tag-list-content]");
+      const toggle = root.querySelector("[data-collapsible-tag-list-toggle]");
+
+      if (!(content instanceof HTMLElement) || !(toggle instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      content.style.maxHeight = "none";
+      content.style.overflow = "visible";
+      toggle.classList.add("hidden");
+
+      const isOverflowing = content.scrollHeight > content.clientHeight;
+      if (!isOverflowing) {
+        return;
+      }
+
+      let isExpanded = false;
+
+      const sync = () => {
+        content.style.maxHeight = isExpanded ? "none" : `${ONE_LINE_HEIGHT}px`;
+        content.style.overflow = isExpanded ? "visible" : "hidden";
+        toggle.setAttribute("aria-expanded", isExpanded ? "true" : "false");
+        toggle.textContent = isExpanded ? "收起" : "展开";
+      };
+
+      toggle.classList.remove("hidden");
+      sync();
+
+      toggle.addEventListener("click", () => {
+        isExpanded = !isExpanded;
+        sync();
+      });
+    });
+  };
+
+  document.addEventListener("astro:page-load", initCollapsibleTagLists);
+</script>

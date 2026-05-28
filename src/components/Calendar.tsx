@@ -299,16 +299,16 @@ const Calendar: React.FC<CalendarProps> = ({
       ].join(" ")}
     >
       {!compact && (
-        <div className="text-skin-muted mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
+        <div className="text-foreground-muted mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
           <span>农历 · 节气 · 节假日（chinese-days）</span>
           <span className="flex items-center gap-3">
             <span className="rounded bg-red-500/20 px-1.5 text-red-600 dark:text-red-400">
               休
             </span>
-            <span className="rounded bg-sky-500/20 px-1.5 text-sky-700 dark:text-sky-400">
+            <span className="rounded bg-teal-500/20 px-1.5 text-teal-800 dark:text-teal-300">
               班
             </span>
-            <span className="rounded bg-amber-500/25 px-1.5 text-amber-700 dark:text-amber-400">
+            <span className="rounded bg-amber-500/25 px-1.5 text-amber-800 dark:text-amber-300">
               调
             </span>
           </span>
@@ -322,7 +322,7 @@ const Calendar: React.FC<CalendarProps> = ({
       >
         <h2
           className={[
-            "text-skin-base font-bold",
+            "text-foreground font-bold",
             compact ? "text-base" : "text-2xl",
           ].join(" ")}
         >
@@ -336,7 +336,7 @@ const Calendar: React.FC<CalendarProps> = ({
           <button
             type="button"
             onClick={goPrev}
-            className="text-skin-base rounded p-2 transition-colors hover:text-accent"
+            className="text-foreground rounded p-2 transition-colors hover:text-accent"
             aria-label="上一月"
           >
             ‹
@@ -345,7 +345,7 @@ const Calendar: React.FC<CalendarProps> = ({
             type="button"
             onClick={goToday}
             className={[
-              "text-skin-muted rounded transition-colors hover:text-accent",
+              "text-foreground-muted rounded transition-colors hover:text-accent",
               compact ? "px-2 py-0.5 text-xs" : "px-3 py-1.5 text-sm",
             ].join(" ")}
           >
@@ -354,7 +354,7 @@ const Calendar: React.FC<CalendarProps> = ({
           <button
             type="button"
             onClick={goNext}
-            className="text-skin-base rounded p-2 transition-colors hover:text-accent"
+            className="text-foreground rounded p-2 transition-colors hover:text-accent"
             aria-label="下一月"
           >
             ›
@@ -372,7 +372,7 @@ const Calendar: React.FC<CalendarProps> = ({
           <div
             key={w}
             className={[
-              "text-skin-muted font-medium",
+              "text-foreground-muted font-medium",
               compact ? "py-0.5 text-[10px]" : "py-2 text-sm",
             ].join(" ")}
           >
@@ -398,30 +398,26 @@ const Calendar: React.FC<CalendarProps> = ({
           const weekday = parseYMDAsUTC(dateKey).getUTCDay();
           const isWeekend = weekday === 0 || weekday === 6;
 
-          const dayBg = !isToday
-            ? tag === "rest"
-              ? "bg-rose-50 dark:bg-rose-500/15"
+          const dayBg = isToday
+            ? "bg-accent shadow-sm"
+            : tag === "rest"
+              ? "bg-rose-50 dark:bg-rose-950/50"
               : tag === "makeup"
-                ? "bg-sky-500/15 dark:bg-sky-500/20"
+                ? "bg-teal-50 dark:bg-teal-950/40"
                 : tag === "inLieu"
-                  ? "bg-rose-50 dark:bg-rose-500/15"
-                  : "hover:bg-skin-muted/30"
-            : "";
-          const dayText =
-            isToday
-              ? "text-white font-medium"
-              : tag === "rest" || tag === "inLieu"
-                ? "text-red-600 dark:text-red-400"
-                : tag === "makeup"
-                  ? "text-sky-800 dark:text-sky-300"
-                  : isWeekend
-                    ? "text-red-600 dark:text-red-400"
-                    : "text-skin-base";
+                  ? "bg-amber-50 dark:bg-amber-950/40"
+                  : "hover:bg-interactive-hover";
+          const dayText = isToday
+            ? "font-medium text-white"
+            : tag === "rest" || tag === "inLieu"
+              ? "text-red-700 dark:text-red-300"
+              : tag === "makeup"
+                ? "text-teal-800 dark:text-teal-200"
+                : isWeekend
+                  ? "text-red-600 dark:text-red-400"
+                  : "text-foreground";
 
           const cornerBadgeText = tagLabel ?? (isToday ? "今" : null);
-          const todayInlineStyle = isToday
-            ? ({ backgroundColor: "#5268FF" } as const)
-            : undefined;
 
           const primarySubLabel: null | {
             type: "solarTerm" | "holiday" | "lunar";
@@ -449,7 +445,6 @@ const Calendar: React.FC<CalendarProps> = ({
               type="button"
               onClick={() => handleDayClick(dateKey, events)}
               disabled={!inCurrentMonth}
-              style={todayInlineStyle}
               className={[
                 "relative flex flex-col items-center justify-start overflow-visible rounded-lg text-sm transition-colors",
                 cellMinH,
@@ -491,12 +486,12 @@ const Calendar: React.FC<CalendarProps> = ({
                     tag === "rest" &&
                       "bg-red-500 text-white dark:bg-red-500 dark:text-white",
                     tag === "makeup" &&
-                      "bg-sky-500/30 text-sky-800 dark:text-sky-200",
+                      "bg-teal-600/25 text-teal-900 dark:bg-teal-500/35 dark:text-teal-100",
                     tag === "inLieu" &&
                       "bg-red-500 text-white dark:bg-red-500 dark:text-white",
                     isToday &&
                       !tagLabel &&
-                      "bg-[#8B99FF] text-white dark:bg-[#8B99FF] dark:text-white",
+                      "bg-accent/90 text-white ring-1 ring-white/35",
                   ].join(" ")}
                 >
                   {cornerBadgeText}
@@ -528,10 +523,10 @@ const Calendar: React.FC<CalendarProps> = ({
                               : tag === "inLieu"
                                 ? "px-0.5 text-amber-800 dark:text-amber-200"
                                 : tag === "makeup"
-                                  ? "px-0.5 text-sky-700 dark:text-sky-300"
+                                  ? "px-0.5 text-teal-800 dark:text-teal-200"
                                   : isWeekend && !tag
                                     ? "px-0.5 text-red-600/75 dark:text-red-400/75"
-                                    : "text-skin-muted px-0.5"
+                                    : "text-foreground-muted px-0.5"
                           : // lunar
                             isToday
                             ? "text-white/90"
@@ -539,7 +534,7 @@ const Calendar: React.FC<CalendarProps> = ({
                               ? "text-red-600/90 dark:text-red-400/90"
                               : isWeekend && !tag
                                 ? "text-red-600/75 dark:text-red-400/75"
-                                : "text-skin-muted",
+                                : "text-foreground-muted",
                     ].join(" ")}
                     title={primarySubLabel.title}
                   >
@@ -579,7 +574,7 @@ const Calendar: React.FC<CalendarProps> = ({
             {/* 左：公历一行 + 农历月日·周几 | 右：节气（若有）+ 工作日/休息 */}
             <div
               className={[
-                "bg-skin-muted/10 dark:bg-skin-muted/20 mb-3 rounded-lg",
+                "bg-surface-muted mb-3 rounded-lg",
                 compact ? "p-2" : "p-3",
               ].join(" ")}
             >
@@ -609,7 +604,7 @@ const Calendar: React.FC<CalendarProps> = ({
                     >
                       <div
                         className={[
-                          "border-skin-muted/25 text-skin-base shrink-0",
+                          "border-border/25 text-foreground shrink-0",
                           compact
                             ? "w-full border-b pb-2 sm:w-auto sm:border-r sm:border-b-0 sm:pr-4 sm:pb-0"
                             : "border-r pr-4",
@@ -623,7 +618,7 @@ const Calendar: React.FC<CalendarProps> = ({
                         >
                           {y}年{mi}月{di}日
                         </div>
-                        <div className="text-skin-muted mt-0.5 text-xs leading-snug">
+                        <div className="text-foreground-muted mt-0.5 text-xs leading-snug">
                           {lunarLine}
                         </div>
                       </div>
@@ -639,7 +634,7 @@ const Calendar: React.FC<CalendarProps> = ({
                               className={[
                                 "leading-snug",
                                 info.work
-                                  ? "text-skin-muted"
+                                  ? "text-foreground-muted"
                                   : "text-red-600 dark:text-red-400",
                               ].join(" ")}
                             >
@@ -649,7 +644,7 @@ const Calendar: React.FC<CalendarProps> = ({
                             </div>
                           </>
                         ) : (
-                          <p className="text-skin-muted leading-snug">
+                          <p className="text-foreground-muted leading-snug">
                             暂无该日信息
                           </p>
                         )}
@@ -658,7 +653,7 @@ const Calendar: React.FC<CalendarProps> = ({
                     {/* 距离现在多少天 - 另起一行 */}
                     <div
                       className={[
-                        "text-skin-muted border-skin-muted/20 flex items-center gap-2 border-t pt-2 leading-snug",
+                        "text-foreground-muted border-border/20 flex items-center gap-2 border-t pt-2 leading-snug",
                         // 与外层卡片的 padding 对齐，避免分隔线长短不一
                         compact ? "-mx-2" : "-mx-3",
                       ].join(" ")}
@@ -718,11 +713,11 @@ const Calendar: React.FC<CalendarProps> = ({
             <div
               className={
                 compact
-                  ? "border-skin-muted/20 mt-3 border-t pt-2"
-                  : "border-skin-muted/20 mt-4 border-t pt-3"
+                  ? "border-border/20 mt-3 border-t pt-2"
+                  : "border-border/20 mt-4 border-t pt-3"
               }
             >
-              <div className="text-skin-muted mb-2 flex items-center gap-2 text-[11px] font-medium tracking-wide uppercase">
+              <div className="text-foreground-muted mb-2 flex items-center gap-2 text-[11px] font-medium tracking-wide uppercase">
                 <span
                   className="inline-block h-1 w-4 rounded-full bg-accent/15 text-accent"
                   aria-hidden
@@ -743,7 +738,7 @@ const Calendar: React.FC<CalendarProps> = ({
                         <a
                           href={ev.url}
                           className={[
-                            "group border-skin-muted/15 bg-skin-muted/5 hover:bg-skin-muted/15 dark:bg-skin-muted/10 dark:hover:bg-skin-muted/20 flex items-start gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors hover:border-accent/25",
+                            "group border-border/15 bg-surface-muted/80 hover:bg-interactive-hover dark:bg-surface-muted dark:hover:bg-interactive-hover flex items-start gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors hover:border-accent/25",
                             compact ? "py-1.5" : "",
                           ].join(" ")}
                           title={label}
@@ -753,16 +748,16 @@ const Calendar: React.FC<CalendarProps> = ({
                               "mt-0.5 shrink-0 rounded px-1 py-0.5 text-[10px] leading-none font-medium",
                               isDiary
                                 ? "bg-violet-500/15 text-violet-700 dark:text-violet-300"
-                                : "bg-sky-500/15 text-sky-800 dark:text-sky-300",
+                                : "bg-teal-500/15 text-teal-800 dark:text-teal-200",
                             ].join(" ")}
                           >
                             {isDiary ? "碎片" : "文章"}
                           </span>
-                          <span className="text-skin-base min-w-0 flex-1 text-xs leading-snug group-hover:text-accent">
+                          <span className="text-foreground min-w-0 flex-1 text-xs leading-snug group-hover:text-accent">
                             {isDiary ? "当日碎片" : label}
                           </span>
                           <span
-                            className="text-skin-muted shrink-0 text-[10px] opacity-0 transition-opacity group-hover:opacity-100"
+                            className="text-foreground-muted shrink-0 text-[10px] opacity-0 transition-opacity group-hover:opacity-100"
                             aria-hidden
                           >
                             →
@@ -773,7 +768,7 @@ const Calendar: React.FC<CalendarProps> = ({
                   })}
                 </ul>
               ) : (
-                <div className="bg-skin-muted/5 text-skin-muted dark:bg-skin-muted/10 border-skin-muted/25 rounded-lg border border-dashed px-3 py-4 text-center text-xs leading-relaxed">
+                <div className="bg-surface-muted text-foreground-muted border-border rounded-lg border border-dashed px-3 py-4 text-center text-xs leading-relaxed">
                   该日暂无碎片或文章
                 </div>
               )}

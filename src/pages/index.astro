@@ -1,7 +1,6 @@
 ---
 import Footer from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
-import Breadcrumb from "@/components/Breadcrumb.astro";
 import BackToTopButton from "@/components/BackToTopButton.astro";
 import { SITE } from "@/config";
 import Layout from "@/layouts/Layout.astro";
@@ -38,16 +37,15 @@ const paginationInfo = {
 };
 ---
 
-<Layout title={`时间档案 | ${SITE.title}`}>
+<Layout title={`碎片 | ${SITE.title}`}>
   <Header />
-  <Breadcrumb />
 
   <div class="w-full min-w-0 flex-1">
     <main
       id="main-content"
       data-pagefind-ignore
       role="main"
-      aria-label="时间档案主要内容"
+      aria-label="碎片页主要内容"
       class="w-full min-w-0"
     >
       <!-- 跳转到主要内容的链接 -->
@@ -60,16 +58,11 @@ const paginationInfo = {
 
       <section
         id="diary"
-        class="mx-auto mt-4 min-h-screen w-full max-w-app min-w-0 bg-background px-4 pb-4"
+        class="mx-auto mt-6 min-h-screen w-full max-w-app min-w-0 bg-background px-4 pb-8"
         role="region"
         aria-labelledby="diary-heading"
       >
         <div class="min-h-screen">
-          <h1 id="diary-heading" class="text-2xl font-semibold sm:text-3xl">时间档案</h1>
-          <p class="mt-2 mb-6 max-w-2xl text-sm leading-7 text-foreground/75">
-            按时间倒序记录碎片内容，支持持续加载与快速回到顶部。
-          </p>
-
           <div class="pb-5 sm:pb-6">
             <ArchiveHero />
 

@@ -1,0 +1,101 @@
+/**
+ * worktree 专用配色 · 方案 C+「冷白」
+ * 近白底 + 低对比分隔，阅读更轻松
+ */
+
+:root,
+html[data-theme="light"] {
+  --background: #ffffff;
+  --foreground: #1f2937;
+  --foreground-muted: #5b6573;
+  --foreground-subtle: #6b7280;
+  --accent: #3d6b7f;
+  --border: #e8edf2;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-muted: #fafbfc;
+  --space-reading-block: 1.25rem;
+  --accent-soft: color-mix(in oklab, var(--accent) 12%, transparent);
+  --accent-softer: color-mix(in oklab, var(--accent) 6%, var(--background));
+  --line-soft: color-mix(in oklab, var(--border) 75%, transparent);
+  --interactive-hover: color-mix(in oklab, var(--accent) 7%, var(--surface));
+  --interactive-active: color-mix(in oklab, var(--accent) 12%, var(--surface));
+  --shadow-sm: 0 1px 2px color-mix(in oklab, #1f2937 5%, transparent);
+  --shadow-md: 0 4px 12px color-mix(in oklab, #1f2937 7%, transparent);
+  --muted: #e2e8f0;
+  --toc-top-text-color: var(--foreground-muted);
+}
+
+html[data-theme="dark"] {
+  --background: #111827;
+  --foreground: #f1f5f9;
+  --foreground-muted: #94a3b8;
+  --foreground-subtle: #7c8a9e;
+  --accent: #7ba3b8;
+  --border: #2d3748;
+  --surface: #1a2230;
+  --surface-elevated: #1f2937;
+  --surface-muted: #243044;
+  --space-reading-block: 1.25rem;
+  --accent-soft: color-mix(in oklab, var(--accent) 20%, transparent);
+  --accent-softer: color-mix(in oklab, var(--accent) 10%, var(--background));
+  --line-soft: color-mix(in oklab, var(--border) 65%, transparent);
+  --interactive-hover: color-mix(in oklab, var(--accent) 12%, var(--surface));
+  --interactive-active: color-mix(in oklab, var(--accent) 18%, var(--surface));
+  --shadow-sm: 0 1px 2px color-mix(in oklab, #000 35%, transparent);
+  --shadow-md: 0 4px 12px color-mix(in oklab, #000 45%, transparent);
+  --muted: #4b5563;
+  --toc-top-text-color: var(--foreground-muted);
+}
+
+@layer components {
+  .app-card {
+    border: 1px solid color-mix(in oklab, var(--border) 90%, transparent);
+    border-radius: 0.75rem;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .app-card:hover {
+    border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+    box-shadow: var(--shadow-md);
+  }
+
+  .app-panel {
+    border: 1px solid var(--line-soft);
+    border-radius: 0.75rem;
+    background: var(--surface-muted);
+  }
+
+  .app-notice {
+    border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+    border-radius: 0.75rem;
+    background: var(--surface);
+    color: color-mix(in oklab, var(--foreground) 78%, transparent);
+  }
+
+  .app-code {
+    border: 1px solid var(--line-soft);
+    border-radius: 0.25rem;
+    background: var(--surface-muted);
+    padding: 0.125rem 0.375rem;
+    font-size: 0.75rem;
+  }
+
+  .app-hover-row {
+    border: 1px solid transparent;
+    border-radius: 0.5rem;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .app-hover-row:hover,
+  .app-hover-row:focus-within {
+    border-color: color-mix(in oklab, var(--border) 92%, var(--accent) 8%);
+    background: var(--accent-softer);
+  }
+}
