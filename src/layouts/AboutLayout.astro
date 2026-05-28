@@ -28,7 +28,6 @@
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Twikoo from "@/components/Twikoo.astro";
-// import Breadcrumb from "@/components/Breadcrumb.astro";
 import Layout from "./Layout.astro";
 import { SITE } from "@/config";
 import { getYMDParts } from "@/utils/calendarDate";
@@ -62,7 +61,6 @@ const { year: startYear, month: startMonth, day: startDay } = getYMDParts(
 
 <Layout title={`${frontmatter.title} | ${SITE.title}`}>
   <Header />
-  <!-- <Breadcrumb /> -->
   <main id="main-content" class="mx-auto mt-6 w-full max-w-app px-4 pb-12">
     <section id="about" class="app-prose prose-img:border-0">
       <!-- 统计数据容器（隐藏） -->

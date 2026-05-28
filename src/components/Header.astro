@@ -218,12 +218,12 @@ const isActive = (path: string) => {
       <ul
         id="menu-items"
         class:list={[
-          "mx-auto mt-4 mb-3 grid w-full max-w-xs grid-cols-2 place-content-center gap-2 rounded-xl border border-border/70 bg-surface-elevated p-3 shadow-sm",
-          "[&>li>a]:block [&>li>a]:min-h-11 [&>li>a]:rounded-md [&>li>a]:border [&>li>a]:border-transparent [&>li>a]:px-4 [&>li>a]:py-3 [&>li>a]:text-center [&>li>a]:text-base [&>li>a]:font-medium [&>li>a]:text-foreground/85 [&>li>a]:transition-colors [&>li>a]:duration-200 [&>li>a]:hover:border-border/70 [&>li>a]:hover:text-accent",
+          "mx-auto mt-4 mb-3 flex w-full max-w-xs flex-col gap-1 rounded-xl border border-border/70 bg-surface-elevated p-3 shadow-sm",
+          "[&>li>a]:block [&>li>a]:min-h-11 [&>li>a]:rounded-md [&>li>a]:border [&>li>a]:border-transparent [&>li>a]:px-4 [&>li>a]:py-3 [&>li>a]:text-center [&>li>a]:text-base [&>li>a]:font-medium [&>li>a]:text-foreground/85 [&>li>a]:transition-colors [&>li>a]:duration-200 [&>li>a]:hover:border-border/70 [&>li>a]:hover:text-accent [&>li>a]:focus-visible:border-border/70",
           "hidden",
         ]}
       >
-        <li class="col-span-2">
+        <li>
           <a
             href="/"
             class:list={{ "active-nav": isActive("/") && currentPath === "/" }}
@@ -231,12 +231,12 @@ const isActive = (path: string) => {
             碎片
           </a>
         </li>
-        <li class="col-span-2">
+        <li>
           <a href="/posts" class:list={{ "active-nav": isActive("/posts") }}>
             文章
           </a>
         </li>
-        <li class="col-span-2">
+        <li>
           <a
             href="/favorites"
             class:list={{ "active-nav": isActive("/favorites") }}
@@ -244,7 +244,7 @@ const isActive = (path: string) => {
             收藏
           </a>
         </li>
-        <li class="col-span-2">
+        <li>
           <a
             href="/footprint"
             class:list={{ "active-nav": isActive("/footprint") }}
@@ -252,68 +252,57 @@ const isActive = (path: string) => {
             足迹
           </a>
         </li>
-        <li class="col-span-2">
+        <li>
           <a href="/feeds" class:list={{ "active-nav": isActive("/feeds") }}>
             邻居
           </a>
         </li>
-        <li class="col-span-2">
+        <li>
           <a href="/about" class:list={{ "active-nav": isActive("/about") }}>
             关于
           </a>
         </li>
         {
           SITE.showArchives && (
-            <li class="col-span-2">
-              <LinkButton
+            <li>
+              <a
                 href="/archives"
-                class:list={[
-                  "focus-outline flex min-h-11 justify-center rounded-md border border-transparent p-3 hover:border-border/70",
-                  {
-                    "active-nav [&>svg]:stroke-accent": isActive("/archives"),
-                  },
-                ]}
-                ariaLabel="archives"
-                title="Archives"
+                class:list={{ "active-nav": isActive("/archives") }}
               >
-                <IconCalendar class="w-6" />
-                <span class="ml-2 text-sm">收集箱</span>
-              </LinkButton>
+                收集箱
+              </a>
             </li>
           )
         }
-        <li class="col-span-1 flex items-center justify-center">
-          <LinkButton
-            href="/search"
-            class:list={[
-              "focus-outline flex min-h-11 items-center rounded-md border border-transparent p-3 hover:border-border/70",
-              {
-                "active-nav [&>svg]:stroke-accent": isActive("/search"),
-              },
-            ]}
-            ariaLabel="search"
-            title="Search"
-          >
-            <IconSearch class="w-6" />
-          </LinkButton>
-        </li>
-        <li class="col-span-1 flex items-center justify-center">
-          <a
-            href="/rss.xml"
-            target="_blank"
-            class="focus-outline flex min-h-11 items-center rounded-md border border-transparent p-3 hover:border-border/70 hover:text-accent"
-            aria-label="RSS Feed"
-            title="RSS Feed"
-          >
-            <IconRss class="w-6" />
-          </a>
-        </li>
+        <li class="mt-2 border-t border-border/70 pt-2">
+          <div class="grid grid-cols-3 items-center gap-2">
+            <LinkButton
+              href="/search"
+              class:list={[
+                "focus-outline flex min-h-11 items-center justify-center rounded-md border border-transparent p-3 hover:border-border/70",
+                {
+                  "active-nav [&>svg]:stroke-accent": isActive("/search"),
+                },
+              ]}
+              ariaLabel="search"
+              title="Search"
+            >
+              <IconSearch class="w-6" />
+            </LinkButton>
+            <a
+              href="/rss.xml"
+              target="_blank"
+              class="focus-outline flex min-h-11 items-center justify-center rounded-md border border-transparent p-3 hover:border-border/70 hover:text-accent"
+              aria-label="RSS Feed"
+              title="RSS Feed"
+            >
+              <IconRss class="w-6" />
+            </a>
         {
           SITE.lightAndDarkMode && (
-            <li class="col-span-2 flex items-center justify-center">
               <button
                 id="theme-btn-mobile"
-                class="focus-outline relative flex min-h-11 items-center rounded-md p-3"
+                class="focus-outline relative flex min-h-11 items-center justify-center rounded-md border border-transparent p-3 hover:border-border/70"
                 title="切换主题"
                 aria-label="切换主题（当前：自动）"
                 aria-pressed="false"
@@ -322,9 +311,10 @@ const isActive = (path: string) => {
                 <IconMoon class="w-6 scale-100 transition-all dark:scale-0" />
                 <IconSunHigh class="absolute w-6 scale-0 transition-all dark:scale-100" />
               </button>
-            </li>
           )
         }
+          </div>
+        </li>
       </ul>
     </nav>
   </div>
