@@ -90,10 +90,10 @@ const MediaCard: React.FC<MediaCardProps> = ({
       data-media-type={cardType}
       className={`media-card ${theme === "dark" ? "dark" : "light"} block w-full max-w-app cursor-pointer rounded-xl border border-border/80 bg-surface shadow-sm no-underline transition-[border-color,box-shadow] duration-200 hover:border-accent/50 hover:shadow-md`}
     >
-      <div className="flex flex-col gap-3 p-3 sm:flex-row">
+      <div className="flex items-start gap-3 p-3 sm:gap-4 sm:p-4">
         {/* 海报图片 - 左侧 */}
         {posterUrl && (
-          <div className="relative mx-auto w-24 flex-shrink-0 sm:mx-0">
+          <div className="relative w-20 flex-shrink-0 sm:w-24">
             <img
               src={posterUrl}
               alt={title}
@@ -105,17 +105,17 @@ const MediaCard: React.FC<MediaCardProps> = ({
         )}
 
         {/* 媒体信息 - 右侧 */}
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           {/* 标题和评分 */}
-          <div className="mb-3 flex flex-col sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex-1 text-center sm:text-left">
-              <div className="mb-2">
-                <h3 className="text-skin-accent mt-0 text-lg leading-tight font-bold sm:text-xl">
+          <div className="mb-2 flex items-start justify-between gap-2 sm:mb-3">
+            <div className="min-w-0 flex-1">
+              <div className="mb-1.5">
+                <h3 className="text-skin-accent mt-0 line-clamp-2 text-base leading-snug font-bold sm:text-xl">
                   {title}
                 </h3>
               </div>
 
-              <div className="text-skin-base/60 mb-2 flex items-center justify-center gap-2 text-xs sm:mb-0 sm:justify-start sm:text-sm">
+              <div className="text-skin-base/70 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs sm:text-sm">
                 {cardType === "music" ? (
                   <>
                     {author && <span>{author}</span>}
@@ -140,7 +140,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
             </div>
 
             {/* 类型徽标和评分 */}
-            <div className="flex flex-col items-center gap-2 sm:mt-0 sm:items-end">
+            <div className="flex flex-shrink-0 flex-col items-end gap-1.5">
               {/* 评分 */}
               {mediaRating > 0 && cardType !== "music" && (
                 <div className="flex items-center gap-1">
@@ -201,12 +201,12 @@ const MediaCard: React.FC<MediaCardProps> = ({
           </div>
 
           {/* 类型标签 */}
-          <div className="mb-3 flex flex-wrap justify-center gap-1.5 sm:justify-start">
+          <div className="mb-2 flex flex-wrap gap-1.5 sm:mb-3">
             {genres &&
               genres.split(/[,，]/).map((genre, index) => (
                 <span
                   key={index}
-                  className="rounded-full border border-accent/20 bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent transition-colors hover:bg-accent/15"
+                  className="rounded-full border border-accent/20 bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent transition-colors hover:bg-accent/15 sm:px-2.5 sm:py-1 sm:text-xs"
                 >
                   {genre.trim()}
                 </span>
@@ -217,7 +217,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
           {overview && cardType !== "music" && (
             <div className="mb-2">
               <p
-                className="text-skin-base/80 mb-0 line-clamp-3 text-center text-xs leading-relaxed sm:line-clamp-2 sm:text-left sm:text-sm"
+                className="text-skin-base/80 mb-0 line-clamp-2 text-left text-xs leading-relaxed sm:text-sm"
                 style={{
                   display: "-webkit-box",
                   WebkitBoxOrient: "vertical",

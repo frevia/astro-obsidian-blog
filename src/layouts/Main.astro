@@ -1,5 +1,4 @@
 ---
-import Breadcrumb from "@/components/Breadcrumb.astro";
 interface StringTitleProp {
   pageTitle: string;
   pageDesc?: string;
@@ -18,7 +17,6 @@ export type Props = StringTitleProp | ArrayTitleProp;
 const { props } = Astro;
 ---
 
-<Breadcrumb />
 <main id="main-content" class="mx-auto mt-6 w-full max-w-app px-4 pb-8">
   <header class="mb-7" aria-labelledby="page-heading">
     {
