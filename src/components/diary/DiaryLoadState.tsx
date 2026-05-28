@@ -30,7 +30,7 @@ const DiaryLoadState: React.FC<DiaryLoadStateProps> = ({
 
   if (!hasMore && displayedCount > 0) {
     return (
-      <article role="article" className="no-more py-6 text-center">
+      <article role="article" className="no-more empty-state-card py-6">
         <div role="status" aria-live="polite">
           <div className="mb-2 text-2xl opacity-40">✨</div>
           <p className="text-skin-base opacity-70">

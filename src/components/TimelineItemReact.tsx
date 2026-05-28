@@ -6,6 +6,12 @@ import type { MediaCardData } from "../types/media";
 import "lightgallery/css/lightgallery.css";
 import "lightgallery/css/lg-zoom.css";
 
+const LIGHTGALLERY_PLACEHOLDER_KEY = "0000-0000-000-0000";
+const lightGalleryLicenseKey = import.meta.env.PUBLIC_LIGHTGALLERY_LICENSE_KEY?.trim();
+const hasValidLightGalleryLicense =
+  !!lightGalleryLicenseKey &&
+  lightGalleryLicenseKey !== LIGHTGALLERY_PLACEHOLDER_KEY;
+
 export interface TimelineItemProps {
   time: string;
   date?: string;
@@ -83,6 +89,9 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
 
   // 初始化 lightgallery（依赖于图片优化完成）
   useEffect(() => {
+    // 没有有效 license 时，退回原生 a 标签打开图片，避免控制台持续告警。
+    if (!hasValidLightGalleryLicense) return;
+
     if (isImagesLoaded && optimizedImages.length > 0 && galleryRef.current) {
       // 使用动态导入来避免 ES 模块问题
       const initLightGallery = async () => {
@@ -92,6 +101,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
 
           // 初始化 lightgallery
           lightGalleryRef.current = lightGallery(galleryRef.current!, {
+            licenseKey: lightGalleryLicenseKey,
             plugins: [lgZoom],
             speed: 400,
             selector: "a.lg-item",
@@ -134,7 +144,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
           {/* 时间标签 - 使用h3标题以便Pagefind识别为子结果 */}
           <h3
             id={date ? `diary-${date}-${time.replace(/:/g, "-")}` : undefined}
-            className="text-skin-base/60 m-0 flex-none border-b border-dashed border-border/40 pb-1 text-sm font-medium sm:flex sm:items-center sm:gap-1 sm:border-none sm:pr-2 sm:pb-0 sm:pl-0 sm:text-base"
+            className="text-skin-base/60 m-0 flex-none border-b border-dashed border-border/40 pb-1 text-base font-medium sm:flex sm:items-center sm:gap-1 sm:border-none sm:pr-2 sm:pb-0 sm:pl-0"
             aria-label={`${time} 时间段的记录`}
           >
             <span className="sr-only">{date}</span>

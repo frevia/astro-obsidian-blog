@@ -332,6 +332,9 @@ const isActive = (path: string) => {
 </header>
 
 <script>
+  let lastFocusedElement: HTMLElement | null = null;
+  let previousBodyOverflow = "";
+
   function syncHeaderOffset() {
     const header = document.querySelector("#site-header");
     if (!(header instanceof HTMLElement)) return;
@@ -359,18 +362,59 @@ const isActive = (path: string) => {
     const menuIcon = document.querySelector("#menu-icon");
     const closeIcon = document.querySelector("#close-icon");
 
-    if (!menuBtn || !menuItems || !menuIcon || !closeIcon) return;
+    if (
+      !(menuBtn instanceof HTMLButtonElement) ||
+      !(menuItems instanceof HTMLElement) ||
+      !(menuIcon instanceof Element) ||
+      !(closeIcon instanceof Element)
+    ) {
+      return;
+    }
 
-    menuBtn.addEventListener("click", () => {
-      const openMenu = menuBtn.getAttribute("aria-expanded") === "true";
+    const syncMenuState = (isOpen: boolean) => {
+      menuBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      menuBtn.setAttribute("aria-label", isOpen ? "关闭菜单" : "打开菜单");
+      menuItems.classList.toggle("hidden", !isOpen);
+      menuIcon.classList.toggle("hidden", isOpen);
+      closeIcon.classList.toggle("hidden", !isOpen);
+    };
 
-      menuBtn.setAttribute("aria-expanded", openMenu ? "false" : "true");
-      menuBtn.setAttribute("aria-label", openMenu ? "打开菜单" : "关闭菜单");
+    const openMenu = () => {
+      lastFocusedElement = document.activeElement as HTMLElement | null;
+      previousBodyOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      syncMenuState(true);
+    };
 
-      menuItems.classList.toggle("hidden");
-      menuIcon.classList.toggle("hidden");
-      closeIcon.classList.toggle("hidden");
-    });
+    const closeMenu = () => {
+      syncMenuState(false);
+      document.body.style.overflow = "";
+      if (previousBodyOverflow) {
+        document.body.style.overflow = previousBodyOverflow;
+      }
+      lastFocusedElement?.focus();
+      lastFocusedElement = null;
+    };
+
+    const handleEscClose = (event: KeyboardEvent) => {
+      const isOpen = menuBtn.getAttribute("aria-expanded") === "true";
+      if (event.key === "Escape" && isOpen) {
+        closeMenu();
+      }
+    };
+
+    menuBtn.onclick = () => {
+      const isOpen = menuBtn.getAttribute("aria-expanded") === "true";
+      menuBtn.setAttribute("aria-expanded", isOpen ? "false" : "true");
+      menuBtn.setAttribute("aria-label", isOpen ? "打开菜单" : "关闭菜单");
+      if (isOpen) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    };
+    document.removeEventListener("keydown", handleEscClose);
+    document.addEventListener("keydown", handleEscClose);
   }
 
   enforceFixedHeader();

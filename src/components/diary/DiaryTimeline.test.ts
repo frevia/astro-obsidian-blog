@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import React from "react";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import DiaryTimeline from "../DiaryTimeline";
 
 const mockedDiaryFeedList = vi.fn((props: unknown) =>
@@ -57,5 +59,15 @@ describe("DiaryTimeline states", () => {
     expect(firstCallProps).toMatchObject({
       density: "compact",
     });
+  });
+
+  it("uses card-unique star clipPath ids in media card template", () => {
+    const mediaCardSource = readFileSync(
+      resolve(import.meta.dirname, "../MediaCard.tsx"),
+      "utf-8"
+    );
+
+    expect(mediaCardSource).toContain("half-star-${id ?? title}-${star}");
+    expect(mediaCardSource).toContain("clipPath={`url(#${starClipId})`}");
   });
 });
