@@ -25,7 +25,8 @@ const headerProps = {
 const fallbackCover = SITE.dynamicOgImage
   ? `${getPath(id, filePath)}/cover.png`
   : undefined;
-const cardCover = data.cover ?? fallbackCover;
+const defaultCover = `/${SITE.cover}`;
+const cardCover = data.cover ?? fallbackCover ?? defaultCover;
 ---
 
 <li class:list={["my-5", itemClass]} hidden={hidden}>
