@@ -4,7 +4,7 @@ import { render, type CollectionEntry } from "astro:content";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
-import Tag from "@/components/Tag.astro";
+import CollapsibleTagList from "@/components/CollapsibleTagList.astro";
 import Datetime from "@/components/Datetime.astro";
 import EditPost from "@/components/EditPost.astro";
 import ShareLinks from "@/components/ShareLinks.astro";
@@ -103,11 +103,11 @@ const nextPost =
   >
     <h1
       transition:name={slugifyStr(title)}
-      class="inline-block text-2xl font-semibold text-foreground sm:text-3xl"
+      class="inline-block text-2xl font-bold text-accent sm:text-3xl"
     >
       {title}
     </h1>
-    <div class="mt-3 mb-6 flex items-center gap-2 text-sm text-foreground/75">
+    <div class="my-2 flex items-center gap-2">
       <Datetime {published} {timezone} size="lg" />
       <span
         aria-hidden="true"
@@ -132,9 +132,7 @@ const nextPost =
 
     <EditPost class="sm:hidden" {hideEditPost} {post} />
 
-    <ul class="mt-4 mb-8 sm:my-8">
-      {tags.map(tag => <Tag tag={slugifyStr(tag)} tagName={tag} />)}
-    </ul>
+    <CollapsibleTagList tags={tags} class="rounded-lg border border-border/70 bg-surface-muted px-3 py-2" />
 
     <ShareLinks />
 
@@ -142,9 +140,9 @@ const nextPost =
 
     {
       commentsEnabled && !hasTwikooEnv && (
-        <div class="mt-8 rounded-xl border border-border/60 bg-muted/15 px-4 py-3 text-sm text-foreground/80">
+        <div class="app-notice mt-8 px-4 py-3 text-sm">
           评论功能已开启，但尚未完成 Twikoo 配置。请在环境变量中设置
-          <code class="mx-1 rounded bg-muted/30 px-1.5 py-0.5 text-xs">
+          <code class="app-code mx-1">
             PUBLIC_TWIKOO_ENV_ID
           </code>
           后重新部署。
@@ -299,7 +297,7 @@ const nextPost =
           "border",
           "border-muted/30",
           "hover:border-muted/60",
-          "hover:bg-muted/80",
+          "hover:bg-surface-muted",
           "px-2",
           "py-1",
           "text-xs",

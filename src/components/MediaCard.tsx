@@ -88,7 +88,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
       target="_blank"
       rel="noopener noreferrer"
       data-media-type={cardType}
-      className={`media-card ${theme === "dark" ? "dark" : "light"} block w-full max-w-app cursor-pointer rounded-lg bg-muted/20 no-underline transition-all duration-300 hover:bg-muted/30`}
+      className={`media-card ${theme === "dark" ? "dark" : "light"} block w-full max-w-app cursor-pointer rounded-xl border border-border/80 bg-surface shadow-sm no-underline transition-[border-color,box-shadow] duration-200 hover:border-accent/50 hover:shadow-md`}
     >
       <div className="flex flex-col gap-3 p-3 sm:flex-row">
         {/* 海报图片 - 左侧 */}
@@ -168,7 +168,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
                             {/* 背景星星（灰色） */}
                             <path
                               d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                              fill="#d1d5db"
+                              fill="var(--border)"
                             />
 
                             {/* 满星或半星 */}

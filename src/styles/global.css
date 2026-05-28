@@ -1,47 +1,35 @@
 @import "tailwindcss";
+@import "./design-tokens.css";
 @import "./typography.css";
 @import "tw-animate-css";
 @import "katex/dist/katex.min.css";
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
-:root,
-html[data-theme="light"] {
-  --background: #fafafa;
-  --foreground: #09090b;
-  --accent: #2563eb;
-  --muted: #475569;
-  --border: #e2e8f0;
-  /* TOC link color */
-  --toc-top-text-color: #64748b;
-}
-
-html[data-theme="dark"] {
-  --background: #0b0c0f;
-  --foreground: #f3f4f6;
-  --accent: #60a5fa;
-  --muted: #94a3b8;
-  --border: #334155;
-  --toc-top-text-color: #cbd5e1;
-}
+/* 色板见 design-tokens.css（worktree 冷色调）；此处仅 UX 分支扩展 token */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-subtle: var(--foreground-subtle);
   --color-accent: var(--accent);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-muted: var(--surface-muted);
+  --color-interactive-hover: var(--interactive-hover);
+  --color-interactive-active: var(--interactive-active);
   --color-skin-fill: var(--background);
-  --color-skin-card: var(--background);
+  --color-skin-card: var(--surface);
   --color-skin-base: var(--foreground);
   --color-skin-accent: var(--accent);
   --color-skin-muted: var(--muted);
   --color-skin-inverted: var(--background);
   --color-skin-border: var(--border);
-  --font-family-sans:
-    "Noto Sans TC", "PingFang TC", "PingFang SC", "Microsoft YaHei", ui-sans-serif,
-    system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-family-serif: "Noto Serif TC", "Songti SC", ui-serif, serif;
+  --font-family-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-family-serif: ui-serif, "Songti SC", "Noto Serif SC", serif;
   --font-sans: var(--font-family-sans);
   --font-serif: var(--font-family-serif);
 }
@@ -62,13 +50,31 @@ html[data-theme="dark"] {
     @apply overflow-x-hidden overflow-y-scroll scroll-smooth leading-7;
   }
   body {
-    @apply flex min-h-svh flex-col overflow-x-hidden bg-background font-sans text-foreground selection:bg-accent/75 selection:text-background;
+    @apply flex min-h-svh flex-col overflow-x-hidden bg-background font-serif text-foreground selection:bg-accent/75 selection:text-background;
     padding-top: var(--site-header-height, 0px);
   }
 
   a,
   button {
     @apply outline-offset-2 outline-accent/90 focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-solid;
+  }
+
+  a:not(.no-ui-link),
+  button,
+  [role="button"] {
+    @apply transition-colors duration-200;
+  }
+
+  a:not(.no-ui-link):hover,
+  button:hover,
+  [role="button"]:hover {
+    background-color: var(--interactive-hover);
+  }
+
+  a:not(.no-ui-link):active,
+  button:active,
+  [role="button"]:active {
+    background-color: var(--interactive-active);
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {

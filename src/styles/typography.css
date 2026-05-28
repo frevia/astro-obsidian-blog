@@ -3,7 +3,7 @@
 @layer base {
   /* ===== Override default Tailwind Typography styles ===== */
   .app-prose {
-    @apply prose;
+    @apply prose max-w-none;
 
     h1,
     h2,
@@ -127,13 +127,15 @@
     }
 
     table {
+      @apply overflow-hidden rounded-lg bg-surface;
+
       th,
       td {
-        @apply border border-border p-2;
+        @apply border border-border/80 p-2;
       }
 
       th {
-        @apply py-1.5;
+        @apply bg-surface-muted py-1.5;
       }
 
       code {
@@ -142,7 +144,7 @@
     }
 
     code {
-      @apply rounded bg-muted/50 p-1 break-words text-foreground before:content-none after:content-none;
+      @apply rounded-md border border-border/60 bg-surface-muted px-1.5 py-1 break-words text-foreground before:content-none after:content-none;
     }
 
     mark {
@@ -154,7 +156,7 @@
     }
 
     blockquote {
-      @apply relative my-6 rounded-md border border-l-4 border-border/60 border-l-accent/65 bg-muted/28 px-4 py-3 break-words text-foreground/88 not-italic;
+      @apply relative my-6 rounded-lg border border-l-4 border-border/60 border-l-accent/70 bg-surface-muted px-4 py-3 break-words text-foreground/88 not-italic;
       quotes: none;
     }
 
@@ -237,7 +239,7 @@
 
   /* ===== Code Blocks & Syntax Highlighting ===== */
   .astro-code {
-    @apply flex border bg-(--shiki-light-bg) text-(--shiki-light) outline-border [&_span]:text-(--shiki-light);
+    @apply flex overflow-x-auto rounded-lg border border-border/70 bg-(--shiki-light-bg) text-(--shiki-light) outline-border [&_span]:text-(--shiki-light);
   }
 
   html[data-theme="dark"] .astro-code {

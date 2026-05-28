@@ -14,6 +14,7 @@ import { slugifyStr } from "@/utils/slugify";
 import getPostsByGroupCondition from "@/utils/getPostsByGroupCondition";
 import { getYearMonthInTimeZone } from "@/utils/calendarDate";
 import AiSummaryCard from "@/components/AiSummaryCard.astro";
+import CollapsibleTagList from "@/components/CollapsibleTagList.astro";
 
 export interface Props {
   post: CollectionEntry<"clip">;
@@ -36,16 +37,7 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content } = await render(post);
 
-const {
-  title,
-  description,
-  published,
-  created,
-  timezone,
-  source,
-  summary,
-  tags,
-} = post.data;
+const { title, description, published, timezone, source, summary, tags } = post.data;
 
 const layoutProps = {
   title: `${title} | ${SITE.title}`,
@@ -116,17 +108,23 @@ const nextPost =
   <BackButton />
   <main
     id="main-content"
-    class="mx-auto mt-4 w-full max-w-app px-4 pb-12"
+    class:list={[
+      "mx-auto mt-6 w-full max-w-app px-4 pb-12",
+      { "mt-8": !SITE.showBackButton },
+    ]}
     data-pagefind-body
     data-pagefind-weight="5"
   >
     <h1
       transition:name={slugifyStr(title)}
-      class="inline-block text-2xl font-bold text-accent sm:text-3xl"
+      class="inline-block text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
       data-pagefind-meta="title"
     >
       {title}
     </h1>
+    <div class="mt-4 mb-7 flex items-center gap-2 rounded-lg border border-border/70 bg-surface-muted px-3 py-2 text-sm text-foreground/75">
+      <Datetime published={published} timezone={timezone} size="lg" />
+    </div>
     {
       tags.length > 0 && (
         <div class="sr-only" data-pagefind-meta="tag">
@@ -134,16 +132,7 @@ const nextPost =
         </div>
       )
     }
-    <div class="my-2">
-      <Datetime
-        {published}
-        created={created}
-        {timezone}
-        size="lg"
-        showCreated={true}
-        detailPage={true}
-      />
-    </div>
+    <CollapsibleTagList tags={tags} class="rounded-lg border border-border/70 bg-surface-muted px-3 py-2" />
 
     <!-- 转载说明放在文章内容之前 -->
     <div
@@ -180,12 +169,12 @@ const nextPost =
 
     <article
       id="article"
-      class="js-toc-content app-prose relative mx-auto max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
+      class="js-toc-content app-prose relative mx-auto mt-9 max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
     >
       <Content />
     </article>
     <BackToTopButton />
-    <aside id="sidebar" class="sidebar toc-empty hidden lg:block">
+    <aside id="sidebar" class="sidebar toc-empty hidden rounded-xl border border-border/70 bg-surface-elevated p-3 shadow-sm lg:block">
       <div class="toc-title mb-2 text-sm font-medium">页面导航</div>
       <div id="toc-container" class="js-toc"></div>
     </aside>
