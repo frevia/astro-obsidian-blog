@@ -14,7 +14,6 @@ import { slugifyStr } from "@/utils/slugify";
 import getPostsByGroupCondition from "@/utils/getPostsByGroupCondition";
 import { getYearMonthInTimeZone } from "@/utils/calendarDate";
 import AiSummaryCard from "@/components/AiSummaryCard.astro";
-import CollapsibleTagList from "@/components/CollapsibleTagList.astro";
 
 export interface Props {
   post: CollectionEntry<"clip">;
@@ -132,7 +131,6 @@ const nextPost =
         </div>
       )
     }
-    <CollapsibleTagList tags={tags} class="rounded-lg border border-border/70 bg-surface-muted px-3 py-2" />
 
     <!-- 转载说明放在文章内容之前 -->
     <div
