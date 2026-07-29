@@ -1,5 +1,10 @@
+import { attachmentRelativePath } from "./attachmentPath";
+
 // 导入所有 MP4 视频文件
-const videos = import.meta.glob("../data/attachment/**/*.mp4", { eager: true });
+const videos = {
+  ...import.meta.glob("../data/attachment/**/*.mp4", { eager: true }),
+  ...import.meta.glob("../data/attachments/**/*.mp4", { eager: true }),
+};
 
 /**
  * 获取视频路径
@@ -12,12 +17,7 @@ export function getVideoPath(videoPath: string): string {
     return videoPath;
   }
 
-  // 从视频路径中提取文件名
-  let fileName = "";
-  if (videoPath.includes("attachment")) {
-    fileName =
-      videoPath.split("attachment/")[1] || videoPath.split("attachment\\")[1];
-  }
+  const fileName = attachmentRelativePath(videoPath);
 
   // 在导入的视频中查找匹配的视频
   const videoKey = Object.keys(videos).find(key => key.includes(fileName));
@@ -29,17 +29,17 @@ export function getVideoPath(videoPath: string): string {
   }
 
   // 如果没有找到，使用回退逻辑
-  // 将 ../attachment 转换为 /attachment（相对于 public 目录）
+  // 将相对路径转换为站点根路径
   if (videoPath.startsWith("../")) {
     return videoPath.replace("../", "/");
   }
 
-  // 如果路径不是以 ../ 开头，但包含 attachment，尝试转换
+  if (videoPath.includes("attachments")) {
+    return `/attachments/${fileName}`;
+  }
+
   if (videoPath.includes("attachment")) {
-    const pathParts = videoPath.split("attachment");
-    if (pathParts.length > 1) {
-      return "/attachment" + pathParts[1];
-    }
+    return `/attachment/media/${fileName}`;
   }
 
   // 默认返回原路径
