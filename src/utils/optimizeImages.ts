@@ -1,9 +1,16 @@
 import { getImage } from "astro:assets";
+import { attachmentRelativePath } from "./attachmentPath";
+
 // 导入所有支持的图片格式
-const images = import.meta.glob(
-  "../data/attachment/**/*.{jpg,jpeg,png,gif,webp,svg}",
-  { eager: true }
-);
+const images = {
+  ...import.meta.glob(
+    "../data/attachment/**/*.{jpg,jpeg,png,gif,webp,svg}",
+    { eager: true }
+  ),
+  ...import.meta.glob("../data/attachments/**/*.{jpg,jpeg,png,gif,webp,svg}", {
+    eager: true,
+  }),
+};
 
 // 图片优化缓存
 const imageCache = new Map<string, OptimizedImageInfo>();
@@ -70,33 +77,11 @@ export async function optimizeImage<T extends boolean = false>(
     return imageCache.get(cacheKey)!;
   }
 
-  // 从图片路径中提取文件名，只处理 attachment/ 目录后的部分
-  const normalizedImagePath = imagePath.replace(/\\/g, "/");
-  let fileName = "";
-  if (normalizedImagePath.includes("attachment")) {
-    // 提取 attachment/ 后面的部分
-    const afterAttachment = normalizedImagePath.split("attachment/")[1];
-    if (afterAttachment) {
-      fileName = afterAttachment;
-    } else {
-      fileName = normalizedImagePath.split("/").pop() || normalizedImagePath;
-    }
-  } else {
-    fileName = normalizedImagePath.split("/").pop() || normalizedImagePath;
-  }
+  const fileName = attachmentRelativePath(imagePath);
 
-  // 在导入的图片中查找匹配的图片，只匹配 attachment/ 目录后的部分
+  // 在新旧附件目录中查找同一相对路径
   const imageKey = Object.keys(images).find(key => {
-    const normalizedKey = key.replace(/\\/g, "/");
-    let keyAfterAttachment = "";
-    if (normalizedKey.includes("attachment/")) {
-      keyAfterAttachment = normalizedKey.split("attachment/")[1] || "";
-    } else {
-      keyAfterAttachment = normalizedKey;
-    }
-
-    // 比较 attachment/ 后的路径部分（忽略大小写）
-    return keyAfterAttachment.toLowerCase() === fileName.toLowerCase();
+    return attachmentRelativePath(key).toLowerCase() === fileName.toLowerCase();
   });
 
   console.log("imageKey", imageKey);
