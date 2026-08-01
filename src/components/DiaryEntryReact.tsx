@@ -2,6 +2,7 @@ import React from "react";
 import TimelineItemReact from "./TimelineItemReact";
 import TwikooThread from "./TwikooThread";
 import { parseYMDAsUTC, formatSiteDate, toSiteYMD } from "@/utils/calendarDate";
+import { withBase } from "@/utils/withBase";
 
 // 本地电影数据接口
 interface LocalMovieData {
@@ -81,7 +82,7 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
   timeBlocks,
 }) => {
   const threadKey = `twikoo-diary-${date}`;
-  const threadPath = `/diary/${date}`;
+  const threadPath = withBase(`/diary/${date}`);
 
   const entryDateUTC = parseYMDAsUTC(date);
 
@@ -126,7 +127,7 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
         <div className="flex items-baseline gap-3">
           <h2
             id={`date-${date}`}
-            className="text-skin-accent m-0 text-3xl leading-none font-bold"
+            className="m-0 text-3xl leading-none font-bold text-skin-accent"
             aria-label={`${relativeLabel ?? absoluteLabel} ${weekdayLabel} ${!hideYear ? yearLabel : ""} 的碎片`}
           >
             {/* SSR 时渲染 absoluteLabel；CSR 完成后若有相对文案则替换。
@@ -136,11 +137,11 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
             </span>
           </h2>
           <div className="flex flex-col" aria-hidden="true">
-            <div className="text-skin-base text-base leading-tight font-medium">
+            <div className="text-base leading-tight font-medium text-skin-base">
               {weekdayLabel}
             </div>
             {!hideYear && (
-              <div className="text-skin-base/70 text-sm leading-tight">
+              <div className="text-sm leading-tight text-skin-base/70">
                 {yearLabel}
               </div>
             )}

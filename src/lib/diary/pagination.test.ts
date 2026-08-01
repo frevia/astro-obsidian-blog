@@ -28,6 +28,11 @@ describe("nextPageState", () => {
         { currentPage: 2, totalPages: 3, hasMore: true, itemsPerPage: 5 },
         3
       )
-    ).toEqual({ currentPage: 3, totalPages: 3, hasMore: false, itemsPerPage: 5 });
+    ).toEqual({
+      currentPage: 3,
+      totalPages: 3,
+      hasMore: false,
+      itemsPerPage: 5,
+    });
   });
 });

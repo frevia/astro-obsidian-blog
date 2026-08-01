@@ -1,0 +1,122 @@
+---
+import { SITE } from "@/config";
+import { useTranslations } from "@/i18n";
+
+const labels = useTranslations(SITE.lang).lightbox;
+---
+
+<div
+  id="article-lightbox"
+  class="fixed inset-0 z-50 hidden items-center justify-center bg-black/90 p-4 text-white"
+  role="dialog"
+  aria-modal="true"
+  aria-hidden="true"
+  aria-label={labels.preview}
+  tabindex="-1"
+  hidden
+  data-open-label={labels.open}
+>
+  <button
+    type="button"
+    class="absolute top-4 right-4 rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+    data-lightbox-close
+    aria-label={labels.close}
+  >
+    ×
+  </button>
+  <button
+    type="button"
+    class="absolute top-1/2 left-4 hidden -translate-y-1/2 rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+    data-lightbox-prev
+    aria-label={labels.previous}
+    hidden
+  >
+    ‹
+  </button>
+  <figure class="m-0 flex max-h-full max-w-full flex-col items-center gap-3">
+    <img
+      src=""
+      alt=""
+      class="max-h-[82vh] max-w-[92vw] object-contain transition-transform duration-150 select-none motion-reduce:transition-none"
+      data-lightbox-image
+    />
+    <figcaption
+      class="max-w-[92vw] text-center text-sm text-white/80"
+      data-lightbox-caption
+      aria-live="polite"
+    >
+    </figcaption>
+  </figure>
+  <button
+    type="button"
+    class="absolute top-1/2 right-4 hidden -translate-y-1/2 rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+    data-lightbox-next
+    aria-label={labels.next}
+    hidden
+  >
+    ›
+  </button>
+  <div class="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+    <button
+      type="button"
+      class="rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+      data-lightbox-zoom-out
+      aria-label={labels.zoomOut}
+    >
+      -
+    </button>
+    <button
+      type="button"
+      class="rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+      data-lightbox-zoom-in
+      aria-label={labels.zoomIn}
+    >
+      +
+    </button>
+  </div>
+</div>
+
+<script>
+  import { initArticleLightbox } from "./article-lightbox";
+
+  declare global {
+    interface Window {
+      __articleLightboxCleanup?: () => void;
+      __articleLightboxPageLoadHandler?: () => void;
+      __articleLightboxBeforeSwapHandler?: () => void;
+    }
+  }
+
+  const onPageLoad = () => {
+    window.__articleLightboxCleanup?.();
+
+    const root = document.getElementById("article-lightbox");
+    const openLabel = root?.dataset.openLabel;
+    window.__articleLightboxCleanup = openLabel
+      ? initArticleLightbox({ open: openLabel })
+      : undefined;
+  };
+
+  const onBeforeSwap = () => {
+    window.__articleLightboxCleanup?.();
+    window.__articleLightboxCleanup = undefined;
+  };
+
+  if (window.__articleLightboxPageLoadHandler) {
+    document.removeEventListener(
+      "astro:page-load",
+      window.__articleLightboxPageLoadHandler
+    );
+  }
+  if (window.__articleLightboxBeforeSwapHandler) {
+    document.removeEventListener(
+      "astro:before-swap",
+      window.__articleLightboxBeforeSwapHandler
+    );
+  }
+
+  window.__articleLightboxPageLoadHandler = onPageLoad;
+  window.__articleLightboxBeforeSwapHandler = onBeforeSwap;
+  document.addEventListener("astro:page-load", onPageLoad);
+  document.addEventListener("astro:before-swap", onBeforeSwap);
+</script>

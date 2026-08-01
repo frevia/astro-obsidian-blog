@@ -11,9 +11,12 @@ import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
 import IconChevronRight from "@/assets/icons/IconChevronRight.svg";
 import { SITE } from "@/config";
 import { slugifyStr } from "@/utils/slugify";
+import { toTransitionName } from "@/utils/toTransitionName";
 import getPostsByGroupCondition from "@/utils/getPostsByGroupCondition";
 import { getYearMonthInTimeZone } from "@/utils/calendarDate";
 import AiSummaryCard from "@/components/AiSummaryCard.astro";
+import { withBase } from "@/utils/withBase";
+import ArticleLightbox from "@/components/ArticleLightbox.astro";
 
 export interface Props {
   post: CollectionEntry<"clip">;
@@ -36,7 +39,8 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content } = await render(post);
 
-const { title, description, published, timezone, source, summary, tags } = post.data;
+const { title, description, published, timezone, source, summary, tags } =
+  post.data;
 
 const layoutProps = {
   title: `${title} | ${SITE.title}`,
@@ -90,7 +94,7 @@ const resolveFavoriteSlug = (slug: string | undefined, title: string) => {
 };
 
 const getFavoritePath = (slug: string | undefined, title: string) => {
-  return `/favorites/${resolveFavoriteSlug(slug, title)}`;
+  return withBase(`/favorites/${resolveFavoriteSlug(slug, title)}`);
 };
 
 const currentPostIndex = allFavorites.findIndex(item => item.id === post.id);
@@ -115,13 +119,15 @@ const nextPost =
     data-pagefind-weight="5"
   >
     <h1
-      transition:name={slugifyStr(title)}
+      transition:name={toTransitionName(title)}
       class="inline-block text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
       data-pagefind-meta="title"
     >
       {title}
     </h1>
-    <div class="mt-4 mb-7 flex items-center gap-2 rounded-lg border border-border/70 bg-surface-muted px-3 py-2 text-sm text-foreground/75">
+    <div
+      class="mt-4 mb-7 flex items-center gap-2 rounded-lg border border-border/70 bg-surface-muted px-3 py-2 text-sm text-foreground/75"
+    >
       <Datetime published={published} timezone={timezone} size="lg" />
     </div>
     {
@@ -171,8 +177,12 @@ const nextPost =
     >
       <Content />
     </article>
+    <ArticleLightbox />
     <BackToTopButton />
-    <aside id="sidebar" class="sidebar toc-empty hidden rounded-xl border border-border/70 bg-surface-elevated p-3 shadow-sm lg:block">
+    <aside
+      id="sidebar"
+      class="sidebar toc-empty hidden rounded-xl border border-border/70 bg-surface-elevated p-3 shadow-sm lg:block"
+    >
       <div class="toc-title mb-2 text-sm font-medium">页面导航</div>
       <div id="toc-container" class="js-toc"></div>
     </aside>

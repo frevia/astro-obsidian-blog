@@ -6,10 +6,7 @@ export function chordLngLatAt(
   b: [number, number],
   t: number
 ): [number, number] {
-  return [
-    a[0] + t * (b[0] - a[0]),
-    a[1] + t * (b[1] - a[1]),
-  ];
+  return [a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])];
 }
 
 /** 将地名拆成两段（按字均分），至少 2 字才拆 */

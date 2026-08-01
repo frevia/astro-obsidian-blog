@@ -1,5 +1,8 @@
 import type { APIRoute } from "astro";
-import { FEEDS_BLOB_PATHNAME, feedsBlobAccess } from "@/utils/feedsBlobPathname";
+import {
+  FEEDS_BLOB_PATHNAME,
+  feedsBlobAccess,
+} from "@/utils/feedsBlobPathname";
 import { fetchAndBuildFeeds } from "@/utils/fetchFeeds";
 
 export const prerender = false;

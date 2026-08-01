@@ -8,40 +8,43 @@ export interface Props {
   compact?: boolean;
 }
 
-const {
-  tags,
-  class: className,
-  compact = false,
-} = Astro.props;
+const { tags, class: className, compact = false } = Astro.props;
 
 const rootId = `collapsible-tag-list-${Math.random().toString(36).slice(2, 10)}`;
 const contentId = `${rootId}-content`;
 ---
 
-{tags.length > 0 && (
-  <div class:list={["collapsible-tag-list", className]} data-collapsible-tag-list-root>
-    <ul
-      id={contentId}
-      class:list={[
-        "flex flex-wrap",
-        compact ? "mt-3 mb-2 gap-2.5" : "mt-5 mb-9 sm:my-9",
-      ]}
-      data-collapsible-tag-list-content
+{
+  tags.length > 0 && (
+    <div
+      class:list={["collapsible-tag-list", className]}
+      data-collapsible-tag-list-root
     >
-      {tags.map(tag => <Tag tag={slugifyStr(tag)} tagName={tag} />)}
-    </ul>
+      <ul
+        id={contentId}
+        class:list={[
+          "flex flex-wrap",
+          compact ? "mt-3 mb-2 gap-2.5" : "mt-5 mb-9 sm:my-9",
+        ]}
+        data-collapsible-tag-list-content
+      >
+        {tags.map(tag => (
+          <Tag tag={slugifyStr(tag)} tagName={tag} />
+        ))}
+      </ul>
 
-    <button
-      type="button"
-      class="hidden text-sm text-accent transition-colors hover:text-accent/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-      data-collapsible-tag-list-toggle
-      aria-controls={contentId}
-      aria-expanded="false"
-    >
-      展开
-    </button>
-  </div>
-)}
+      <button
+        type="button"
+        class="hidden text-sm text-accent transition-colors hover:text-accent/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        data-collapsible-tag-list-toggle
+        aria-controls={contentId}
+        aria-expanded="false"
+      >
+        展开
+      </button>
+    </div>
+  )
+}
 
 <script>
   const ONE_LINE_HEIGHT = 36;
@@ -55,7 +58,10 @@ const contentId = `${rootId}-content`;
       const content = root.querySelector("[data-collapsible-tag-list-content]");
       const toggle = root.querySelector("[data-collapsible-tag-list-toggle]");
 
-      if (!(content instanceof HTMLElement) || !(toggle instanceof HTMLButtonElement)) {
+      if (
+        !(content instanceof HTMLElement) ||
+        !(toggle instanceof HTMLButtonElement)
+      ) {
         return;
       }
 

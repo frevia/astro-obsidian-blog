@@ -27,11 +27,6 @@ export interface MediaCardProps {
   cardType?: "movie" | "tv" | "book" | "music";
 }
 
-// remarkMediaCard 插件选项接口
-export interface MediaCardOptions {
-  enableDebug?: boolean;
-}
-
 // 支持的媒体卡片类型
 export type MediaCardType = "movie" | "tv" | "book" | "music";
 

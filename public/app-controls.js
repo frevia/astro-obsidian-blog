@@ -2,6 +2,9 @@
 (function () {
   "use strict";
 
+  if (window.__appControlsInitialized) return;
+  window.__appControlsInitialized = true;
+
   // ===== 主题切换功能 =====
   const primaryColorScheme = ""; // "light" | "dark"
 
@@ -28,13 +31,20 @@
     reflectPreference();
   }
 
-  function getThemeA11yLabel(theme) {
+  function getThemeA11yLabel(theme, control) {
+    if (!control) return "";
+
     const labelMap = {
-      light: "切换主题（当前：浅色）",
-      dark: "切换主题（当前：深色）",
-      auto: "切换主题（当前：自动）",
+      light: control.dataset.themeLightLabel,
+      dark: control.dataset.themeDarkLabel,
+      auto: control.dataset.themeAutoLabel,
     };
-    return labelMap[theme] ?? labelMap.auto;
+    return (
+      labelMap[theme] ||
+      labelMap.auto ||
+      control.getAttribute("aria-label") ||
+      ""
+    );
   }
 
   function getThemePressed(theme) {
@@ -45,11 +55,17 @@
     document.firstElementChild.setAttribute("data-theme", themeValue);
 
     const themeBtn = document.querySelector("#theme-btn");
-    themeBtn?.setAttribute("aria-label", getThemeA11yLabel(themeValue));
+    const themeBtnLabel = getThemeA11yLabel(themeValue, themeBtn);
+    if (themeBtnLabel) {
+      themeBtn?.setAttribute("aria-label", themeBtnLabel);
+    }
     themeBtn?.setAttribute("aria-pressed", getThemePressed(themeValue));
 
     const themeBtnMobile = document.querySelector("#theme-btn-mobile");
-    themeBtnMobile?.setAttribute("aria-label", getThemeA11yLabel(themeValue));
+    const themeBtnMobileLabel = getThemeA11yLabel(themeValue, themeBtnMobile);
+    if (themeBtnMobileLabel) {
+      themeBtnMobile?.setAttribute("aria-label", themeBtnMobileLabel);
+    }
     themeBtnMobile?.setAttribute("aria-pressed", getThemePressed(themeValue));
 
     // Get a reference to the body element
@@ -140,7 +156,7 @@
         });
       };
 
-      const touchendHandler = (e) => {
+      const touchendHandler = e => {
         e.preventDefault();
         themeClickHandler();
       };
@@ -364,10 +380,8 @@
     initVideoControls();
     initVideoObserver();
     initThemeControls();
-
-    // Runs on view transitions navigation
-    document.addEventListener("astro:after-swap", initThemeControls);
   });
+  document.addEventListener("astro:after-swap", initThemeControls);
 
   // 离开前记录当前页面
   const readStack = () => {

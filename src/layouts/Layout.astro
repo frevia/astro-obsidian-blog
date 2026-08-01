@@ -1,14 +1,15 @@
 ---
 import { ClientRouter } from "astro:transitions";
+import { Font } from "astro:assets";
 import { PUBLIC_GOOGLE_SITE_VERIFICATION } from "astro:env/client";
 import { SITE } from "@/config";
 import "@/styles/global.css";
-import "photosuite/dist/photosuite.css";
 
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
 import CalendarModal from "@/components/CalendarModal.astro";
 import CalendarWidget from "@/components/CalendarWidget.astro";
+import { getAssetPath, withBase } from "@/utils/withBase";
 
 export interface Props {
   title?: string;
@@ -26,15 +27,16 @@ const {
   author = SITE.author,
   profile = SITE.profile,
   description = SITE.desc,
-  cover = SITE.cover ? `/${SITE.cover}` : "/og.png",
-  canonicalURL = new URL(Astro.url.pathname, Astro.url),
+  cover = SITE.cover ? getAssetPath(`/${SITE.cover}`) : getAssetPath("/og.png"),
+  canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url),
   published,
   scrollSmooth = false,
 } = Astro.props;
 
 const showCalendar = SITE.showCalendar;
 
-const socialImageURL = new URL(cover, Astro.url);
+const socialImageURL = new URL(cover, Astro.site ?? Astro.url);
+const rssURL = new URL(withBase("/rss.xml"), Astro.site ?? Astro.url);
 
 const structuredData = {
   "@context": "https://schema.org",
@@ -61,7 +63,9 @@ const structuredData = {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <Font cssVariable="--font-noto-sans-sc" />
+    <Font cssVariable="--font-noto-serif-sc" />
+    <link rel="icon" type="image/png" href={getAssetPath("/favicon.png")} />
     <link rel="canonical" href={canonicalURL} />
     <meta name="generator" content={Astro.generator} />
 
@@ -70,7 +74,7 @@ const structuredData = {
     <meta name="title" content={title} />
     <meta name="description" content={description} />
     <meta name="author" content={author} />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="sitemap" href={withBase("/sitemap-index.xml")} />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:title" content={title} />
@@ -108,7 +112,7 @@ const structuredData = {
       rel="alternate"
       type="application/rss+xml"
       title={SITE.title}
-      href={new URL("rss.xml", Astro.site)}
+      href={rssURL}
     />
 
     <meta
@@ -133,7 +137,7 @@ const structuredData = {
 
     <ClientRouter />
 
-    <script is:inline src="/app-controls.js"></script>
+    <script is:inline src={getAssetPath("/app-controls.js")}></script>
   </head>
   <body>
     <slot />
@@ -183,7 +187,7 @@ const structuredData = {
 
         mermaid.initialize({
           startOnLoad: false,
-          securityLevel: "loose",
+          securityLevel: "strict",
           theme: getMermaidTheme(),
         });
 
@@ -191,6 +195,7 @@ const structuredData = {
         for (const preEl of preBlocks) {
           if (!(preEl instanceof HTMLPreElement)) continue;
           if (!isMermaidCodeBlock(preEl)) continue;
+          // prettier-ignore
           if (preEl.dataset.mermaidProcessed === "true" || preEl.classList.contains("hidden")) continue;
 
           const source = getMermaidSource(preEl);
@@ -222,7 +227,7 @@ const structuredData = {
 
         mermaid.initialize({
           startOnLoad: false,
-          securityLevel: "loose",
+          securityLevel: "strict",
           theme: getMermaidTheme(),
         });
 

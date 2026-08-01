@@ -3,10 +3,9 @@ import { attachmentRelativePath } from "./attachmentPath";
 
 // 导入所有支持的图片格式
 const images = {
-  ...import.meta.glob(
-    "../data/attachment/**/*.{jpg,jpeg,png,gif,webp,svg}",
-    { eager: true }
-  ),
+  ...import.meta.glob("../data/attachment/**/*.{jpg,jpeg,png,gif,webp,svg}", {
+    eager: true,
+  }),
   ...import.meta.glob("../data/attachments/**/*.{jpg,jpeg,png,gif,webp,svg}", {
     eager: true,
   }),

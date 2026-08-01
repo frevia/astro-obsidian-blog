@@ -2,6 +2,7 @@ import type { CollectionEntry } from "astro:content";
 import { getPath } from "@/utils/getPath";
 import postFilter from "@/utils/postFilter";
 import { toYMDInTimeZone } from "@/utils/calendarDate";
+import { withBase } from "@/utils/withBase";
 
 export type CalendarEventType = "blog" | "diary";
 
@@ -48,7 +49,7 @@ export function getCalendarEvents(
     events.push({
       type: "diary",
       date: dateStr,
-      url: `/diary/${quarterKey}#date-${dateStr}`,
+      url: withBase(`/diary/${quarterKey}#date-${dateStr}`),
       title: undefined,
     });
   }

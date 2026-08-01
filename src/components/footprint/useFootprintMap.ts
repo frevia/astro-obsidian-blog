@@ -50,7 +50,10 @@ function recordsAtPlace(
   );
 }
 
-export function useFootprintMap(places: FootprintPlace[], records: FootprintRecord[]) {
+export function useFootprintMap(
+  places: FootprintPlace[],
+  records: FootprintRecord[]
+) {
   const [focusedProvinceKey, setFocusedProvinceKey] = useState<string | null>(
     null
   );
@@ -62,18 +65,20 @@ export function useFootprintMap(places: FootprintPlace[], records: FootprintReco
     const long = PROVINCE_NAME_MAP[focusedProvinceKey];
     const shortName = long ? chinaDataProvinceName(long) : "";
     return (
-      (ChinaData.features as Array<{
-        properties?: { name?: string };
-      }>).find(f => f.properties?.name === shortName) ?? null
+      (
+        ChinaData.features as Array<{
+          properties?: { name?: string };
+        }>
+      ).find(f => f.properties?.name === shortName) ?? null
     );
   }, [focusedProvinceKey]);
 
   /** 与地图绘制一致：用市级要素并集拟合投影，避免省界简要与市级轮廓不一致导致四周留白 */
   const focusedProvinceCityCollection = useMemo(() => {
     if (!focusedProvinceKey) return null;
-    const coll = (
-      ProvinceData as Record<string, { features?: unknown[] }>
-    )[focusedProvinceKey];
+    const coll = (ProvinceData as Record<string, { features?: unknown[] }>)[
+      focusedProvinceKey
+    ];
     const features = coll?.features ?? [];
     if (!features.length) return null;
     return { type: "FeatureCollection" as const, features };
@@ -87,10 +92,7 @@ export function useFootprintMap(places: FootprintPlace[], records: FootprintReco
     ];
     if (focusedProvinceCityCollection) {
       // contain：整省（市级并集）完全落在 extent 内，不裁切出框
-      return mercator.fitExtent(
-        extent,
-        focusedProvinceCityCollection as never
-      );
+      return mercator.fitExtent(extent, focusedProvinceCityCollection as never);
     }
     return mercator.fitExtent(extent, ChinaData as never);
   }, [focusedProvinceCityCollection]);
@@ -112,10 +114,16 @@ export function useFootprintMap(places: FootprintPlace[], records: FootprintReco
       ProvinceData as Record<string, { features?: unknown[] }>
     ).flatMap(([provinceKey, collection]) =>
       (collection.features ?? []).map((feature, idx) => {
-        let bbox = geoBounds(feature as never) as [[number, number], [number, number]];
+        let bbox = geoBounds(feature as never) as [
+          [number, number],
+          [number, number],
+        ];
         // Dateline safety fallback
         if (bbox[0][0] > bbox[1][0]) {
-          bbox = [[-180, bbox[0][1]], [180, bbox[1][1]]];
+          bbox = [
+            [-180, bbox[0][1]],
+            [180, bbox[1][1]],
+          ];
         }
         return {
           key: `${provinceKey}-city-${idx}`,
@@ -124,7 +132,8 @@ export function useFootprintMap(places: FootprintPlace[], records: FootprintReco
           feature,
           bbox,
           cityName:
-            (feature as { properties?: { name?: string } }).properties?.name ?? "",
+            (feature as { properties?: { name?: string } }).properties?.name ??
+            "",
         };
       })
     );
@@ -142,9 +151,11 @@ export function useFootprintMap(places: FootprintPlace[], records: FootprintReco
 
   const regionPaths = useMemo(
     () =>
-      (ChinaData.features as Array<{
-        properties?: { name?: string };
-      }>).map((feature, idx) => ({
+      (
+        ChinaData.features as Array<{
+          properties?: { name?: string };
+        }>
+      ).map((feature, idx) => ({
         key: `${feature.properties?.name ?? "region"}-${idx}`,
         name: feature.properties?.name ?? "",
         d: pathGen(feature as never),
@@ -213,7 +224,8 @@ export function useFootprintMap(places: FootprintPlace[], records: FootprintReco
     if (provinceCityPaths.length > 0) return provinceCityPaths;
     // 某些地区（如港澳台）无市级切片数据时，退化为省级单区域可点击。
     if (!focusedProvinceFeature) return [];
-    const provinceName = PROVINCE_NAME_MAP[focusedProvinceKey] ?? focusedProvinceKey;
+    const provinceName =
+      PROVINCE_NAME_MAP[focusedProvinceKey] ?? focusedProvinceKey;
     return [
       {
         key: `${focusedProvinceKey}-province-fallback`,
@@ -255,7 +267,10 @@ export function useFootprintMap(places: FootprintPlace[], records: FootprintReco
         const city = list[idx];
         const has = placesArr.some(place => {
           if (!inBbox(place.lng, place.lat, city.bbox)) return false;
-          return geoContains(city.feature as never, [place.lng, place.lat] as never);
+          return geoContains(
+            city.feature as never,
+            [place.lng, place.lat] as never
+          );
         });
         if (has) keys.add(city.key);
         idx += 1;
@@ -306,10 +321,10 @@ export function useFootprintMap(places: FootprintPlace[], records: FootprintReco
   const visibleMarkerPoints = useMemo(() => {
     if (!focusedProvinceFeature) return [];
     return markerPoints.filter(place =>
-      geoContains(focusedProvinceFeature as never, [
-        place.lng,
-        place.lat,
-      ] as never)
+      geoContains(
+        focusedProvinceFeature as never,
+        [place.lng, place.lat] as never
+      )
     );
   }, [focusedProvinceFeature, markerPoints]);
 
@@ -318,10 +333,7 @@ export function useFootprintMap(places: FootprintPlace[], records: FootprintReco
     const target = visibleCityPaths.find(c => c.key === selectedCityKey);
     if (!target) return null;
     const posts = records.filter(record =>
-      geoContains(target.feature as never, [
-        record.lng,
-        record.lat,
-      ] as never)
+      geoContains(target.feature as never, [record.lng, record.lat] as never)
     );
     return {
       key: target.key,
@@ -418,9 +430,7 @@ export function useFootprintMap(places: FootprintPlace[], records: FootprintReco
     let cancelled = false;
     setNationalProvinceLabelByKey(new Map());
 
-    const siblingFeatures = nationalProvinceLabelItems.map(
-      c => c.feature
-    );
+    const siblingFeatures = nationalProvinceLabelItems.map(c => c.feature);
     const project = (ll: [number, number]) => projection(ll) ?? null;
     const list = nationalProvinceLabelItems;
 

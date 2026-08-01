@@ -19,7 +19,7 @@ export async function getStaticPaths() {
   }));
 }
 
-export const GET: APIRoute = async ({ props }) => {
+export const GET: APIRoute = async ({ props, url }) => {
   if (!SITE.dynamicOgImage) {
     return new Response(null, {
       status: 404,
@@ -28,7 +28,8 @@ export const GET: APIRoute = async ({ props }) => {
   }
 
   const pngBuffer = await generateOgImageForPost(
-    props as CollectionEntry<"blog">
+    props as CollectionEntry<"blog">,
+    { width: 1200, height: 630, requestUrl: url }
   );
   const body = new Uint8Array(pngBuffer);
 

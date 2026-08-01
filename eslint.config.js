@@ -14,5 +14,16 @@ export default [
     },
   },
   { rules: { "no-console": "off" } },
-  { ignores: ["dist/**", ".astro", "src/data/**", "public/pagefind/**"] },
+  {
+    ignores: [
+      "dist/**",
+      ".vercel/**",
+      ".astro",
+      "src/data/**",
+      "public/pagefind/**",
+      ".cursor/**",
+      ".claude/**",
+      ".agents/**",
+    ],
+  },
 ];

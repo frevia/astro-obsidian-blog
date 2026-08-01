@@ -4,17 +4,23 @@ import type { CollectionEntry } from "astro:content";
 import IconArrowLeft from "@/assets/icons/IconArrowLeft.svg";
 import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
 import LinkButton from "./LinkButton.astro";
+import { SITE } from "@/config";
+import { useTranslations } from "@/i18n";
 
 export interface Props {
   page: Page<CollectionEntry<"blog">>;
 }
 
 const { page } = Astro.props;
+const t = useTranslations(SITE.lang);
 ---
 
 {
   page.lastPage > 1 && (
-    <nav class="mt-auto mb-8 flex items-center justify-center gap-3" aria-label="分页导航">
+    <nav
+      class="mt-auto mb-8 flex items-center justify-center gap-3"
+      aria-label={t.pagination.navLabel}
+    >
       <LinkButton
         disabled={!page.url.prev}
         href={page.url.prev as string}
@@ -25,12 +31,12 @@ const { page } = Astro.props;
             "hover:border-accent/50 hover:text-accent": page.url.prev,
           },
         ]}
-        ariaLabel="上一页"
+        ariaLabel={t.a11y.goToPreviousPage}
       >
         <IconArrowLeft class="inline-block rtl:rotate-180" />
-        上一页
+        {t.pagination.prev}
       </LinkButton>
-      <span class="min-w-20 text-center text-sm tabular-nums text-foreground/75">
+      <span class="min-w-20 text-center text-sm text-foreground/75 tabular-nums">
         {page.currentPage} / {page.lastPage}
       </span>
       <LinkButton
@@ -43,9 +49,9 @@ const { page } = Astro.props;
             "hover:border-accent/50 hover:text-accent": page.url.next,
           },
         ]}
-        ariaLabel="下一页"
+        ariaLabel={t.a11y.goToNextPage}
       >
-        下一页
+        {t.pagination.next}
         <IconArrowRight class="inline-block rtl:rotate-180" />
       </LinkButton>
     </nav>

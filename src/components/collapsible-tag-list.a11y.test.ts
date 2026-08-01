@@ -3,8 +3,14 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 describe("CollapsibleTagList integration and accessibility contract", () => {
-  const componentPath = resolve(import.meta.dirname, "CollapsibleTagList.astro");
-  const postDetailsPath = resolve(import.meta.dirname, "../layouts/PostDetails.astro");
+  const componentPath = resolve(
+    import.meta.dirname,
+    "CollapsibleTagList.astro"
+  );
+  const postDetailsPath = resolve(
+    import.meta.dirname,
+    "../layouts/PostDetails.astro"
+  );
   const favoriteDetailsPath = resolve(
     import.meta.dirname,
     "../pages/favorites/[...slug]/index.astro"
@@ -19,20 +25,26 @@ describe("CollapsibleTagList integration and accessibility contract", () => {
     expect(source).toContain("aria-controls");
     expect(source).toContain("aria-expanded");
     expect(source).toContain("scrollHeight > content.clientHeight");
-    expect(source).toContain('toggle.textContent = isExpanded ? "收起" : "展开"');
+    expect(source).toContain(
+      'toggle.textContent = isExpanded ? "收起" : "展开"'
+    );
   });
 
   it("removes tags block from post details page", () => {
     const source = readFileSync(postDetailsPath, "utf-8");
 
-    expect(source).not.toContain('import CollapsibleTagList from "@/components/CollapsibleTagList.astro"');
+    expect(source).not.toContain(
+      'import CollapsibleTagList from "@/components/CollapsibleTagList.astro"'
+    );
     expect(source).not.toContain("<CollapsibleTagList");
   });
 
   it("removes tags block from favorite details page", () => {
     const source = readFileSync(favoriteDetailsPath, "utf-8");
 
-    expect(source).not.toContain('import CollapsibleTagList from "@/components/CollapsibleTagList.astro"');
+    expect(source).not.toContain(
+      'import CollapsibleTagList from "@/components/CollapsibleTagList.astro"'
+    );
     expect(source).not.toContain("<CollapsibleTagList");
   });
 });

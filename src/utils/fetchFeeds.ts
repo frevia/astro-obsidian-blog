@@ -74,7 +74,10 @@ async function fetchOne(
   sub: FeedSubscription
 ): Promise<FeedItem> {
   try {
-    const feed = await withTimeout(parser.parseURL(sub.url), PER_FEED_TIMEOUT_MS);
+    const feed = await withTimeout(
+      parser.parseURL(sub.url),
+      PER_FEED_TIMEOUT_MS
+    );
     const latest = feed.items?.[0];
     return {
       blog_name: feed.title || sub.name || "未知博客",
@@ -84,7 +87,10 @@ async function fetchOne(
       avatar: sub.avatar,
     };
   } catch (err) {
-    console.error(`抓取 ${sub.url} 失败:`, err instanceof Error ? err.message : err);
+    console.error(
+      `抓取 ${sub.url} 失败:`,
+      err instanceof Error ? err.message : err
+    );
     return {
       blog_name: sub.name || "未知博客",
       title: "",

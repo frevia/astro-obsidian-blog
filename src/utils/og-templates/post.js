@@ -1,7 +1,7 @@
 import satori from "satori";
 // import { html } from "satori-html";
 import { SITE } from "@/config";
-import loadGoogleFonts from "../loadGoogleFont";
+import { loadOgFonts } from "../loadLocalFont";
 
 // const markup = html`<div
 //       style={{
@@ -100,6 +100,7 @@ export default async (post, options = {}) => {
   const padding = isSquare ? 56 : 48;
   const titleSize = isSquare ? 82 : 68;
   const footerSize = isSquare ? 34 : 28;
+  const requestUrl = options.requestUrl;
 
   return satori(
     {
@@ -112,6 +113,7 @@ export default async (post, options = {}) => {
           position: "relative",
           background: "linear-gradient(135deg, #f8f5ef 0%, #eee9df 100%)",
           color: "#171717",
+          fontFamily: "Ma Shan Zheng",
         },
         children: [
           {
@@ -199,6 +201,7 @@ export default async (post, options = {}) => {
                             fontSize: titleSize,
                             lineHeight: 1.2,
                             fontWeight: 800,
+                            fontFamily: "Ma Shan Zheng",
                             letterSpacing: "-0.02em",
                             maxHeight: isSquare ? "72%" : "62%",
                             overflow: "hidden",
@@ -247,9 +250,7 @@ export default async (post, options = {}) => {
       width,
       height,
       embedFont: true,
-      fonts: await loadGoogleFonts(
-        post.data.title + (post.data.author ?? SITE.author) + SITE.title
-      ),
+      fonts: await loadOgFonts(requestUrl),
     }
   );
 };

@@ -10,17 +10,20 @@ import ShareLinks from "@/components/ShareLinks.astro";
 import BackButton from "@/components/BackButton.astro";
 import BackToTopButton from "@/components/BackToTopButton.astro";
 import { getPath } from "@/utils/getPath";
-import { slugifyStr } from "@/utils/slugify";
+import { toTransitionName } from "@/utils/toTransitionName";
 import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
 import IconChevronRight from "@/assets/icons/IconChevronRight.svg";
 import { SITE } from "@/config";
 import MediaCard from "../components/MediaCard.astro";
 import Twikoo from "@/components/Twikoo.astro";
 import AiSummaryCard from "@/components/AiSummaryCard.astro";
+import ArticleLightbox from "@/components/ArticleLightbox.astro";
 import { PUBLIC_TWIKOO_ENV_ID } from "astro:env/client";
+import { tplStr, useTranslations } from "@/i18n";
 
 const commentsEnabled = SITE.comments.enabled;
 const hasTwikooEnv = Boolean(PUBLIC_TWIKOO_ENV_ID?.trim());
+const t = useTranslations(SITE.lang);
 
 export interface Props {
   post: CollectionEntry<"blog">;
@@ -85,6 +88,20 @@ const currentPostIndex = allPosts.findIndex(a => a.id === post.id);
 const prevPost = currentPostIndex !== 0 ? allPosts[currentPostIndex - 1] : null;
 const nextPost =
   currentPostIndex !== allPosts.length ? allPosts[currentPostIndex + 1] : null;
+
+const postDetailsLabels = {
+  tocTitle: t.post.tocTitle,
+  previousPost: t.post.previousPost,
+  nextPost: t.post.nextPost,
+  copyCode: t.post.copyCode,
+  copiedCode: t.post.copiedCode,
+};
+const twikooEnvName = "PUBLIC_TWIKOO_ENV_ID";
+const commentsMissingTwikoo = tplStr(t.post.commentsMissingTwikoo, {
+  env: twikooEnvName,
+});
+const [commentsMissingTwikooBefore, commentsMissingTwikooAfter = ""] =
+  commentsMissingTwikoo.split(twikooEnvName);
 ---
 
 <Layout {...layoutProps}>
@@ -98,9 +115,11 @@ const nextPost =
     ]}
     data-pagefind-body
     data-pagefind-weight="5"
+    data-copy-label={postDetailsLabels.copyCode}
+    data-copied-label={postDetailsLabels.copiedCode}
   >
     <h1
-      transition:name={slugifyStr(title)}
+      transition:name={toTransitionName(title)}
       class="inline-block text-2xl font-bold text-accent sm:text-3xl"
     >
       {title}
@@ -125,6 +144,7 @@ const nextPost =
     >
       <Content components={{ MediaCard }} />
     </article>
+    <ArticleLightbox />
 
     <hr class="my-8 border-dashed" />
 
@@ -137,11 +157,9 @@ const nextPost =
     {
       commentsEnabled && !hasTwikooEnv && (
         <div class="app-notice mt-8 px-4 py-3 text-sm">
-          评论功能已开启，但尚未完成 Twikoo 配置。请在环境变量中设置
-          <code class="app-code mx-1">
-            PUBLIC_TWIKOO_ENV_ID
-          </code>
-          后重新部署。
+          {commentsMissingTwikooBefore}
+          <code class="app-code mx-1">{twikooEnvName}</code>
+          {commentsMissingTwikooAfter}
         </div>
       )
     }
@@ -154,7 +172,9 @@ const nextPost =
 
     <!-- 目录侧边栏 -->
     <aside id="sidebar" class="sidebar toc-empty hidden lg:block">
-      <div class="toc-title mb-2 text-sm font-medium">页面导航</div>
+      <div class="toc-title mb-2 text-sm font-medium">
+        {postDetailsLabels.tocTitle}
+      </div>
       <div id="toc-container" class="js-toc"></div>
     </aside>
 
@@ -168,7 +188,7 @@ const nextPost =
           >
             <IconChevronLeft class="inline-block flex-none rtl:rotate-180" />
             <div>
-              <span>上一篇</span>
+              <span>{postDetailsLabels.previousPost}</span>
               <div class="text-sm text-accent/85">{prevPost.title}</div>
             </div>
           </a>
@@ -181,7 +201,7 @@ const nextPost =
             class="flex w-full justify-end gap-1 text-end hover:opacity-75 sm:col-start-2"
           >
             <div>
-              <span>下一篇</span>
+              <span>{postDetailsLabels.nextPost}</span>
               <div class="text-sm text-accent/85">{nextPost.title}</div>
             </div>
             <IconChevronRight class="inline-block flex-none rtl:rotate-180" />
@@ -193,17 +213,25 @@ const nextPost =
   <Footer />
 </Layout>
 
-<script is:inline data-astro-rerun>
-  /* Go to page start after page swap */
-  document.addEventListener("astro:after-swap", () => {
-    window.scrollTo({ left: 0, top: 0, behavior: "instant" });
-  });
-</script>
-
 <script>
   import tocbot from "tocbot";
 
-  document.addEventListener("astro:page-load", () => {
+  declare global {
+    interface Window {
+      __postDetailsCleanup?: () => void;
+      __postDetailsLifecycleBound?: boolean;
+    }
+  }
+
+  function initPostDetails() {
+    window.__postDetailsCleanup?.();
+
+    const article = document.getElementById("article");
+    if (!(article instanceof HTMLElement)) return;
+
+    const cleanupCallbacks: Array<() => void> = [];
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" });
+
     /** Create a progress indicator
      *  at the top */
     function createProgressBar() {
@@ -222,12 +250,13 @@ const nextPost =
 
       // Append the progress container to the document body or any other desired parent element
       document.body.appendChild(progressContainer);
+      cleanupCallbacks.push(() => progressContainer.remove());
     }
 
     /** Update the progress bar
      *  when user scrolls */
     function updateScrollProgress() {
-      document.addEventListener("scroll", () => {
+      const onScroll = () => {
         const winScroll =
           document.body.scrollTop || document.documentElement.scrollTop;
         const height =
@@ -240,11 +269,24 @@ const nextPost =
             myBar.style.width = scrolled + "%";
           }
         }
-      });
+      };
+
+      document.addEventListener("scroll", onScroll, { passive: true });
+      cleanupCallbacks.push(() =>
+        document.removeEventListener("scroll", onScroll)
+      );
+      onScroll();
     }
 
     /** 为代码块添加复制按钮 */
     function addCopyButtons() {
+      const main = document.getElementById("main-content");
+      if (!(main instanceof HTMLElement)) return;
+
+      const copyLabel = main.dataset.copyLabel;
+      const copiedLabel = main.dataset.copiedLabel;
+      if (!copyLabel || !copiedLabel) return;
+
       const preElements = document.querySelectorAll("pre");
 
       // 使用 DocumentFragment 批量处理 DOM 操作
@@ -305,7 +347,7 @@ const nextPost =
         ].join(" ");
         copyButton.setAttribute("data-copy-button", "true");
         copyButton.setAttribute("type", "button");
-        copyButton.textContent = "复制";
+        copyButton.textContent = copyLabel;
 
         // 添加点击事件
         copyButton.addEventListener("click", async () => {
@@ -317,7 +359,7 @@ const nextPost =
 
             // 视觉反馈
             const originalText = copyButton.textContent;
-            copyButton.textContent = "已复制";
+            copyButton.textContent = copiedLabel;
 
             setTimeout(() => {
               copyButton.textContent = originalText;
@@ -371,5 +413,21 @@ const nextPost =
         sidebar.setAttribute("aria-hidden", String(!hasTocItem));
       }
     }
-  });
+
+    window.__postDetailsCleanup = () => {
+      cleanupCallbacks.forEach(cleanup => cleanup());
+      tocbot.destroy();
+      window.__postDetailsCleanup = undefined;
+    };
+  }
+
+  if (!window.__postDetailsLifecycleBound) {
+    document.addEventListener("astro:page-load", initPostDetails);
+    document.addEventListener("astro:before-swap", () => {
+      window.__postDetailsCleanup?.();
+    });
+    window.__postDetailsLifecycleBound = true;
+  }
+
+  initPostDetails();
 </script>

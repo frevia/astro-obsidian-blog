@@ -4,6 +4,8 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import IconCalendar from "@/assets/icons/IconCalendar.svg";
 import IconFavorite from "@/assets/icons/IconFavorite.svg";
+import { SITE } from "@/config";
+import { useTranslations } from "@/i18n";
 import { SITE_TIMEZONE } from "@/utils/calendarDate";
 import "dayjs/locale/zh-cn";
 
@@ -36,6 +38,9 @@ const {
   detailPage = false,
 } = Astro.props;
 
+const t = useTranslations(SITE.lang);
+const dayjsLocale = SITE.lang.toLowerCase().startsWith("zh") ? "zh-cn" : "en";
+
 const hasExplicitTime = (value: string | Date | undefined | null) => {
   if (!value) return false;
   if (typeof value === "string") {
@@ -60,11 +65,11 @@ const formatDate = (
   const datetime = dayjs(date).tz(timezone || SITE_TIMEZONE);
   if (compact) {
     return datetime
-      .locale("zh-cn")
+      .locale(dayjsLocale)
       .format(hasExplicitTime(date) ? "YYYY-MM-DD HH:mm" : "YYYY-MM-DD");
   }
   return datetime
-    .locale("zh-cn")
+    .locale(dayjsLocale)
     .format(
       hasExplicitTime(date) ? "ddd / YYYY-MM-DD HH:mm" : "ddd / YYYY-MM-DD"
     );
@@ -73,7 +78,7 @@ const formatDate = (
 const formatDateTitle = (date: string | Date, timezone: string | undefined) => {
   const datetime = dayjs(date).tz(timezone || SITE_TIMEZONE);
   return datetime
-    .locale("zh-cn")
+    .locale(dayjsLocale)
     .format(
       hasExplicitTime(date) ? "ddd / YYYY-MM-DD HH:mm" : "ddd / YYYY-MM-DD"
     );
@@ -100,39 +105,37 @@ const shouldShowCreated =
   layout === "meta" ? (
     <div class:list={["datetime-meta", className]}>
       <span class="datetime-meta-part">
-        <span class="datetime-meta-label">发布</span>
+        <span class="datetime-meta-label">{t.post.publishedMeta}</span>
         <time
           class="datetime-meta-time"
           datetime={dayjs(published).toISOString()}
-          title={`原创发布时间：${publishedTitle}`}
+          title={`${t.post.originalPublishedAt}：${publishedTitle}`}
         >
           {publishedDate}
         </time>
       </span>
-      {
-        shouldShowCreated && (
-          <>
-            <span class="datetime-meta-sep" aria-hidden="true">
-              ·
-            </span>
-            <span class="datetime-meta-part">
-              <span class="datetime-meta-label">收录</span>
-              <time
-                class:list={[
-                  "datetime-meta-time",
-                  {
-                    "datetime-meta-time--muted": !detailPage,
-                  },
-                ]}
-                datetime={dayjs(created!).toISOString()}
-                title={`收录时间：${createdTitle}`}
-              >
-                {createdDate}
-              </time>
-            </span>
-          </>
-        )
-      }
+      {shouldShowCreated && (
+        <>
+          <span class="datetime-meta-sep" aria-hidden="true">
+            ·
+          </span>
+          <span class="datetime-meta-part">
+            <span class="datetime-meta-label">{t.post.collectedMeta}</span>
+            <time
+              class:list={[
+                "datetime-meta-time",
+                {
+                  "datetime-meta-time--muted": !detailPage,
+                },
+              ]}
+              datetime={dayjs(created!).toISOString()}
+              title={`${t.post.collectedAt}：${createdTitle}`}
+            >
+              {createdDate}
+            </time>
+          </span>
+        </>
+      )}
     </div>
   ) : layout === "stack" ? (
     <div class:list={["datetime-stack", className]}>
@@ -143,33 +146,31 @@ const shouldShowCreated =
         <time
           class="datetime-stack-time"
           datetime={dayjs(published).toISOString()}
-          title={`原创发布时间：${publishedTitle}`}
+          title={`${t.post.originalPublishedAt}：${publishedTitle}`}
         >
           {publishedDate}
         </time>
       </div>
-      {
-        shouldShowCreated && (
-          <div class="datetime-stack-row">
-            <span class="datetime-stack-icon" aria-hidden="true">
-              <IconFavorite />
-            </span>
-            <time
-              class:list={[
-                "datetime-stack-time",
-                {
-                  "text-foreground/60": !detailPage,
-                  "text-foreground": detailPage,
-                },
-              ]}
-              datetime={dayjs(created).toISOString()}
-              title={`收录时间：${createdTitle}`}
-            >
-              {createdDate}
-            </time>
-          </div>
-        )
-      }
+      {shouldShowCreated && (
+        <div class="datetime-stack-row">
+          <span class="datetime-stack-icon" aria-hidden="true">
+            <IconFavorite />
+          </span>
+          <time
+            class:list={[
+              "datetime-stack-time",
+              {
+                "text-foreground/60": !detailPage,
+                "text-foreground": detailPage,
+              },
+            ]}
+            datetime={dayjs(created).toISOString()}
+            title={`${t.post.collectedAt}：${createdTitle}`}
+          >
+            {createdDate}
+          </time>
+        </div>
+      )}
     </div>
   ) : (
     <div class:list={["flex items-center gap-x-2 opacity-80", className]}>
@@ -182,38 +183,36 @@ const shouldShowCreated =
       <time
         class:list={["text-sm", { "sm:text-base": size === "lg" }]}
         datetime={dayjs(published).toISOString()}
-        title="原创发布时间"
+        title={t.post.originalPublishedAt}
       >
         {publishedDate}
       </time>
 
-      {
-        shouldShowCreated && (
-          <>
-            <span class="text-foreground/40">|</span>
-            <IconFavorite
-              class:list={[
-                "inline-block size-6 min-w-[1.375rem] text-foreground",
-                { "scale-90": size === "sm" },
-              ]}
-            />
-            <time
-              class:list={[
-                "text-sm",
-                { "sm:text-base": size === "lg" },
-                {
-                  "text-foreground/60": !detailPage,
-                  "text-foreground": detailPage,
-                },
-              ]}
-              datetime={dayjs(created).toISOString()}
-              title="收录时间"
-            >
-              {createdDate}
-            </time>
-          </>
-        )
-      }
+      {shouldShowCreated && (
+        <>
+          <span class="text-foreground/40">|</span>
+          <IconFavorite
+            class:list={[
+              "inline-block size-6 min-w-[1.375rem] text-foreground",
+              { "scale-90": size === "sm" },
+            ]}
+          />
+          <time
+            class:list={[
+              "text-sm",
+              { "sm:text-base": size === "lg" },
+              {
+                "text-foreground/60": !detailPage,
+                "text-foreground": detailPage,
+              },
+            ]}
+            datetime={dayjs(created).toISOString()}
+            title={t.post.collectedAt}
+          >
+            {createdDate}
+          </time>
+        </>
+      )}
     </div>
   )
 }

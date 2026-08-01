@@ -38,8 +38,10 @@ export function labelLngLatAvoidingSiblings(
   // 大区域包小区域时（如河北包北京/天津），即使中心点合法，也应远离内嵌兄弟区域。
   // 用“在 self 内的兄弟质心”形成斥力，避免标签压住内部区域。
   const enclosedSiblingCentroids: [number, number][] = [];
-  const selfBboxArea =
-    Math.max(1e-9, (b[1][0] - b[0][0]) * (b[1][1] - b[0][1]));
+  const selfBboxArea = Math.max(
+    1e-9,
+    (b[1][0] - b[0][0]) * (b[1][1] - b[0][1])
+  );
   for (let k = 0; k < siblingFeatures.length; k++) {
     if (k === selfIndex) continue;
     const sib = siblingFeatures[k];
@@ -63,7 +65,8 @@ export function labelLngLatAvoidingSiblings(
       gc[1] >= b[0][1] &&
       gc[1] <= b[1][1];
     const nearCenter = Math.hypot(gc[0] - c[0], gc[1] - c[1]) <= span * 0.8;
-    if (smallSibling && inSelfBox && nearCenter) enclosedSiblingCentroids.push(gc);
+    if (smallSibling && inSelfBox && nearCenter)
+      enclosedSiblingCentroids.push(gc);
   }
 
   const repelRadius = span * 0.32;

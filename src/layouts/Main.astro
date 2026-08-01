@@ -21,21 +21,32 @@ const { props } = Astro;
   <header class="mb-7" aria-labelledby="page-heading">
     {
       "titleTransition" in props ? (
-        <h1 id="page-heading" class="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+        <h1
+          id="page-heading"
+          class="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+        >
           {props.pageTitle[0]}
           <span transition:name={props.titleTransition}>
             {props.pageTitle[1]}
           </span>
         </h1>
       ) : (
-        <h1 id="page-heading" class="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+        <h1
+          id="page-heading"
+          class="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+        >
           {props.pageTitle}
         </h1>
       )
     }
     {
       props.pageDesc ? (
-        <p class:list={["mt-2 text-sm leading-7 text-foreground/75 sm:text-base", props.pageDescClass]}>
+        <p
+          class:list={[
+            "mt-2 text-sm leading-7 text-foreground/75 sm:text-base",
+            props.pageDescClass,
+          ]}
+        >
           {props.pageDesc}
         </p>
       ) : null

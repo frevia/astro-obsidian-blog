@@ -72,8 +72,8 @@
 
 ### 环境要求
 
-- Node.js 18+
-- pnpm (推荐)
+- Node.js 22.23.2（见 `.nvmrc`）
+- pnpm 10.11.0（由 Corepack / `packageManager` 固定）
 
 ### RSS 数据定时抓取
 

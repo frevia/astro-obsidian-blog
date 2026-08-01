@@ -9,18 +9,16 @@ import getPostsByGroupCondition from "@/utils/getPostsByGroupCondition";
 import { SITE } from "@/config";
 import { getYearMonthInTimeZone } from "@/utils/calendarDate";
 import { slugifyStr } from "@/utils/slugify";
+import { withBase } from "@/utils/withBase";
 
 const clips = await getCollection("clip");
 const DEFAULT_VISIBLE_TAGS = 20;
 const tagCountMap = clips
   .flatMap(clip => clip.data.tags.map(tag => tag.trim()).filter(Boolean))
-  .reduce(
-    (acc, tag) => {
-      acc.set(tag, (acc.get(tag) ?? 0) + 1);
-      return acc;
-    },
-    new Map<string, number>()
-  );
+  .reduce((acc, tag) => {
+    acc.set(tag, (acc.get(tag) ?? 0) + 1);
+    return acc;
+  }, new Map<string, number>());
 const allTags = Array.from(tagCountMap.keys()).sort(
   (a, b) =>
     (tagCountMap.get(b) ?? 0) - (tagCountMap.get(a) ?? 0) ||
@@ -57,7 +55,8 @@ const getFavoritePath = (
 ) => {
   const basePath = includeBase ? "/favorites" : "";
   const favoriteSlug = resolveFavoriteSlug(slug, title);
-  return [basePath, favoriteSlug].join("/");
+  const path = [basePath, favoriteSlug].join("/");
+  return includeBase ? withBase(path) : path;
 };
 
 const getGroupingDate = (post: CollectionEntry<"clip">) => {
@@ -77,7 +76,10 @@ const yearGroups = Object.entries(
   <Main pageTitle="收藏">
     {
       allTags.length > 0 && (
-        <section slot="header-extra" class="favorites-toolbar mt-4 border-t border-border/50 pt-3">
+        <section
+          slot="header-extra"
+          class="favorites-toolbar mt-4 border-t border-border/50 pt-3"
+        >
           <div id="favorites-tag-filter" data-pagefind-ignore>
             <p class="text-sm font-semibold tracking-wide text-foreground/85">
               标签筛选
@@ -103,26 +105,24 @@ const yearGroups = Object.entries(
                 </button>
               ))}
             </div>
-            {
-              remainingTags.length > 0 && (
-                <details class="favorites-tag-more-wrap mt-3">
-                  <summary class="favorites-tag-summary">
-                    更多标签（{remainingTags.length}）
-                  </summary>
-                  <div class="mt-2 flex flex-wrap gap-2.5">
-                    {remainingTags.map(tag => (
-                      <button
-                        type="button"
-                        data-filter-tag={tag}
-                        class="favorite-filter-btn"
-                      >
-                        {tag}
-                      </button>
-                    ))}
-                  </div>
-                </details>
-              )
-            }
+            {remainingTags.length > 0 && (
+              <details class="favorites-tag-more-wrap mt-3">
+                <summary class="favorites-tag-summary">
+                  更多标签（{remainingTags.length}）
+                </summary>
+                <div class="mt-2 flex flex-wrap gap-2.5">
+                  {remainingTags.map(tag => (
+                    <button
+                      type="button"
+                      data-filter-tag={tag}
+                      class="favorite-filter-btn"
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </details>
+            )}
           </div>
         </section>
       )
@@ -193,56 +193,50 @@ const yearGroups = Object.entries(
                                   showCreated={true}
                                 />
                               </div>
-                              {
-                                (post.data.description?.trim() ||
-                                  post.data.summary?.trim()) && (
-                                  <p class="favorites-item-desc">
-                                    {post.data.description?.trim() ||
-                                      post.data.summary?.trim()}
-                                  </p>
-                                )
-                              }
+                              {(post.data.description?.trim() ||
+                                post.data.summary?.trim()) && (
+                                <p class="favorites-item-desc">
+                                  {post.data.description?.trim() ||
+                                    post.data.summary?.trim()}
+                                </p>
+                              )}
                             </div>
-                            {
-                              (post.data.source ||
-                                post.data.tags.length > 0) && (
-                                <div class="favorites-item-foot">
-                                  {post.data.source ? (
-                                    <div class="favorites-item-source-wrap">
-                                      <span
-                                        class="favorites-item-source"
-                                        title={post.data.source}
+                            {(post.data.source ||
+                              post.data.tags.length > 0) && (
+                              <div class="favorites-item-foot">
+                                {post.data.source ? (
+                                  <div class="favorites-item-source-wrap">
+                                    <span
+                                      class="favorites-item-source"
+                                      title={post.data.source}
+                                    >
+                                      来源 · {post.data.source}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span class="favorites-item-foot-spacer" />
+                                )}
+                                {post.data.tags.length > 0 && (
+                                  <div class="favorites-item-tags">
+                                    {post.data.tags.slice(0, 3).map(tag => (
+                                      <button
+                                        type="button"
+                                        class="favorites-tag favorites-tag--action"
+                                        data-action="filter-tag"
+                                        data-filter-tag={tag}
                                       >
-                                        来源 · {post.data.source}
+                                        {tag}
+                                      </button>
+                                    ))}
+                                    {post.data.tags.length > 3 && (
+                                      <span class="favorites-tag-more">
+                                        +{post.data.tags.length - 3}
                                       </span>
-                                    </div>
-                                  ) : (
-                                    <span class="favorites-item-foot-spacer" />
-                                  )}
-                                  {post.data.tags.length > 0 && (
-                                    <div class="favorites-item-tags">
-                                      {post.data.tags
-                                        .slice(0, 3)
-                                        .map(tag => (
-                                          <button
-                                            type="button"
-                                            class="favorites-tag favorites-tag--action"
-                                            data-action="filter-tag"
-                                            data-filter-tag={tag}
-                                          >
-                                            {tag}
-                                          </button>
-                                        ))}
-                                      {post.data.tags.length > 3 && (
-                                        <span class="favorites-tag-more">
-                                          +{post.data.tags.length - 3}
-                                        </span>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              )
-                            }
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </a>
                         </li>
                       ))}

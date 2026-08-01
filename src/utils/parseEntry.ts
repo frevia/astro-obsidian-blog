@@ -5,23 +5,38 @@ import {
 } from "@/utils/optimizeImages";
 import { getVideoPath } from "@/utils/videoUtils";
 import { processLink } from "@/utils/linkProcessor";
+import { withBase } from "@/utils/withBase";
 import { DIARY_PATH } from "@/config";
 import type { CollectionEntry } from "astro:content";
 
 // 通用的poster路径优化函数
 async function optimizePosterPath(
   posterPath: string | undefined,
-  options?: ImageOptimizeOptions
+  options?: ImageOptimizeOptions,
+  base?: string
 ): Promise<string | undefined> {
   if (!posterPath) return posterPath;
 
   try {
     const optimizedInfo = await optimizeImage(posterPath, options);
-    return optimizedInfo.thumbnail;
+    return withBaseIfRootRelative(optimizedInfo.thumbnail, base);
   } catch {
     // 失败时使用原始路径
-    return posterPath;
+    return withBaseIfRootRelative(posterPath, base);
   }
+}
+
+export function withBaseIfRootRelative(src: string, base?: string): string;
+export function withBaseIfRootRelative(
+  src: undefined,
+  base?: string
+): undefined;
+export function withBaseIfRootRelative(
+  src: string | undefined,
+  base = import.meta.env.BASE_URL
+): string | undefined {
+  if (!src || !src.startsWith("/") || src.startsWith("//")) return src;
+  return withBase(src, base);
 }
 
 // 本地电影数据接口
@@ -78,7 +93,10 @@ interface LocalMusicData {
 }
 
 // 解析碎片条目的函数
-export async function parseEntry(entry: CollectionEntry<"diary">) {
+export async function parseEntry(
+  entry: CollectionEntry<"diary">,
+  base = import.meta.env.BASE_URL
+) {
   const date = entry.id.split("/").pop()!.replace(".md", "");
   const currentFilePath =
     entry.filePath ?? path.resolve(process.cwd(), DIARY_PATH, entry.id);
@@ -160,22 +178,25 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
       t = t.replace(/\*([^*]+)\*/g, "<em>$1</em>");
       t = t.replace(/_(.+?)_/g, "<em>$1</em>");
 
+      t = t.replace(
+        /!\[([^\]]*)\]\(([^\s)]+)(?:\s+"([^"]*)"|\s+'([^']*)')?\)/g,
+        (_, alt, src, title1, title2) => {
+          const title = title1 || title2 || "";
+          const imageSrc = withBaseIfRootRelative(src, base);
+          return `<img src="${imageSrc}" alt="${alt}" title="${title}" class="my-4 max-w-full h-auto rounded-lg shadow-md" />`;
+        }
+      );
+
+      // Images must be expanded before links: the link pattern also matches the
+      // `[alt](src)` suffix of Markdown image syntax.
       t = t.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, (_, linkText, href) => {
         const processedHref = processLink(href, currentFilePath);
         const isExternal = /^https?:\/\//.test(processedHref);
         const externalAttrs = isExternal
           ? ' target="_blank" rel="noopener noreferrer"'
           : "";
-        return `<a href="${processedHref}"${externalAttrs} class="${linkClass}">${linkText}</a>`;
+        return `<a href="${withBase(processedHref)}"${externalAttrs} class="${linkClass}">${linkText}</a>`;
       });
-
-      t = t.replace(
-        /!\[([^\]]*)\]\(([^\s)]+)(?:\s+"([^"]*)"|\s+'([^']*)')?\)/g,
-        (_, alt, src, title1, title2) => {
-          const title = title1 || title2 || "";
-          return `<img src="${src}" alt="${alt}" title="${title}" class="my-4 max-w-full h-auto rounded-lg shadow-md" />`;
-        }
-      );
 
       t = t.replace(/!\[\[([^[\]]+?)\]\]/g, (_, inner: string) => {
         const [targetRaw, aliasRaw = ""] = inner.split("|", 2);
@@ -190,7 +211,8 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
               .pop()
               ?.replace(/\.[^.]+$/, "") ||
             "";
-          return `<img src="${target}" alt="${alt}" class="my-4 max-w-full h-auto rounded-lg shadow-md" />`;
+          const imageSrc = withBaseIfRootRelative(target, base);
+          return `<img src="${imageSrc}" alt="${alt}" class="my-4 max-w-full h-auto rounded-lg shadow-md" />`;
         }
         const linkText = alias || target.split("/").pop() || target;
         return `<a href="${target}" target="_blank" rel="noopener noreferrer" class="${linkClass}">${linkText}</a>`;
@@ -222,7 +244,7 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
         const externalAttrs = isExternal
           ? ' target="_blank" rel="noopener noreferrer"'
           : "";
-        return `<a href="${finalHref}"${externalAttrs} class="${linkClass}">${linkText}</a>`;
+        return `<a href="${withBase(finalHref)}"${externalAttrs} class="${linkClass}">${linkText}</a>`;
       });
 
       t = t.replace(/((?:^- .+(?:\n|$))+)/gm, match => {
@@ -401,8 +423,11 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
           });
           images.push({
             alt: imgMatch[1],
-            src: optimizedInfo.thumbnail,
-            original: optimizedInfo.original,
+            src: withBaseIfRootRelative(optimizedInfo.thumbnail ?? src, base),
+            original: withBaseIfRootRelative(
+              optimizedInfo.original ?? src,
+              base
+            ),
             title: title,
             width: optimizedInfo.width,
             height: optimizedInfo.height,
@@ -411,8 +436,8 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
           // 失败时使用原始路径和默认尺寸
           images.push({
             alt: imgMatch[1],
-            original: src,
-            src: src,
+            original: withBaseIfRootRelative(src, base),
+            src: withBaseIfRootRelative(src, base),
             title: title,
             width: 400,
             height: 300,
@@ -460,10 +485,16 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
             );
             htmlContent = htmlContent.replace(
               fullMatch,
-              `${attribute}="${optimizedInfo.thumbnail}"`
+              `${attribute}="${withBaseIfRootRelative(
+                optimizedInfo.thumbnail,
+                base
+              )}"`
             );
           } catch {
-            // 失败时保持原始路径
+            htmlContent = htmlContent.replace(
+              fullMatch,
+              `${attribute}="${withBaseIfRootRelative(src, base)}"`
+            );
           }
         }
       }
@@ -488,7 +519,11 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
 
       const title = parseField("title");
       if (title) {
-        const optimizedPoster = await optimizePosterPath(parseField("poster"));
+        const optimizedPoster = await optimizePosterPath(
+          parseField("poster"),
+          undefined,
+          base
+        );
 
         movieData = {
           id: parseNumber("id"),
@@ -525,7 +560,11 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
 
       const title = parseField("title");
       if (title) {
-        const optimizedPoster = await optimizePosterPath(parseField("poster"));
+        const optimizedPoster = await optimizePosterPath(
+          parseField("poster"),
+          undefined,
+          base
+        );
 
         tvData = {
           id: parseField("id"),
@@ -561,7 +600,11 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
 
       const title = parseField("title");
       if (title) {
-        const optimizedPoster = await optimizePosterPath(parseField("poster"));
+        const optimizedPoster = await optimizePosterPath(
+          parseField("poster"),
+          undefined,
+          base
+        );
 
         bookData = {
           id: parseField("id"),
@@ -596,7 +639,11 @@ export async function parseEntry(entry: CollectionEntry<"diary">) {
 
       const title = parseField("title");
       if (title) {
-        const optimizedPoster = await optimizePosterPath(parseField("poster"));
+        const optimizedPoster = await optimizePosterPath(
+          parseField("poster"),
+          undefined,
+          base
+        );
 
         musicData = {
           title,

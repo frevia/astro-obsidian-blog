@@ -1,17 +1,20 @@
 import { Resvg } from "@resvg/resvg-js";
-import { type CollectionEntry } from "astro:content";
+import type { CollectionEntry } from "astro:content";
 import postOgImage from "./og-templates/post";
 import siteOgImage from "./og-templates/site";
 
 interface OgImageSizeOptions {
   width: number;
   height: number;
+  requestUrl?: URL;
 }
 
 const renderPostOgImage = postOgImage as (
   post: CollectionEntry<"blog">,
   options?: OgImageSizeOptions
 ) => Promise<string>;
+
+const renderSiteOgImage = siteOgImage as (requestUrl?: URL) => Promise<string>;
 
 function svgBufferToPngBuffer(svg: string) {
   const resvg = new Resvg(svg);
@@ -27,7 +30,7 @@ export async function generateOgImageForPost(
   return svgBufferToPngBuffer(svg);
 }
 
-export async function generateOgImageForSite() {
-  const svg = await siteOgImage();
+export async function generateOgImageForSite(requestUrl?: URL) {
+  const svg = await renderSiteOgImage(requestUrl);
   return svgBufferToPngBuffer(svg);
 }

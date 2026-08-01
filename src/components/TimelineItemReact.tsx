@@ -7,7 +7,8 @@ import "lightgallery/css/lightgallery.css";
 import "lightgallery/css/lg-zoom.css";
 
 const LIGHTGALLERY_PLACEHOLDER_KEY = "0000-0000-000-0000";
-const lightGalleryLicenseKey = import.meta.env.PUBLIC_LIGHTGALLERY_LICENSE_KEY?.trim();
+const lightGalleryLicenseKey =
+  import.meta.env.PUBLIC_LIGHTGALLERY_LICENSE_KEY?.trim();
 const hasValidLightGalleryLicense =
   !!lightGalleryLicenseKey &&
   lightGalleryLicenseKey !== LIGHTGALLERY_PLACEHOLDER_KEY;
@@ -144,13 +145,13 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
           {/* 时间标签 - 使用h3标题以便Pagefind识别为子结果 */}
           <h3
             id={date ? `diary-${date}-${time.replace(/:/g, "-")}` : undefined}
-            className="text-skin-base/60 m-0 flex-none border-b border-dashed border-border/40 pb-1 text-base font-medium sm:flex sm:items-center sm:gap-1 sm:border-none sm:pr-2 sm:pb-0 sm:pl-0"
+            className="m-0 flex-none border-b border-dashed border-border/40 pb-1 text-base font-medium text-skin-base/60 sm:flex sm:items-center sm:gap-1 sm:border-none sm:pr-2 sm:pb-0 sm:pl-0"
             aria-label={`${time} 时间段的记录`}
           >
             <span className="sr-only">{date}</span>
             <span className="inline-flex items-center gap-1">
               <span
-                className="text-skin-base/60 h-4 w-4 flex-none sm:hidden"
+                className="h-4 w-4 flex-none text-skin-base/60 sm:hidden"
                 aria-hidden="true"
               >
                 <svg
@@ -218,7 +219,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
                       return (
                         <a
                           key={index}
-                          className={`lg-item group focus:ring-skin-accent block overflow-hidden rounded-xl focus:outline-none ${
+                          className={`lg-item group block overflow-hidden rounded-xl focus:ring-skin-accent focus:outline-none ${
                             optimizedImages.length === 1
                               ? "relative"
                               : "image-item relative aspect-square"

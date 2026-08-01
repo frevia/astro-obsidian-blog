@@ -6,7 +6,11 @@ import { resolve } from "node:path";
 import DiaryTimeline from "../DiaryTimeline";
 
 const mockedDiaryFeedList = vi.fn((props: unknown) =>
-  React.createElement("div", null, `mock-diary-feed-list-${JSON.stringify(props)}`)
+  React.createElement(
+    "div",
+    null,
+    `mock-diary-feed-list-${JSON.stringify(props)}`
+  )
 );
 
 vi.mock("../DiaryEntryReact", () => ({

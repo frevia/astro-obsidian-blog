@@ -2,6 +2,9 @@
 /**
  * 日历模态框组件：点击顶部菜单的日历时显示悬浮日历，提供放大和关闭按钮
  */
+import { withBase } from "@/utils/withBase";
+
+const calendarHref = withBase("/calendar");
 ---
 
 <div
@@ -9,18 +12,19 @@
   role="dialog"
   aria-modal="true"
   aria-labelledby="calendar-modal-title"
+  data-calendar-href={calendarHref}
   tabindex="-1"
-  class="border-border bg-surface text-foreground fixed top-20 right-4 z-50 flex hidden max-h-[min(90vh,calc(100vh-4.5rem))] w-[320px] max-w-[90vw] flex-col overflow-hidden rounded-lg border shadow-[var(--shadow-md)]"
+  class="fixed top-20 right-4 z-50 flex hidden max-h-[min(90vh,calc(100vh-4.5rem))] w-[320px] max-w-[90vw] flex-col overflow-hidden rounded-lg border border-border bg-surface text-foreground shadow-[var(--shadow-md)]"
 >
   <!-- 头部：标题和按钮 -->
-  <div class="border-border shrink-0 border-b px-4 pt-4 pb-3">
+  <div class="shrink-0 border-b border-border px-4 pt-4 pb-3">
     <div class="flex items-center justify-between">
       <h3 id="calendar-modal-title" class="text-lg font-semibold">日历</h3>
       <div class="flex items-center gap-2">
         <!-- 关闭按钮 -->
         <button
           id="close-calendar-modal"
-          class="text-foreground-muted hover:bg-interactive-hover hover:text-foreground rounded p-1.5 transition-colors"
+          class="rounded p-1.5 text-foreground-muted transition-colors hover:bg-interactive-hover hover:text-foreground"
           aria-label="关闭日历"
           title="关闭"
         >
@@ -59,7 +63,11 @@
       container.querySelectorAll<HTMLElement>(
         'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
       )
-    ).filter(element => !element.hasAttribute("disabled") && !element.getAttribute("aria-hidden"));
+    ).filter(
+      element =>
+        !element.hasAttribute("disabled") &&
+        !element.getAttribute("aria-hidden")
+    );
   }
 
   // 显示日历模态框
@@ -67,7 +75,8 @@
     const modal = document.getElementById("calendar-modal");
     if (modal instanceof HTMLElement) {
       const activeElement = document.activeElement;
-      lastFocusedElement = activeElement instanceof HTMLElement ? activeElement : null;
+      lastFocusedElement =
+        activeElement instanceof HTMLElement ? activeElement : null;
       modal.classList.remove("hidden");
       const firstFocusableElement = getFocusableElements(modal)[0];
       if (firstFocusableElement) {
@@ -92,7 +101,14 @@
 
   // 添加事件监听器的函数
   function addEventListeners() {
-    const calendarLinks = document.querySelectorAll('a[href="/calendar"]');
+    const modal = document.getElementById("calendar-modal");
+    const calendarHref =
+      modal instanceof HTMLElement ? modal.dataset.calendarHref : undefined;
+    if (!calendarHref) return;
+
+    const calendarLinks = document.querySelectorAll(
+      `a[href="${calendarHref}"]`
+    );
     calendarLinks.forEach(link => {
       // 只对顶部导航的日历按钮添加点击事件，排除模态框中的放大按钮
       if (!link.closest("#calendar-modal")) {
@@ -110,7 +126,6 @@
     }
 
     // 点击模态框外部关闭
-    const modal = document.getElementById("calendar-modal");
     if (modal) {
       modal.removeEventListener("click", handleModalClick);
       modal.addEventListener("click", handleModalClick);
@@ -155,9 +170,13 @@
 
     const focusableElements = getFocusableElements(modal);
     const firstElement = focusableElements[0] ?? modal;
-    const lastElement = focusableElements[focusableElements.length - 1] ?? modal;
+    const lastElement =
+      focusableElements[focusableElements.length - 1] ?? modal;
 
-    if (!(document.activeElement instanceof HTMLElement) || !modal.contains(document.activeElement)) {
+    if (
+      !(document.activeElement instanceof HTMLElement) ||
+      !modal.contains(document.activeElement)
+    ) {
       e.preventDefault();
       firstElement.focus();
       return;
