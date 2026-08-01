@@ -134,6 +134,46 @@ describe("processor contract", () => {
     expect(html).not.toContain("properties=");
   });
 
+  it("preserves the legacy icon families for callout aliases", async () => {
+    const iconFamilies = [
+      { types: ["note"], marker: 'd="M7.5 20.5 19 9' },
+      { types: ["abstract", "summary", "tldr"], marker: "<rect" },
+      { types: ["info"], marker: "<circle" },
+      { types: ["todo"], marker: 'd="M12 22c5.523' },
+      { types: ["tip", "hint", "important"], marker: 'd="M8.5 14.5' },
+      {
+        types: ["success", "check", "done"],
+        marker: '<polyline points="20 6 9 17 4 12"',
+      },
+      {
+        types: ["question", "help", "faq"],
+        marker: 'd="M9.09 9a3 3',
+      },
+      {
+        types: ["warning", "attention", "caution"],
+        marker: 'd="m21.73 18-8-14',
+      },
+      {
+        types: ["failure", "missing", "fail"],
+        marker: '<line x1="18" y1="6" x2="6" y2="18"',
+      },
+      {
+        types: ["danger", "error"],
+        marker: '<polygon points="13 2 3 14 12 14 11 22',
+      },
+      { types: ["bug"], marker: '<rect x="8" y="6"' },
+      { types: ["example"], marker: '<line x1="8" y1="6" x2="21"' },
+      { types: ["quote", "cite"], marker: 'd="M3 21c3 0 7-1 7-8V5' },
+    ];
+
+    for (const { types, marker } of iconFamilies) {
+      for (const type of types) {
+        const html = await renderRssMarkdown(`> [!${type}] 标题`);
+        expect(html, `${type} icon`).toContain(marker);
+      }
+    }
+  });
+
   it("handles heading ids and anchors per compile", async () => {
     const source = "# 重复！标题\n\n# 重复！标题\n\n# !!!";
     const first = await markdownToHtml(source, {

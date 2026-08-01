@@ -220,6 +220,10 @@ describe("AstroPaper config", () => {
       feedsPerPage: config.local.feeds.perPage,
       comments: config.local.comments,
       rss: config.local.rss,
+      search: config.features.search,
+      googleVerification: config.site.googleVerification,
+      socials: config.socials,
+      shareLinks: config.shareLinks,
     });
     expect(SITE.editPost).toEqual({
       enabled: false,

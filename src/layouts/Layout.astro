@@ -1,7 +1,6 @@
 ---
 import { ClientRouter } from "astro:transitions";
 import { Font } from "astro:assets";
-import { PUBLIC_GOOGLE_SITE_VERIFICATION } from "astro:env/client";
 import { SITE } from "@/config";
 import "@/styles/global.css";
 
@@ -127,10 +126,10 @@ const structuredData = {
     />
 
     {
-      PUBLIC_GOOGLE_SITE_VERIFICATION && (
+      SITE.googleVerification && (
         <meta
           name="google-site-verification"
-          content={PUBLIC_GOOGLE_SITE_VERIFICATION}
+          content={SITE.googleVerification}
         />
       )
     }

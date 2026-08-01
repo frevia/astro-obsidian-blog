@@ -113,7 +113,7 @@ export default defineConfig({
       filter: page => SITE.showArchives || !page.endsWith("/archives"),
     }),
     react(),
-    pagefind(),
+    ...(SITE.search === "pagefind" ? [pagefind()] : []),
     compress({
       // Tailwind v4 emits range media queries such as `(width >= 40rem)`.
       // astro-compress 2.4.1 drops those rules during its CSS pass, which

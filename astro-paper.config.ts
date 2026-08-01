@@ -28,6 +28,14 @@ export default defineAstroPaperConfig({
     },
     search: "pagefind",
   },
+  socials: [
+    {
+      name: "GitHub",
+      url: "https://github.com/frevia",
+      linkTitle: "Frevia's Blog! on GitHub",
+    },
+  ],
+  shareLinks: [],
   local: {
     content: {
       blogPath: "src/data/blog",

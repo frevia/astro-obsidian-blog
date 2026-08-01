@@ -8,6 +8,8 @@ describe("search page Pagefind v2 integration", () => {
     import.meta.dirname,
     "../../node_modules/astro-pagefind/src/components/PagefindConfig.astro"
   );
+  const headerPath = resolve(import.meta.dirname, "../components/Header.astro");
+  const astroConfigPath = resolve(import.meta.dirname, "../../astro.config.ts");
 
   const readSearchPage = () => readFileSync(searchPagePath, "utf-8");
 
@@ -98,5 +100,17 @@ describe("search page Pagefind v2 integration", () => {
     expect(source).toContain('import { join } from "node:path/posix"');
     expect(source).toContain('join(import.meta.env.BASE_URL, "pagefind/")');
     expect(source).toContain("bundle-path={bundlePath}");
+  });
+
+  it("disables the search route, navigation and integration from site config", () => {
+    const searchPage = readSearchPage();
+    const header = readFileSync(headerPath, "utf-8");
+    const astroConfig = readFileSync(astroConfigPath, "utf-8");
+
+    expect(searchPage).toContain('if (SITE.search !== "pagefind")');
+    expect(header).toContain('SITE.search === "pagefind"');
+    expect(astroConfig).toContain(
+      '...(SITE.search === "pagefind" ? [pagefind()] : [])'
+    );
   });
 });
