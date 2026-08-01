@@ -77,6 +77,7 @@ const headerLabels = {
       <!-- 左侧：网站标题 -->
       <a
         href={withBase("/")}
+        data-astro-prefetch="hover"
         class="mr-8 py-1 text-xl leading-8 font-semibold whitespace-nowrap sm:my-auto sm:flex-shrink-0 sm:leading-none"
       >
         <div class="relative -left-1.5 flex items-center">
@@ -97,6 +98,7 @@ const headerLabels = {
               <li>
                 <a
                   href={withBase(item.href)}
+                  data-astro-prefetch="hover"
                   class:list={[
                     "rounded-md px-3 py-2 text-base font-medium text-foreground/85 transition-colors duration-200 hover:text-accent",
                     {
@@ -121,6 +123,7 @@ const headerLabels = {
         {
           SITE.showArchives && (
             <LinkButton
+              astroPrefetch="hover"
               href={withBase("/archives")}
               class:list={[
                 "focus-outline flex min-h-11 items-center rounded-md border border-transparent p-3 hover:border-border/70",
@@ -144,6 +147,8 @@ const headerLabels = {
         {
           SITE.search === "pagefind" && (
             <LinkButton
+              id="header-search-trigger"
+              astroPrefetch="hover"
               href={withBase("/search")}
               class:list={[
                 "focus-outline flex min-h-11 items-center rounded-md border border-transparent p-3 hover:border-border/70",
@@ -236,6 +241,7 @@ const headerLabels = {
             <li>
               <a
                 href={withBase(item.href)}
+                data-astro-prefetch="hover"
                 class:list={{
                   "active-nav":
                     isActive(item.href) &&
@@ -252,6 +258,7 @@ const headerLabels = {
             <li>
               <a
                 href={withBase("/archives")}
+                data-astro-prefetch="hover"
                 class:list={{ "active-nav": isActive("/archives") }}
               >
                 {headerLabels.archives}
@@ -269,6 +276,8 @@ const headerLabels = {
             {
               SITE.search === "pagefind" && (
                 <LinkButton
+                  id="header-search-trigger-mobile"
+                  astroPrefetch="hover"
                   href={withBase("/search")}
                   class:list={[
                     "focus-outline flex min-h-11 items-center justify-center rounded-md border border-transparent p-3 hover:border-border/70",

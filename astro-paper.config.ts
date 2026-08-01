@@ -27,6 +27,7 @@ export default defineAstroPaperConfig({
       url: "https://github.com/frevia/obsidian-blog-data",
     },
     search: "pagefind",
+    viewTransitions: "native",
   },
   socials: [
     {

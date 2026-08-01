@@ -6,6 +6,7 @@ export interface Props {
   ariaLabel?: string;
   title?: string;
   disabled?: boolean;
+  astroPrefetch?: "hover" | "tap" | "viewport" | false;
 }
 
 const {
@@ -15,6 +16,7 @@ const {
   ariaLabel,
   title,
   disabled = false,
+  astroPrefetch,
 } = Astro.props;
 ---
 
@@ -35,6 +37,7 @@ const {
       class:list={["group inline-block hover:text-accent", className]}
       aria-label={ariaLabel}
       title={title}
+      data-astro-prefetch={astroPrefetch}
     >
       <slot />
     </a>

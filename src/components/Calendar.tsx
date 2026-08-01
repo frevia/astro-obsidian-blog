@@ -17,6 +17,8 @@ import {
 export interface CalendarProps {
   /** 按日期分组的事件，key 为 YYYY-MM-DD */
   eventsByDate: Record<string, { type: string; url: string; title?: string }[]>;
+  /** 服务端生成的站点时区日期，确保 SSR 与客户端首帧一致 */
+  initialDateKey: string;
   /** 紧凑模式，用于侧边栏等窄区域 */
   compact?: boolean;
 }
@@ -137,18 +139,22 @@ function useChineseDaysForMonth(
 
 const Calendar: React.FC<CalendarProps> = ({
   eventsByDate,
+  initialDateKey,
   compact = false,
 }) => {
-  const [viewYM, setViewYM] = useState(() => getSiteYearMonth(new Date()));
-  // client:load 下日历主要在浏览器挂载；首帧即用站点时区的「今天」，避免依赖 effect 前 today 高亮缺失。
-  // 仍保留下方 effect：跨日、回前台、开弹窗时校正。
-  const [todayKey, setTodayKey] = useState<string>(() =>
-    typeof window !== "undefined" ? toSiteYMD(new Date()) : ""
-  );
+  const [viewYM, setViewYM] = useState(() => {
+    const { year, month } = getYMDParts(initialDateKey);
+    return { year, monthIndex: month - 1 };
+  });
+  // SSR 与客户端水合均从同一日期键开始；挂载后再由下方 effect 校准真实「今天」。
+  const [todayKey, setTodayKey] = useState(initialDateKey);
   const [selected, setSelected] = useState<{
     dateKey: string;
     events: { type: string; url: string; title?: string }[];
-  } | null>(null);
+  } | null>(() => ({
+    dateKey: initialDateKey,
+    events: eventsByDate[initialDateKey] ?? [],
+  }));
 
   const todayKeyRef = React.useRef(todayKey);
   const selectedRef = React.useRef(selected);
@@ -169,7 +175,7 @@ const Calendar: React.FC<CalendarProps> = ({
       const ev = eventsByDateRef.current;
       if (currentDate !== tk) {
         setTodayKey(currentDate);
-        // 首次挂载时 sel 为 null；此外若原先选中的就是旧的 today，也同步到新 today
+        // 若详情仍跟随 SSR 首帧的「今天」，一并切换到浏览器当前日期。
         if (!sel || sel.dateKey === tk) {
           setSelected({
             dateKey: currentDate,
@@ -181,7 +187,7 @@ const Calendar: React.FC<CalendarProps> = ({
           setViewYM(todayYM);
         }
       } else if (!sel) {
-        // todayKey 首帧已对齐时不会走进上一分支，仍需默认选中今天以免详情区空白
+        // 防御性兜底：详情状态被清空时恢复到今天。
         setSelected({
           dateKey: currentDate,
           events: ev[currentDate] ?? [],
@@ -686,9 +692,8 @@ const Calendar: React.FC<CalendarProps> = ({
                       <span className="text-xs">
                         {(() => {
                           const [y, m, d] = selected.dateKey.split("-");
-                          const todayYMD = toSiteYMD(new Date());
                           const diffDays = Math.floor(
-                            (parseYMDAsUTC(todayYMD).getTime() -
+                            (parseYMDAsUTC(todayKey).getTime() -
                               parseYMDAsUTC(selected.dateKey).getTime()) /
                               86400000
                           );

@@ -54,6 +54,7 @@ export function resolveAstroPaperConfig(
       showBackButton: input.features?.showBackButton ?? true,
       editPost: normalizeEditPost(input.features?.editPost),
       search: input.features?.search ?? "pagefind",
+      viewTransitions: input.features?.viewTransitions ?? "client-router",
     },
     socials: input.socials ?? [],
     shareLinks: input.shareLinks ?? [],

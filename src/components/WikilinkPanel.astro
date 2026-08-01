@@ -1,0 +1,119 @@
+---
+import type { WikilinkReference } from "@/utils/wikilinkGraph";
+import { withBase } from "@/utils/withBase";
+
+interface Props {
+  outgoing?: readonly WikilinkReference[];
+  backlinks?: readonly WikilinkReference[];
+  title: string;
+  outgoingLabel: string;
+  backlinksLabel: string;
+}
+
+const {
+  outgoing = [],
+  backlinks = [],
+  title,
+  outgoingLabel,
+  backlinksLabel,
+} = Astro.props;
+
+function safeSiteHref(href: string): string | undefined {
+  const path = href.trim();
+  const hasControlCharacter = [...path].some(character => {
+    const code = character.charCodeAt(0);
+    return code <= 31 || code === 127;
+  });
+
+  if (
+    !path.startsWith("/") ||
+    path.startsWith("//") ||
+    path.includes("\\") ||
+    hasControlCharacter
+  ) {
+    return undefined;
+  }
+
+  return withBase(path);
+}
+
+function prepareReferences(references: readonly WikilinkReference[]) {
+  return references.flatMap(reference => {
+    const href = safeSiteHref(reference.href);
+    return href ? [{ reference, href }] : [];
+  });
+}
+
+const outgoingLinks = prepareReferences(outgoing);
+const backlinkLinks = prepareReferences(backlinks);
+const hasLinks = outgoingLinks.length > 0 || backlinkLinks.length > 0;
+---
+
+{
+  hasLinks && (
+    <section
+      aria-labelledby="wikilink-panel-title"
+      class="my-8 rounded-xl border border-border/60 bg-muted/20 px-4 py-4 sm:px-5"
+      data-wikilink-panel
+    >
+      <h2
+        id="wikilink-panel-title"
+        class="mb-3 text-sm font-semibold tracking-wide text-foreground/90"
+      >
+        {title}
+      </h2>
+      <div class="grid gap-4 sm:grid-cols-2">
+        {outgoingLinks.length > 0 && (
+          <div>
+            <h3 class="mb-1 text-xs font-medium tracking-wider text-foreground/60 uppercase">
+              {outgoingLabel}
+            </h3>
+            <ul class="space-y-1">
+              {outgoingLinks.map(({ reference, href }) => (
+                <li>
+                  <a
+                    {href}
+                    class="group inline-flex max-w-full items-baseline gap-2 rounded px-1 py-0.5 text-sm text-foreground/85 underline decoration-accent/45 decoration-dashed underline-offset-4 transition-colors hover:text-accent hover:decoration-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="text-accent/65 transition-transform group-hover:translate-x-0.5"
+                    >
+                      ↗
+                    </span>
+                    <span class="truncate">{reference.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {backlinkLinks.length > 0 && (
+          <div>
+            <h3 class="mb-1 text-xs font-medium tracking-wider text-foreground/60 uppercase">
+              {backlinksLabel}
+            </h3>
+            <ul class="space-y-1">
+              {backlinkLinks.map(({ reference, href }) => (
+                <li>
+                  <a
+                    {href}
+                    class="group inline-flex max-w-full items-baseline gap-2 rounded px-1 py-0.5 text-sm text-foreground/85 underline decoration-accent/45 decoration-dashed underline-offset-4 transition-colors hover:text-accent hover:decoration-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="text-accent/65 transition-transform group-hover:translate-x-0.5"
+                    >
+                      ↗
+                    </span>
+                    <span class="truncate">{reference.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}

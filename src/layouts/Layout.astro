@@ -1,13 +1,14 @@
 ---
 import { ClientRouter } from "astro:transitions";
 import { Font } from "astro:assets";
-import { SITE } from "@/config";
+import { SITE, config } from "@/config";
 import "@/styles/global.css";
 
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
 import CalendarModal from "@/components/CalendarModal.astro";
 import CalendarWidget from "@/components/CalendarWidget.astro";
+import SearchDialog from "@/components/SearchDialog.astro";
 import { getAssetPath, withBase } from "@/utils/withBase";
 
 export interface Props {
@@ -33,6 +34,7 @@ const {
 } = Astro.props;
 
 const showCalendar = SITE.showCalendar;
+const useNativeViewTransitions = config.features.viewTransitions === "native";
 
 const socialImageURL = new URL(cover, Astro.site ?? Astro.url);
 const rssURL = new URL(withBase("/rss.xml"), Astro.site ?? Astro.url);
@@ -134,9 +136,55 @@ const structuredData = {
       )
     }
 
-    <ClientRouter />
+    {!useNativeViewTransitions && <ClientRouter />}
 
     <script is:inline src={getAssetPath("/app-controls.js")}></script>
+
+    <style is:global>
+      /* Astro 7 native cross-document View Transition experiment. */
+      @view-transition {
+        navigation: auto;
+      }
+
+      #site-header {
+        view-transition-name: site-header;
+      }
+
+      ::view-transition-old(site-header),
+      ::view-transition-new(site-header) {
+        animation-duration: 180ms;
+      }
+
+      ::view-transition-old(root) {
+        animation: 120ms cubic-bezier(0.4, 0, 1, 1) both native-page-out;
+      }
+
+      ::view-transition-new(root) {
+        animation: 220ms cubic-bezier(0, 0, 0.2, 1) both native-page-in;
+      }
+
+      @keyframes native-page-out {
+        to {
+          opacity: 0;
+          transform: translateY(-0.25rem);
+        }
+      }
+
+      @keyframes native-page-in {
+        from {
+          opacity: 0;
+          transform: translateY(0.25rem);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        ::view-transition-group(*),
+        ::view-transition-old(*),
+        ::view-transition-new(*) {
+          animation-duration: 1ms !important;
+        }
+      }
+    </style>
   </head>
   <body>
     <slot />
@@ -149,125 +197,11 @@ const structuredData = {
         </CalendarModal>
       )
     }
+    <SearchDialog />
     <script>
-      import mermaid from "mermaid";
+      import { setupMermaidEnhancer } from "@/scripts/mermaid-enhancer";
 
-      const mermaidRoot = document.documentElement;
-      const globalState = window as typeof window & {
-        __mermaidObserverBound?: boolean;
-      };
-      let renderSeq = 0;
-
-      const getMermaidTheme = () =>
-        mermaidRoot.getAttribute("data-theme") === "dark" ? "dark" : "default";
-
-      const isMermaidCodeBlock = (pre: HTMLPreElement) => {
-        const code = pre.querySelector("code");
-        if (!code) return false;
-
-        const preLang = pre.getAttribute("data-language")?.toLowerCase();
-        const codeLang = code.getAttribute("data-language")?.toLowerCase();
-        if (preLang === "mermaid" || codeLang === "mermaid") return true;
-
-        const classText = `${pre.className} ${code.className}`.toLowerCase();
-        return /\blanguage-mermaid\b/.test(classText);
-      };
-
-      const getMermaidSource = (pre: HTMLPreElement) => {
-        const code = pre.querySelector("code");
-        return (code?.textContent ?? "").trim();
-      };
-
-      async function renderMermaidBlocks() {
-        const hasMermaidBlocks = Boolean(
-          document.querySelector("pre code.language-mermaid")
-        );
-        if (!hasMermaidBlocks) return;
-
-        mermaid.initialize({
-          startOnLoad: false,
-          securityLevel: "strict",
-          theme: getMermaidTheme(),
-        });
-
-        const preBlocks = Array.from(document.querySelectorAll("pre"));
-        for (const preEl of preBlocks) {
-          if (!(preEl instanceof HTMLPreElement)) continue;
-          if (!isMermaidCodeBlock(preEl)) continue;
-          // prettier-ignore
-          if (preEl.dataset.mermaidProcessed === "true" || preEl.classList.contains("hidden")) continue;
-
-          const source = getMermaidSource(preEl);
-          if (!source) continue;
-
-          const host = document.createElement("div");
-          host.className = "mermaid-diagram my-6 overflow-x-auto";
-          host.dataset.mermaidSource = source;
-
-          try {
-            const id = `mermaid-diagram-${renderSeq++}`;
-            const { svg, bindFunctions } = await mermaid.render(id, source);
-            host.innerHTML = svg;
-            bindFunctions?.(host);
-            preEl.insertAdjacentElement("afterend", host);
-            preEl.dataset.mermaidProcessed = "true";
-            preEl.classList.add("hidden");
-          } catch (error) {
-            console.error("Failed to render mermaid diagram:", error);
-          }
-        }
-      }
-
-      async function rerenderMermaidByTheme() {
-        const hosts = Array.from(
-          document.querySelectorAll(".mermaid-diagram[data-mermaid-source]")
-        );
-        if (hosts.length === 0) return;
-
-        mermaid.initialize({
-          startOnLoad: false,
-          securityLevel: "strict",
-          theme: getMermaidTheme(),
-        });
-
-        for (const hostEl of hosts) {
-          if (!(hostEl instanceof HTMLElement)) continue;
-          const source = hostEl.dataset.mermaidSource?.trim();
-          if (!source) continue;
-          try {
-            const id = `mermaid-diagram-${renderSeq++}`;
-            const { svg, bindFunctions } = await mermaid.render(id, source);
-            hostEl.innerHTML = svg;
-            bindFunctions?.(hostEl);
-          } catch (error) {
-            console.error("Failed to re-render mermaid diagram:", error);
-          }
-        }
-      }
-
-      const initMermaid = () => {
-        renderMermaidBlocks();
-      };
-
-      document.addEventListener("astro:page-load", initMermaid);
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initMermaid, {
-          once: true,
-        });
-      } else {
-        initMermaid();
-      }
-
-      if (!globalState.__mermaidObserverBound) {
-        const themeObserver = new MutationObserver(() => {
-          rerenderMermaidByTheme();
-        });
-        themeObserver.observe(mermaidRoot, {
-          attributes: true,
-          attributeFilter: ["data-theme"],
-        });
-        globalState.__mermaidObserverBound = true;
-      }
+      setupMermaidEnhancer();
     </script>
   </body>
 </html>

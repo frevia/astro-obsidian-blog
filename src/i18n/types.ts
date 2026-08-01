@@ -29,6 +29,9 @@ export interface UIStrings {
     tocTitle: string;
     copyCode: string;
     copiedCode: string;
+    wikilinksTitle: string;
+    wikilinksOutgoing: string;
+    wikilinksBacklinks: string;
     originalPublishedAt: string;
     collectedAt: string;
     publishedMeta: string;
@@ -107,6 +110,7 @@ export interface UIStrings {
   };
   search: {
     placeholder: string;
+    close: string;
     clear: string;
     submit: string;
     results: string;
