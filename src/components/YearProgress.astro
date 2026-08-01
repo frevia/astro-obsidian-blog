@@ -1,5 +1,4 @@
 ---
-import IconRocket from "@/assets/icons/IconRocket.svg";
 import { SITE } from "@/config";
 
 const siteTimezone = SITE.timezone;
@@ -10,13 +9,6 @@ const siteTimezone = SITE.timezone;
   <div class="year-progress-bar" style="width: 0%">
     <div class="year-progress-tooltip end">0%</div>
   </div>
-  <!-- <img
-    src="/progress.webp"
-    alt="Progress"
-    class="year-progress-image"
-    style="left: 0%"
-  /> -->
-  <IconRocket class="year-progress-image" />
 </div>
 
 <script is:inline define:vars={{ siteTimezone }}>
@@ -83,16 +75,15 @@ const siteTimezone = SITE.timezone;
     if (!root) return null;
     const bar = root.querySelector(".year-progress-bar");
     const tooltip = root.querySelector(".year-progress-tooltip");
-    const img = root.querySelector(".year-progress-image");
-    if (!bar || !tooltip || !img) return null;
-    return { root, bar, tooltip, img };
+    if (!bar || !tooltip) return null;
+    return { root, bar, tooltip };
   }
 
   function animateTo(target, duration = 900) {
     duration = 2200;
     const els = getElements();
     if (!els) return;
-    const { root, bar, tooltip, img } = els;
+    const { root, bar, tooltip } = els;
 
     const startLeft = parseFloat(bar.style.width) || 0;
     const from = Math.min(Math.max(startLeft, 0), 100);
@@ -109,7 +100,6 @@ const siteTimezone = SITE.timezone;
 
       bar.style.width = current + "%";
       root.style.setProperty("--year-progress", current + "%");
-      img.style.left = current + "%";
       const year = getCurrentYear();
       tooltip.textContent = `${year}年已走完 ${current.toFixed(1)}%`;
 
@@ -136,10 +126,9 @@ const siteTimezone = SITE.timezone;
     else {
       const els = getElements();
       if (!els) return;
-      const { root, bar, tooltip, img } = els;
+      const { root, bar, tooltip } = els;
       bar.style.width = progress + "%";
       root.style.setProperty("--year-progress", progress + "%");
-      img.style.left = progress + "%";
       const year = getCurrentYear();
       tooltip.textContent = `${year}年已走完 ${progress.toFixed(1)}%`;
       tooltip.classList.remove("end", "center");
@@ -151,7 +140,7 @@ const siteTimezone = SITE.timezone;
     if (animating) return;
     const els = getElements();
     if (!els) return;
-    const { root, bar, tooltip, img } = els;
+    const { root, bar, tooltip } = els;
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       root.dataset.ready = "1";
@@ -167,7 +156,6 @@ const siteTimezone = SITE.timezone;
     if (!hasAnimated) {
       bar.style.width = "0%";
       root.style.setProperty("--year-progress", "0%");
-      img.style.left = "0%";
       tooltip.textContent = "0%";
       window[GLOBAL_FLAG] = true;
       updateToCurrent(true);
@@ -233,15 +221,6 @@ const siteTimezone = SITE.timezone;
     box-sizing: border-box;
     display: block;
     pointer-events: none;
-  }
-
-  .year-progress-image {
-    position: absolute;
-    top: -13px;
-    transform: translateX(-57%);
-    height: 30px;
-    object-fit: contain;
-    z-index: 99;
   }
 
   .year-progress-tooltip {

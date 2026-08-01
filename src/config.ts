@@ -129,4 +129,8 @@ export const SITE = {
   feedsPerIndex: config.local.feeds.perIndex,
   feedsPerPage: config.local.feeds.perPage,
   rss: config.local.rss,
+  search: config.features.search,
+  googleVerification: config.site.googleVerification,
+  socials: config.socials,
+  shareLinks: config.shareLinks,
 } as const;

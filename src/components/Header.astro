@@ -136,24 +136,34 @@ const headerLabels = {
           )
         }
 
-        <!-- 分隔线 -->
-        <div class="h-4 w-px bg-border"></div>
-        <LinkButton
-          href={withBase("/search")}
-          class:list={[
-            "focus-outline flex min-h-11 items-center rounded-md border border-transparent p-3 hover:border-border/70",
-            {
-              "active-nav [&>svg]:stroke-accent": isActive("/search"),
-            },
-          ]}
-          ariaLabel={headerLabels.search}
-          title={headerLabels.searchTooltip}
-        >
-          <IconSearch class="h-4 w-4" />
-        </LinkButton>
+        {
+          SITE.showArchives && (
+            <div aria-hidden="true" class="h-4 w-px bg-border" />
+          )
+        }
+        {
+          SITE.search === "pagefind" && (
+            <LinkButton
+              href={withBase("/search")}
+              class:list={[
+                "focus-outline flex min-h-11 items-center rounded-md border border-transparent p-3 hover:border-border/70",
+                {
+                  "active-nav [&>svg]:stroke-accent": isActive("/search"),
+                },
+              ]}
+              ariaLabel={headerLabels.search}
+              title={headerLabels.searchTooltip}
+            >
+              <IconSearch class="h-4 w-4" />
+            </LinkButton>
+          )
+        }
 
-        <!-- 分隔线 -->
-        <div class="h-4 w-px bg-border"></div>
+        {
+          SITE.search === "pagefind" && (
+            <div aria-hidden="true" class="h-4 w-px bg-border" />
+          )
+        }
 
         <!-- RSS 链接 -->
         <a
@@ -166,8 +176,11 @@ const headerLabels = {
           <IconRss class="h-4 w-4" />
         </a>
 
-        <!-- 分隔线 -->
-        <div class="h-4 w-px bg-border"></div>
+        {
+          SITE.lightAndDarkMode && (
+            <div aria-hidden="true" class="h-4 w-px bg-border" />
+          )
+        }
 
         {
           SITE.lightAndDarkMode && (
@@ -247,20 +260,29 @@ const headerLabels = {
           )
         }
         <li class="mt-2 border-t border-border/70 pt-2">
-          <div class="grid grid-cols-3 items-center gap-2">
-            <LinkButton
-              href={withBase("/search")}
-              class:list={[
-                "focus-outline flex min-h-11 items-center justify-center rounded-md border border-transparent p-3 hover:border-border/70",
-                {
-                  "active-nav [&>svg]:stroke-accent": isActive("/search"),
-                },
-              ]}
-              ariaLabel={headerLabels.search}
-              title={headerLabels.searchTooltip}
-            >
-              <IconSearch class="w-6" />
-            </LinkButton>
+          <div
+            class:list={[
+              "grid items-center gap-2",
+              SITE.search === "pagefind" ? "grid-cols-3" : "grid-cols-2",
+            ]}
+          >
+            {
+              SITE.search === "pagefind" && (
+                <LinkButton
+                  href={withBase("/search")}
+                  class:list={[
+                    "focus-outline flex min-h-11 items-center justify-center rounded-md border border-transparent p-3 hover:border-border/70",
+                    {
+                      "active-nav [&>svg]:stroke-accent": isActive("/search"),
+                    },
+                  ]}
+                  ariaLabel={headerLabels.search}
+                  title={headerLabels.searchTooltip}
+                >
+                  <IconSearch class="w-6" />
+                </LinkButton>
+              )
+            }
             <a
               href={withBase("/rss.xml")}
               target="_blank"
