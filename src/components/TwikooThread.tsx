@@ -172,7 +172,7 @@ export default function TwikooThread({
 
   if (!hasRequiredEnv) {
     return (
-      <div className="text-skin-base/80 mt-6 rounded-xl border border-border/60 bg-muted/15 px-4 py-3 text-sm">
+      <div className="mt-6 rounded-xl border border-border/60 bg-muted/15 px-4 py-3 text-sm text-skin-base/80">
         评论功能已开启，但尚未完成 Twikoo 配置。请在环境变量中设置
         <code className="mx-1 rounded bg-muted/30 px-1.5 py-0.5 text-xs">
           PUBLIC_TWIKOO_ENV_ID
@@ -195,7 +195,7 @@ export default function TwikooThread({
           <button
             type="button"
             onClick={() => setExpanded(true)}
-            className="twikoo-diary-trigger text-skin-base group relative inline-flex items-center gap-1.5 border-0 bg-transparent p-1.5 text-sm font-medium shadow-none transition-all hover:text-accent focus:outline-none focus-visible:underline focus-visible:underline-offset-4"
+            className="twikoo-diary-trigger group relative inline-flex items-center gap-1.5 border-0 bg-transparent p-1.5 text-sm font-medium text-skin-base shadow-none transition-all hover:text-accent focus:outline-none focus-visible:underline focus-visible:underline-offset-4"
             aria-label={expandAriaLabel}
           >
             <svg
@@ -235,7 +235,7 @@ export default function TwikooThread({
             <button
               type="button"
               onClick={() => setExpanded(false)}
-              className="text-skin-base inline-flex items-center gap-2 border-0 bg-transparent p-1 text-sm font-medium shadow-none transition-colors hover:text-accent focus:outline-none focus-visible:underline focus-visible:underline-offset-4"
+              className="inline-flex items-center gap-2 border-0 bg-transparent p-1 text-sm font-medium text-skin-base shadow-none transition-colors hover:text-accent focus:outline-none focus-visible:underline focus-visible:underline-offset-4"
               aria-label="折叠评论区"
             >
               <span>收起评论</span>

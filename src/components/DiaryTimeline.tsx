@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { type TimeBlock } from "./DiaryEntryReact";
 import DiaryFeedList from "./diary/DiaryFeedList";
 import DiaryLoadState from "./diary/DiaryLoadState";
+import { withBase } from "@/utils/withBase";
 
 export interface ParsedEntry {
   date: string;
@@ -76,7 +77,7 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
     loadingRequestRef.current.add(nextPage);
 
     try {
-      const response = await fetch(`/api/diary/${nextPage}.json`);
+      const response = await fetch(withBase(`/api/diary/${nextPage}.json`));
 
       if (!response.ok) {
         throw new Error("Failed to fetch diary entries");
@@ -138,7 +139,11 @@ const DiaryTimeline: React.FC<DiaryTimelineProps> = ({
 
   return (
     <>
-      <DiaryFeedList entries={displayedEntries} hideYear={hideYear} density={density} />
+      <DiaryFeedList
+        entries={displayedEntries}
+        hideYear={hideYear}
+        density={density}
+      />
 
       <DiaryLoadState
         isLoading={isLoading}

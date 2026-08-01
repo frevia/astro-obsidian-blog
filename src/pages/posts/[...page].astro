@@ -13,6 +13,7 @@ import { SITE } from "@/config";
 import { getSiteYear } from "@/utils/calendarDate";
 import { slugifyStr } from "@/utils/slugify";
 import postFilter from "@/utils/postFilter";
+import { tplStr, useTranslations } from "@/i18n";
 
 // tag
 import Tag from "@/components/Tag.astro";
@@ -24,14 +25,11 @@ const DEFAULT_VISIBLE_TAGS = 20;
 const tagCountMap = posts
   .filter(postFilter)
   .flatMap(post => post.data.tags)
-  .reduce(
-    (acc, tagName) => {
-      const slug = slugifyStr(tagName);
-      acc.set(slug, (acc.get(slug) ?? 0) + 1);
-      return acc;
-    },
-    new Map<string, number>()
-  );
+  .reduce((acc, tagName) => {
+    const slug = slugifyStr(tagName);
+    acc.set(slug, (acc.get(slug) ?? 0) + 1);
+    return acc;
+  }, new Map<string, number>());
 const sortedTags = [...tags].sort(
   (a, b) =>
     (tagCountMap.get(b.tag) ?? 0) - (tagCountMap.get(a.tag) ?? 0) ||
@@ -48,6 +46,7 @@ export const getStaticPaths = (async ({ paginate }) => {
 }) satisfies GetStaticPaths;
 
 const { page } = Astro.props;
+const t = useTranslations(SITE.lang);
 
 const postsByYear = page.data.reduce(
   (acc, post) => {
@@ -60,31 +59,34 @@ const postsByYear = page.data.reduce(
 const years = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a));
 ---
 
-<Layout title={`文章 | ${SITE.title}`}>
+<Layout title={`${t.pages.postsTitle} | ${SITE.title}`}>
   <Header />
-  <Main pageTitle="全部文章">
+  <Main pageTitle={t.pages.postsAllTitle}>
     <section slot="header-extra" class="mt-4 border-t border-border/50 pt-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <h2
           id="posts-tag-nav-title"
           class="text-sm font-semibold tracking-wide text-foreground/85"
         >
-          标签导航
+          {t.pages.postsTagNavTitle}
         </h2>
         <p class="text-xs text-foreground/60">
-          共 {tags.length} 个，优先展示高频标签
+          {tplStr(t.pages.postsTagCount, { count: tags.length })}
         </p>
       </div>
-      <ul class="mt-3 flex flex-wrap gap-2.5" aria-label="文章标签筛选">
-        {featuredTags.map(({ tag, tagName }) => (
-          <Tag {tag} {tagName} />
-        ))}
+      <ul
+        class="mt-3 flex flex-wrap gap-2.5"
+        aria-label={t.pages.postsTagFilterLabel}
+      >
+        {featuredTags.map(({ tag, tagName }) => <Tag {tag} {tagName} />)}
       </ul>
       {
         remainingTagNames.length > 0 && (
           <details class="mt-2">
             <summary class="cursor-pointer text-sm text-accent transition-colors hover:text-accent/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
-              更多标签（{remainingTagNames.length}）
+              {tplStr(t.pages.postsMoreTags, {
+                count: remainingTagNames.length,
+              })}
             </summary>
             <CollapsibleTagList tags={remainingTagNames} compact />
           </details>

@@ -40,4 +40,3 @@ describe("SKIN_TOKEN_MAP", () => {
     }
   });
 });
-

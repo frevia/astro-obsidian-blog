@@ -188,11 +188,9 @@ function longestChordInRotatedPolygon(
   for (const y of ySamples) {
     const segs = horizontalSegmentsAtY(outlineFeatures, bbox, y);
     for (const [x0, x1] of segs) {
-      const len = turf.distance(
-        turf.point([x0, y]),
-        turf.point([x1, y]),
-        { units: "kilometers" }
-      );
+      const len = turf.distance(turf.point([x0, y]), turf.point([x1, y]), {
+        units: "kilometers",
+      });
       if (len > bestLen + 1e-9) {
         bestLen = len;
         bestA = [x0, y];

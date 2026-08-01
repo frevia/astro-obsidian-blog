@@ -16,8 +16,15 @@ describe("Header mobile menu accessibility behaviors", () => {
   it("keeps aria-expanded and aria-label in sync", () => {
     const source = readFileSync(headerPath, "utf-8");
 
-    expect(source).toContain('setAttribute("aria-expanded", isOpen ? "false" : "true")');
-    expect(source).toContain('setAttribute("aria-label", isOpen ? "打开菜单" : "关闭菜单")');
+    expect(source).toContain(
+      'setAttribute("aria-expanded", isOpen ? "false" : "true")'
+    );
+    expect(source).toContain(
+      'setAttribute("aria-label", isOpen ? openLabel : closeLabel)'
+    );
+    expect(source).toContain(
+      'setAttribute("aria-label", isOpen ? closeLabel : openLabel)'
+    );
   });
 
   it("supports Escape close and focus restore", () => {
@@ -25,6 +32,22 @@ describe("Header mobile menu accessibility behaviors", () => {
 
     expect(source).toContain('if (event.key === "Escape"');
     expect(source).toContain("lastFocusedElement?.focus()");
+  });
+
+  it("removes the previous Escape handler before rebinding after swaps", () => {
+    const source = readFileSync(headerPath, "utf-8");
+
+    expect(source).toContain("let currentEscCloseHandler");
+    expect(source).toContain(
+      'document.removeEventListener("keydown", currentEscCloseHandler)'
+    );
+    expect(source).toContain("currentEscCloseHandler = handleEscClose");
+    expect(source).toContain(
+      'document.addEventListener("keydown", currentEscCloseHandler)'
+    );
+    expect(source).not.toContain(
+      'document.removeEventListener("keydown", handleEscClose)'
+    );
   });
 
   it("locks body scroll while menu is open", () => {

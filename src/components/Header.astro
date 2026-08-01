@@ -11,10 +11,13 @@ import IconCalendar from "@/assets/icons/IconCalendar.svg";
 import LinkButton from "./LinkButton.astro";
 import DateDisplay from "./DateDisplay.astro";
 import { SITE } from "@/config";
+import { useTranslations } from "@/i18n";
+import { stripBase, withBase } from "@/utils/withBase";
 
-const { pathname } = Astro.url;
+const t = useTranslations(SITE.lang);
 
 // Remove trailing slash from current pathname if exists
+const pathname = stripBase(Astro.url.pathname);
 const currentPath =
   pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;
 
@@ -23,6 +26,32 @@ const isActive = (path: string) => {
   const pathArray = path.split("/").filter(p => p.trim());
 
   return currentPath === path || currentPathArray[0] === pathArray[0];
+};
+
+const navItems = [
+  { href: "/", label: t.nav.fragments },
+  { href: "/posts", label: t.nav.posts },
+  { href: "/favorites", label: t.nav.favorites },
+  { href: "/footprint", label: t.nav.footprint },
+  { href: "/feeds", label: t.nav.feeds },
+  { href: "/about", label: t.nav.about },
+];
+
+const headerLabels = {
+  skipToContent: t.a11y.skipToContent,
+  openMenu: t.a11y.openMenu,
+  closeMenu: t.a11y.closeMenu,
+  toggleTheme: t.a11y.toggleTheme,
+  themeLight: t.a11y.themeLight,
+  themeDark: t.a11y.themeDark,
+  themeAuto: t.a11y.themeAuto,
+  search: t.nav.search,
+  searchTooltip: t.pages.searchTooltip,
+  archives: t.pages.archivesTitle,
+  archivesTooltip: t.pages.archivesTooltip,
+  rssFeed: t.nav.rssFeed,
+  mainNav: t.nav.mainLabel,
+  mobileNav: t.nav.mobileLabel,
 };
 ---
 
@@ -35,7 +64,7 @@ const isActive = (path: string) => {
     href="#main-content"
     class="absolute start-4 -top-[100vh] z-50 rounded-md border border-border/70 bg-surface px-3 py-2 text-sm font-medium text-accent shadow-sm transition-all focus:top-3"
   >
-    跳到主要内容
+    {headerLabels.skipToContent}
   </a>
   <div
     id="nav-container"
@@ -47,84 +76,41 @@ const isActive = (path: string) => {
     >
       <!-- 左侧：网站标题 -->
       <a
-        href="/"
+        href={withBase("/")}
         class="mr-8 py-1 text-xl leading-8 font-semibold whitespace-nowrap sm:my-auto sm:flex-shrink-0 sm:leading-none"
       >
         <div class="relative -left-1.5 flex items-center">
-          <img src="/favicon.png" alt="favicon" class="h-10 w-10" />
+          <img src={withBase("/favicon.png")} alt="favicon" class="h-10 w-10" />
           <span class="ml-2">{SITE.title}</span>
         </div>
       </a>
 
       <!-- 主导航菜单（桌面端） -->
-      <nav id="main-nav" class="hidden sm:flex sm:items-center" aria-label="主导航">
+      <nav
+        id="main-nav"
+        class="hidden sm:flex sm:items-center"
+        aria-label={headerLabels.mainNav}
+      >
         <ul class="flex items-center gap-x-2">
-          <li>
-            <a
-              href="/"
-              class:list={[
-                "rounded-md px-3 py-2 text-base font-medium text-foreground/85 transition-colors duration-200 hover:text-accent",
-                { "active-nav": isActive("/") && currentPath === "/" },
-              ]}
-            >
-              碎片
-            </a>
-          </li>
-          <li>
-            <a
-              href="/posts"
-              class:list={[
-                "rounded-md px-3 py-2 text-base font-medium text-foreground/85 transition-colors duration-200 hover:text-accent",
-                { "active-nav": isActive("/posts") },
-              ]}
-            >
-              文章
-            </a>
-          </li>
-          <li>
-            <a
-              href="/favorites"
-              class:list={[
-                "rounded-md px-3 py-2 text-base font-medium text-foreground/85 transition-colors duration-200 hover:text-accent",
-                { "active-nav": isActive("/favorites") },
-              ]}
-            >
-              收藏
-            </a>
-          </li>
-          <li>
-            <a
-              href="/footprint"
-              class:list={[
-                "rounded-md px-3 py-2 text-base font-medium text-foreground/85 transition-colors duration-200 hover:text-accent",
-                { "active-nav": isActive("/footprint") },
-              ]}
-            >
-              足迹
-            </a>
-          </li>
-          <li>
-            <a
-              href="/feeds"
-              class:list={[
-                "rounded-md px-3 py-2 text-base font-medium text-foreground/85 transition-colors duration-200 hover:text-accent",
-                { "active-nav": isActive("/feeds") },
-              ]}
-            >
-              邻居
-            </a>
-          </li>
-          <li>
-            <a
-              href="/about"
-              class:list={[
-                "rounded-md px-3 py-2 text-base font-medium text-foreground/85 transition-colors duration-200 hover:text-accent",
-                { "active-nav": isActive("/about") },
-              ]}
-            >
-              关于
-            </a>
-          </li>
+          {
+            navItems.map(item => (
+              <li>
+                <a
+                  href={withBase(item.href)}
+                  class:list={[
+                    "rounded-md px-3 py-2 text-base font-medium text-foreground/85 transition-colors duration-200 hover:text-accent",
+                    {
+                      "active-nav":
+                        isActive(item.href) &&
+                        (item.href !== "/" || currentPath === "/"),
+                    },
+                  ]}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
         </ul>
       </nav>
 
@@ -135,15 +121,15 @@ const isActive = (path: string) => {
         {
           SITE.showArchives && (
             <LinkButton
-              href="/archives"
+              href={withBase("/archives")}
               class:list={[
                 "focus-outline flex min-h-11 items-center rounded-md border border-transparent p-3 hover:border-border/70",
                 {
                   "active-nav [&>svg]:stroke-accent": isActive("/archives"),
                 },
               ]}
-              ariaLabel="archives"
-              title="Archives"
+              ariaLabel={headerLabels.archivesTooltip}
+              title={headerLabels.archivesTooltip}
             >
               <IconCalendar class="h-4 w-4" />
             </LinkButton>
@@ -153,15 +139,15 @@ const isActive = (path: string) => {
         <!-- 分隔线 -->
         <div class="h-4 w-px bg-border"></div>
         <LinkButton
-          href="/search"
+          href={withBase("/search")}
           class:list={[
             "focus-outline flex min-h-11 items-center rounded-md border border-transparent p-3 hover:border-border/70",
             {
               "active-nav [&>svg]:stroke-accent": isActive("/search"),
             },
           ]}
-          ariaLabel="search"
-          title="Search"
+          ariaLabel={headerLabels.search}
+          title={headerLabels.searchTooltip}
         >
           <IconSearch class="h-4 w-4" />
         </LinkButton>
@@ -171,11 +157,11 @@ const isActive = (path: string) => {
 
         <!-- RSS 链接 -->
         <a
-          href="/rss.xml"
+          href={withBase("/rss.xml")}
           target="_blank"
           class="focus-outline flex min-h-11 items-center rounded-md border border-transparent p-3 hover:border-border/70 hover:text-accent"
-          aria-label="RSS Feed"
-          title="RSS Feed"
+          aria-label={headerLabels.rssFeed}
+          title={headerLabels.rssFeed}
         >
           <IconRss class="h-4 w-4" />
         </a>
@@ -188,10 +174,13 @@ const isActive = (path: string) => {
             <button
               id="theme-btn"
               class="focus-outline relative flex min-h-11 items-center rounded-md p-3"
-              title="切换主题"
-              aria-label="切换主题（当前：自动）"
+              title={headerLabels.toggleTheme}
+              aria-label={headerLabels.themeAuto}
               aria-pressed="false"
               aria-live="polite"
+              data-theme-light-label={headerLabels.themeLight}
+              data-theme-dark-label={headerLabels.themeDark}
+              data-theme-auto-label={headerLabels.themeAuto}
             >
               <IconMoon class="absolute top-[50%] left-[50%] w-4 -translate-[50%] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
               <IconSunHigh class="absolute top-[50%] left-[50%] w-4 -translate-[50%] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
@@ -204,9 +193,11 @@ const isActive = (path: string) => {
       <button
         id="menu-btn"
         class="focus-outline min-h-11 rounded-md border border-transparent p-2 hover:border-border/70 sm:hidden"
-        aria-label="打开菜单"
+        aria-label={headerLabels.openMenu}
         aria-expanded="false"
         aria-controls="menu-items"
+        data-open-label={headerLabels.openMenu}
+        data-close-label={headerLabels.closeMenu}
       >
         <IconX id="close-icon" class="hidden" />
         <IconMenuDeep id="menu-icon" />
@@ -214,7 +205,11 @@ const isActive = (path: string) => {
     </div>
 
     <!-- 移动端导航菜单 -->
-    <nav id="nav-menu" class="w-full sm:hidden" aria-label="移动端主导航">
+    <nav
+      id="nav-menu"
+      class="w-full sm:hidden"
+      aria-label={headerLabels.mobileNav}
+    >
       <ul
         id="menu-items"
         class:list={[
@@ -223,53 +218,30 @@ const isActive = (path: string) => {
           "hidden",
         ]}
       >
-        <li>
-          <a
-            href="/"
-            class:list={{ "active-nav": isActive("/") && currentPath === "/" }}
-          >
-            碎片
-          </a>
-        </li>
-        <li>
-          <a href="/posts" class:list={{ "active-nav": isActive("/posts") }}>
-            文章
-          </a>
-        </li>
-        <li>
-          <a
-            href="/favorites"
-            class:list={{ "active-nav": isActive("/favorites") }}
-          >
-            收藏
-          </a>
-        </li>
-        <li>
-          <a
-            href="/footprint"
-            class:list={{ "active-nav": isActive("/footprint") }}
-          >
-            足迹
-          </a>
-        </li>
-        <li>
-          <a href="/feeds" class:list={{ "active-nav": isActive("/feeds") }}>
-            邻居
-          </a>
-        </li>
-        <li>
-          <a href="/about" class:list={{ "active-nav": isActive("/about") }}>
-            关于
-          </a>
-        </li>
+        {
+          navItems.map(item => (
+            <li>
+              <a
+                href={withBase(item.href)}
+                class:list={{
+                  "active-nav":
+                    isActive(item.href) &&
+                    (item.href !== "/" || currentPath === "/"),
+                }}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
         {
           SITE.showArchives && (
             <li>
               <a
-                href="/archives"
+                href={withBase("/archives")}
                 class:list={{ "active-nav": isActive("/archives") }}
               >
-                收集箱
+                {headerLabels.archives}
               </a>
             </li>
           )
@@ -277,42 +249,45 @@ const isActive = (path: string) => {
         <li class="mt-2 border-t border-border/70 pt-2">
           <div class="grid grid-cols-3 items-center gap-2">
             <LinkButton
-              href="/search"
+              href={withBase("/search")}
               class:list={[
                 "focus-outline flex min-h-11 items-center justify-center rounded-md border border-transparent p-3 hover:border-border/70",
                 {
                   "active-nav [&>svg]:stroke-accent": isActive("/search"),
                 },
               ]}
-              ariaLabel="search"
-              title="Search"
+              ariaLabel={headerLabels.search}
+              title={headerLabels.searchTooltip}
             >
               <IconSearch class="w-6" />
             </LinkButton>
             <a
-              href="/rss.xml"
+              href={withBase("/rss.xml")}
               target="_blank"
               class="focus-outline flex min-h-11 items-center justify-center rounded-md border border-transparent p-3 hover:border-border/70 hover:text-accent"
-              aria-label="RSS Feed"
-              title="RSS Feed"
+              aria-label={headerLabels.rssFeed}
+              title={headerLabels.rssFeed}
             >
               <IconRss class="w-6" />
             </a>
-        {
-          SITE.lightAndDarkMode && (
-              <button
-                id="theme-btn-mobile"
-                class="focus-outline relative flex min-h-11 items-center justify-center rounded-md border border-transparent p-3 hover:border-border/70"
-                title="切换主题"
-                aria-label="切换主题（当前：自动）"
-                aria-pressed="false"
-                aria-live="polite"
-              >
-                <IconMoon class="w-6 scale-100 transition-all dark:scale-0" />
-                <IconSunHigh class="absolute w-6 scale-0 transition-all dark:scale-100" />
-              </button>
-          )
-        }
+            {
+              SITE.lightAndDarkMode && (
+                <button
+                  id="theme-btn-mobile"
+                  class="focus-outline relative flex min-h-11 items-center justify-center rounded-md border border-transparent p-3 hover:border-border/70"
+                  title={headerLabels.toggleTheme}
+                  aria-label={headerLabels.themeAuto}
+                  aria-pressed="false"
+                  aria-live="polite"
+                  data-theme-light-label={headerLabels.themeLight}
+                  data-theme-dark-label={headerLabels.themeDark}
+                  data-theme-auto-label={headerLabels.themeAuto}
+                >
+                  <IconMoon class="w-6 scale-100 transition-all dark:scale-0" />
+                  <IconSunHigh class="absolute w-6 scale-0 transition-all dark:scale-100" />
+                </button>
+              )
+            }
           </div>
         </li>
       </ul>
@@ -334,6 +309,7 @@ const isActive = (path: string) => {
 <script>
   let lastFocusedElement: HTMLElement | null = null;
   let previousBodyOverflow = "";
+  let currentEscCloseHandler: ((event: KeyboardEvent) => void) | undefined;
 
   function syncHeaderOffset() {
     const header = document.querySelector("#site-header");
@@ -371,9 +347,12 @@ const isActive = (path: string) => {
       return;
     }
 
+    const openLabel = menuBtn.dataset.openLabel ?? "";
+    const closeLabel = menuBtn.dataset.closeLabel ?? "";
+
     const syncMenuState = (isOpen: boolean) => {
       menuBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
-      menuBtn.setAttribute("aria-label", isOpen ? "关闭菜单" : "打开菜单");
+      menuBtn.setAttribute("aria-label", isOpen ? closeLabel : openLabel);
       menuItems.classList.toggle("hidden", !isOpen);
       menuIcon.classList.toggle("hidden", isOpen);
       closeIcon.classList.toggle("hidden", !isOpen);
@@ -406,15 +385,18 @@ const isActive = (path: string) => {
     menuBtn.onclick = () => {
       const isOpen = menuBtn.getAttribute("aria-expanded") === "true";
       menuBtn.setAttribute("aria-expanded", isOpen ? "false" : "true");
-      menuBtn.setAttribute("aria-label", isOpen ? "打开菜单" : "关闭菜单");
+      menuBtn.setAttribute("aria-label", isOpen ? openLabel : closeLabel);
       if (isOpen) {
         closeMenu();
       } else {
         openMenu();
       }
     };
-    document.removeEventListener("keydown", handleEscClose);
-    document.addEventListener("keydown", handleEscClose);
+    if (currentEscCloseHandler) {
+      document.removeEventListener("keydown", currentEscCloseHandler);
+    }
+    currentEscCloseHandler = handleEscClose;
+    document.addEventListener("keydown", currentEscCloseHandler);
   }
 
   enforceFixedHeader();

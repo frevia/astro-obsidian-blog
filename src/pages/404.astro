@@ -4,9 +4,13 @@ import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import LinkButton from "@/components/LinkButton.astro";
 import { SITE } from "@/config";
+import { useTranslations } from "@/i18n";
+import { withBase } from "@/utils/withBase";
+
+const t = useTranslations(SITE.lang);
 ---
 
-<Layout title={`404 Not Found | ${SITE.title}`}>
+<Layout title={`${t.pages.notFoundBrowserTitle} | ${SITE.title}`}>
   <Header />
 
   <main
@@ -16,12 +20,12 @@ import { SITE } from "@/config";
     <div class="mb-14 flex flex-col items-center justify-center">
       <h1 class="text-9xl font-bold text-accent">404</h1>
       <span aria-hidden="true">¯\_(ツ)_/¯</span>
-      <p class="mt-4 text-2xl sm:text-3xl">页面未找到</p>
+      <p class="mt-4 text-2xl sm:text-3xl">{t.notFound.message}</p>
       <LinkButton
-        href="/"
+        href={withBase("/")}
         class="my-6 text-lg underline decoration-dashed underline-offset-8"
       >
-        返回「时间档案」
+        {t.notFound.goHome}
       </LinkButton>
     </div>
   </main>

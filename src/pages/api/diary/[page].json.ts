@@ -33,7 +33,9 @@ export const GET: APIRoute = async ({ params }) => {
     const pageEntries = sortedEntries.slice(startIndex, endIndex);
 
     // 解析条目
-    const parsedEntries = await Promise.all(pageEntries.map(parseEntry));
+    const parsedEntries = await Promise.all(
+      pageEntries.map(entry => parseEntry(entry))
+    );
 
     // 计算分页信息
     const totalPages = Math.ceil(sortedEntries.length / ITEMS_PER_PAGE);

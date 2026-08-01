@@ -1,5 +1,9 @@
 import type { APIRoute } from "astro";
-import { FEEDS_BLOB_PATHNAME, feedsBlobAccess } from "@/utils/feedsBlobPathname";
+import {
+  FEEDS_BLOB_PATHNAME,
+  feedsBlobAccess,
+} from "@/utils/feedsBlobPathname";
+import { withBase } from "@/utils/withBase";
 
 export const prerender = false;
 
@@ -7,6 +11,13 @@ const jsonHeaders = {
   "Content-Type": "application/json; charset=utf-8",
   "Cache-Control": "public, s-maxage=120, stale-while-revalidate=3600",
 };
+
+export function getStaticFeedsUrl(
+  origin: string,
+  base = import.meta.env.BASE_URL
+): string {
+  return `${origin}${withBase("/data/feeds/feeds.json", base)}`;
+}
 
 /**
  * 邻居页数据源。
@@ -27,10 +38,7 @@ export const GET: APIRoute = async ({ request }) => {
         access,
         useCache: access === "private" ? false : undefined,
       });
-      if (
-        blobRes?.statusCode === 200 &&
-        blobRes.stream != null
-      ) {
+      if (blobRes?.statusCode === 200 && blobRes.stream != null) {
         const text = await new Response(blobRes.stream).text();
         return new Response(text, { headers: jsonHeaders });
       }
@@ -42,7 +50,7 @@ export const GET: APIRoute = async ({ request }) => {
     }
   }
 
-  const staticRes = await fetch(`${origin}/data/feeds/feeds.json`);
+  const staticRes = await fetch(getStaticFeedsUrl(origin));
   if (!staticRes.ok) {
     return new Response(
       JSON.stringify({

@@ -9,33 +9,22 @@ import getPostsByGroupCondition from "@/utils/getPostsByGroupCondition";
 import postFilter from "@/utils/postFilter";
 import { SITE } from "@/config";
 import { getYearMonthInTimeZone } from "@/utils/calendarDate";
+import { tplStr, useTranslations } from "@/i18n";
 
 // Redirect to 404 page if `showArchives` config is false
 if (!SITE.showArchives) {
-  return Astro.redirect("/404");
+  return Astro.redirect(`${import.meta.env.BASE_URL.replace(/\/$/, "")}/404`);
 }
 
 const posts = await getCollection("blog", postFilter);
+const t = useTranslations(SITE.lang);
 
-const months = [
-  "一月",
-  "二月",
-  "三月",
-  "四月",
-  "五月",
-  "六月",
-  "七月",
-  "八月",
-  "九月",
-  "十月",
-  "十一月",
-  "十二月",
-];
+const months = t.pages.archivesMonthNames;
 ---
 
-<Layout title={`收集箱 | ${SITE.title}`}>
+<Layout title={`${t.pages.archivesTitle} | ${SITE.title}`}>
   <Header />
-  <Main pageTitle="收集箱" pageDesc="按年份与月份浏览全部文章归档。">
+  <Main pageTitle={t.pages.archivesTitle} pageDesc={t.pages.archivesDesc}>
     <!-- 页面描述区域 -->
     <!-- <div
       class="mb-8 rounded-xl border-l-4 border-accent/60 bg-accent/5 px-4 py-4 text-sm text-foreground/80"
@@ -85,10 +74,14 @@ const months = [
                   {year}
                 </h2>
                 <span class="rounded-full bg-accent/10 px-2.5 py-1 text-sm font-medium text-accent">
-                  {yearGroup.length} 篇
+                  {tplStr(t.pages.archivesPostCount, {
+                    count: yearGroup.length,
+                  })}
                 </span>
               </div>
-              <div class="text-sm text-foreground/40">按发布时间排序</div>
+              <div class="text-sm text-foreground/40">
+                {t.pages.archivesSortByPublished}
+              </div>
             </div>
             {Object.entries(
               getPostsByGroupCondition(
@@ -107,7 +100,9 @@ const months = [
                     <div class="archive-month-label inline-flex items-center gap-2 text-sm font-semibold tracking-wide text-foreground/85 sm:text-base">
                       <span>{months[Number(month) - 1]}</span>
                       <span class="text-foreground/45 sm:hidden">
-                        {monthGroup.length} 篇
+                        {tplStr(t.pages.archivesPostCount, {
+                          count: monthGroup.length,
+                        })}
                       </span>
                     </div>
                   </div>

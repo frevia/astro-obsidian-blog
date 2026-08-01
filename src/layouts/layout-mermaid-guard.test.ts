@@ -7,7 +7,7 @@ describe("layout mermaid runtime guard", () => {
 
     expect(source).toContain("language-mermaid");
     expect(source).toContain(
-      "document.querySelector(\"pre code.language-mermaid\")"
+      'document.querySelector("pre code.language-mermaid")'
     );
     expect(source).toContain("if (!hasMermaidBlocks) return;");
   });
@@ -23,7 +23,14 @@ describe("layout mermaid runtime guard", () => {
     const source = readFileSync("src/layouts/Layout.astro", "utf-8");
 
     expect(source).toContain(
-      "if (preEl.dataset.mermaidProcessed === \"true\" || preEl.classList.contains(\"hidden\")) continue;"
+      'if (preEl.dataset.mermaidProcessed === "true" || preEl.classList.contains("hidden")) continue;'
     );
+  });
+
+  it("uses Mermaid strict mode before injecting generated SVG", () => {
+    const source = readFileSync("src/layouts/Layout.astro", "utf-8");
+
+    expect(source).toContain('securityLevel: "strict"');
+    expect(source).not.toContain('securityLevel: "loose"');
   });
 });

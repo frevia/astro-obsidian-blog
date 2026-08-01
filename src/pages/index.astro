@@ -24,7 +24,9 @@ const ITEMS_PER_PAGE = 5;
 const initialEntries = sortedEntries.slice(0, ITEMS_PER_PAGE);
 
 // 解析初始数据
-const initialParsedEntries = await Promise.all(initialEntries.map(parseEntry));
+const initialParsedEntries = await Promise.all(
+  initialEntries.map(entry => parseEntry(entry))
+);
 
 // 为了性能考虑，只解析初始数据，其他数据通过API端点按需加载
 // 创建分页数据结构

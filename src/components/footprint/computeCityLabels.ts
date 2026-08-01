@@ -180,8 +180,10 @@ export function computeCityLabelLayoutForCity(
     b: raw.b,
     sweepAngleDeg: raw.sweepAngleDeg,
   };
-  const label = layoutLabelAlongChord(chord, city.cityName, ll =>
-    project(ll) ?? null
+  const label = layoutLabelAlongChord(
+    chord,
+    city.cityName,
+    ll => project(ll) ?? null
   );
   if (!label) return null;
 
@@ -307,8 +309,10 @@ export function computeCityLabelLayoutForCity(
       if (Number.isFinite(fsMax)) {
         label.fontSize =
           Math.round(
-            Math.max(MIN_LABEL_FONT_SIZE, Math.min(label.fontSize, fsMax, maxFs)) *
-              10
+            Math.max(
+              MIN_LABEL_FONT_SIZE,
+              Math.min(label.fontSize, fsMax, maxFs)
+            ) * 10
           ) / 10;
       }
     }

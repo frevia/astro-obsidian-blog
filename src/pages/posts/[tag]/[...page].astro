@@ -10,6 +10,7 @@ import Pagination from "@/components/Pagination.astro";
 import getUniqueTags from "@/utils/getUniqueTags";
 import getPostsByTag from "@/utils/getPostsByTag";
 import { SITE } from "@/config";
+import { tplStr, useTranslations } from "@/i18n";
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
   const posts = await getCollection("blog");
@@ -29,16 +30,21 @@ export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
 const params = Astro.params;
 const { tag } = params;
 const { page, tagName } = Astro.props;
+const t = useTranslations(SITE.lang);
 ---
 
-<Layout title={`标签: ${tagName} | ${SITE.title}`}>
+<Layout
+  title={`${tplStr(t.pages.tagPageTitleWithName, { tag: tagName })} | ${SITE.title}`}
+>
   <Header />
   <Main
-    pageTitle={[`标签:`, `${tagName}`]}
+    pageTitle={[t.pages.tagPageTitle, `${tagName}`]}
     titleTransition={tag}
-    pageDesc={`标签 "${tagName}" 的所有文章：`}
+    pageDesc={tplStr(t.pages.tagPageDesc, { tag: tagName })}
   >
-    <h1 slot="title" transition:name={tag}>{`标签:${tag}`}</h1>
+    <h1 slot="title" transition:name={tag}>
+      {tplStr(t.pages.tagPageTitleCompact, { tag })}
+    </h1>
     <ul>
       {page.data.map(data => <Card {...data} />)}
     </ul>

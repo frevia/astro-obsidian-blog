@@ -88,7 +88,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
       target="_blank"
       rel="noopener noreferrer"
       data-media-type={cardType}
-      className={`media-card ${theme === "dark" ? "dark" : "light"} block w-full max-w-app cursor-pointer rounded-xl border border-border/80 bg-surface shadow-sm no-underline transition-[border-color,box-shadow] duration-200 hover:border-accent/50 hover:shadow-md`}
+      className={`media-card ${theme === "dark" ? "dark" : "light"} block w-full max-w-app cursor-pointer rounded-xl border border-border/80 bg-surface no-underline shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-accent/50 hover:shadow-md`}
     >
       <div className="flex items-start gap-3 p-3 sm:gap-4 sm:p-4">
         {/* 海报图片 - 左侧 */}
@@ -110,12 +110,12 @@ const MediaCard: React.FC<MediaCardProps> = ({
           <div className="mb-2 flex items-start justify-between gap-2 sm:mb-3">
             <div className="min-w-0 flex-1">
               <div className="mb-1.5">
-                <h3 className="text-skin-accent mt-0 line-clamp-2 text-base leading-snug font-bold sm:text-xl">
+                <h3 className="mt-0 line-clamp-2 text-base leading-snug font-bold text-skin-accent sm:text-xl">
                   {title}
                 </h3>
               </div>
 
-              <div className="text-skin-base/70 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs sm:text-sm">
+              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-skin-base/70 sm:text-sm">
                 {cardType === "music" ? (
                   <>
                     {author && <span>{author}</span>}
@@ -193,7 +193,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
                       );
                     })}
                   </div>
-                  <span className="text-skin-accent text-sm font-semibold">
+                  <span className="text-sm font-semibold text-skin-accent">
                     {mediaRating.toFixed(1)}
                   </span>
                 </div>
@@ -218,7 +218,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
           {overview && cardType !== "music" && (
             <div className="mb-2">
               <p
-                className="text-skin-base/80 mb-0 line-clamp-2 text-left text-xs leading-relaxed sm:text-sm"
+                className="mb-0 line-clamp-2 text-left text-xs leading-relaxed text-skin-base/80 sm:text-sm"
                 style={{
                   display: "-webkit-box",
                   WebkitBoxOrient: "vertical",

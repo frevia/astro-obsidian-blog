@@ -48,15 +48,18 @@ export interface Props {
 const { frontmatter } = Astro.props;
 // 获取博客统计数据
 const blogStats = await getBlogMetrics();
-const commentsEnabled = SITE.comments.enabled && PUBLIC_TWIKOO_ENABLED !== "false";
+const commentsEnabled =
+  SITE.comments.enabled && PUBLIC_TWIKOO_ENABLED !== "false";
 const hasTwikooEnv =
   (PUBLIC_TWIKOO_ENV_ID ?? "").trim().length > 0 &&
   (PUBLIC_TWIKOO_REGION ?? "").trim().length > 0;
 
 // 解析博客创建日期
-const { year: startYear, month: startMonth, day: startDay } = getYMDParts(
-  SITE.createdAt
-);
+const {
+  year: startYear,
+  month: startMonth,
+  day: startDay,
+} = getYMDParts(SITE.createdAt);
 ---
 
 <Layout title={`${frontmatter.title} | ${SITE.title}`}>

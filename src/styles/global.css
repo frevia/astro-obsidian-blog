@@ -28,8 +28,10 @@
   --color-skin-muted: var(--muted);
   --color-skin-inverted: var(--background);
   --color-skin-border: var(--border);
-  --font-family-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-family-serif: ui-serif, "Songti SC", "Noto Serif SC", serif;
+  --font-family-sans:
+    var(--font-noto-sans-sc), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-family-serif: var(--font-noto-serif-sc), ui-serif, "Songti SC", serif;
   --font-sans: var(--font-family-sans);
   --font-serif: var(--font-family-serif);
 }
@@ -330,6 +332,7 @@ h6:hover .icon-link::before {
   @apply block text-sm leading-6 transition-colors;
 }
 .toc-link.is-active-link {
+  /* prettier-ignore */
   @apply text-accent font-semibold;
   border-left: 2px solid var(--accent);
   padding-left: calc(0.5rem - 2px);

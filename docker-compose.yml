@@ -1,9 +1,9 @@
 services:
   app:
-    image: node:lts
+    image: node:22.23.2
     ports:
       - 4321:4321
     working_dir: /app
-    command: npm run dev -- --host 0.0.0.0
+    command: corepack pnpm run dev -- --host 0.0.0.0
     volumes:
       - ./:/app

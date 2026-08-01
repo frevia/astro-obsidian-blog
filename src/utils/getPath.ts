@@ -5,10 +5,13 @@
  * @param includeBase - whether to include `/posts` in return value
  * @returns blog post path
  */
+import { withBase } from "./withBase";
+
 export function getPath(
   id: string,
   filePath: string | undefined,
-  includeBase = true
+  includeBase = true,
+  base?: string
 ) {
   // Keep parameter for backward compatibility with existing call sites.
   void filePath;
@@ -18,5 +21,6 @@ export function getPath(
   const blogId = id.split("/");
   const slug = blogId.length > 0 ? blogId.slice(-1) : blogId;
 
-  return [basePath, slug].join("/");
+  const path = [basePath, slug].join("/");
+  return includeBase ? withBase(path, base) : path;
 }

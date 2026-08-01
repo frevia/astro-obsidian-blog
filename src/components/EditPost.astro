@@ -2,6 +2,7 @@
 import type { CollectionEntry } from "astro:content";
 import IconEdit from "@/assets/icons/IconEdit.svg";
 import { SITE } from "@/config";
+import { useTranslations } from "@/i18n";
 
 export interface Props {
   hideEditPost?: CollectionEntry<"blog">["data"]["hideEditPost"];
@@ -10,10 +11,12 @@ export interface Props {
 }
 
 const { hideEditPost, post, class: className = "" } = Astro.props;
+const t = useTranslations(SITE.lang);
 
 const href = `${SITE.editPost.url}${post.filePath}`;
 const showEditPost =
   SITE.editPost.enabled && !hideEditPost && href.trim() !== "";
+const editPostText = SITE.editPost.text || t.post.editPage;
 ---
 
 {
@@ -26,9 +29,10 @@ const showEditPost =
         "flex justify-baseline gap-1.5 opacity-80 hover:text-accent",
         className,
       ]}
+      aria-label={editPostText}
     >
       <IconEdit class="inline-block" />
-      <span>{SITE.editPost.text}</span>
+      <span>{editPostText}</span>
     </a>
   )
 }

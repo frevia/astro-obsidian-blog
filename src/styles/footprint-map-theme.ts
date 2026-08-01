@@ -32,6 +32,5 @@ export const FOOTPRINT_MAP_THEME = {
   labelFont: "pointer-events-none select-none font-serif font-medium",
 } as const;
 
-export const FOOTPRINT_THEME_CLASS_VALUES: string[] = Object.values(
-  FOOTPRINT_MAP_THEME
-);
+export const FOOTPRINT_THEME_CLASS_VALUES: string[] =
+  Object.values(FOOTPRINT_MAP_THEME);

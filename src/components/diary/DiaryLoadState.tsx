@@ -16,7 +16,11 @@ const DiaryLoadState: React.FC<DiaryLoadStateProps> = ({
   if (isLoading) {
     return (
       <article role="article" className="loading py-4 text-center sm:py-6">
-        <div role="status" aria-live="assertive" aria-label="正在加载更多碎片条目">
+        <div
+          role="status"
+          aria-live="assertive"
+          aria-label="正在加载更多碎片条目"
+        >
           <div className="animate-pulse space-y-2">
             <div className="mx-auto h-4 w-1/4 rounded bg-skin-muted"></div>
             <div className="mx-auto h-3 w-1/6 rounded bg-skin-muted"></div>

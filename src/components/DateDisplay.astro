@@ -10,7 +10,7 @@
     <div class="chime-rope chime-rope--top"></div>
 
     <div
-      class="hover:bg-interactive-hover flex cursor-pointer flex-col items-center justify-center rounded-lg border border-border bg-surface p-3 shadow-sm transition-colors"
+      class="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-border bg-surface p-3 shadow-sm transition-colors hover:bg-interactive-hover"
       data-date-display-btn
     >
       <div class="flex flex-col items-center justify-center">
@@ -22,8 +22,12 @@
             ><span data-date-display-month></span>月</span
           >
         </div>
-        <div class="text-2xl font-bold text-foreground" data-date-display-day></div>
-        <div class="text-foreground-muted hidden text-xs" data-date-display-lunar>
+        <div class="text-2xl font-bold text-foreground" data-date-display-day>
+        </div>
+        <div
+          class="hidden text-xs text-foreground-muted"
+          data-date-display-lunar
+        >
         </div>
       </div>
     </div>

@@ -1,8 +1,8 @@
 import satori from "satori";
 import { SITE } from "@/config";
-import loadGoogleFonts from "../loadGoogleFont";
+import { loadOgFonts } from "../loadLocalFont";
 
-export default async () => {
+export default async requestUrl => {
   return satori(
     {
       type: "div",
@@ -14,6 +14,7 @@ export default async () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          fontFamily: "Ma Shan Zheng",
         },
         children: [
           {
@@ -77,7 +78,11 @@ export default async () => {
                           {
                             type: "p",
                             props: {
-                              style: { fontSize: 72, fontWeight: "bold" },
+                              style: {
+                                fontSize: 72,
+                                fontWeight: "bold",
+                                fontFamily: "Ma Shan Zheng",
+                              },
                               children: SITE.title,
                             },
                           },
@@ -122,7 +127,7 @@ export default async () => {
       width: 1200,
       height: 630,
       embedFont: true,
-      fonts: await loadGoogleFonts(SITE.title + SITE.desc + SITE.website),
+      fonts: await loadOgFonts(requestUrl),
     }
   );
 };

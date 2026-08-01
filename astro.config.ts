@@ -1,14 +1,8 @@
-import { defineConfig, envField } from "astro/config";
+import { defineConfig, envField, fontProviders } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
-import { remarkMark } from "remark-mark-highlight";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import rehypeFigure from "rehype-figure";
-import rehypeKatex from "rehype-katex";
-import rehypeSlug from "rehype-slug";
+import { satteri } from "@astrojs/markdown-satteri";
 
 import {
   transformerNotationDiff,
@@ -19,20 +13,97 @@ import { transformerFileName } from "./src/utils/transformers/fileName";
 import { SITE } from "./src/config";
 
 import react from "@astrojs/react";
-import { remarkMediaCard } from "./src/utils/remarkMediaCard";
-import { remarkLinkProcessor } from "./src/utils/remarkLinkProcessor";
-import { remarkObsidianCalloutLocal } from "./src/utils/remarkObsidianCalloutLocal";
 import pagefind from "astro-pagefind";
-import photosuite from "photosuite";
 
 import compress from "astro-compress";
 import vercel from "@astrojs/vercel";
+import {
+  markdownFeatures,
+  pageHastPlugins,
+  pageMdastPlugins,
+} from "./src/markdown/processor";
+import {
+  fontsourceVariantsFromPackage,
+  resolvePackageFileUrl,
+} from "./src/utils/loadLocalFont";
+
+const notoSansScVariants = fontsourceVariantsFromPackage(
+  "@fontsource-variable/noto-sans-sc/wght.css",
+  "woff2"
+);
+const notoSerifScVariants = fontsourceVariantsFromPackage(
+  "@fontsource-variable/noto-serif-sc/wght.css",
+  "woff2"
+);
+const maShanZhengWoff = resolvePackageFileUrl(
+  "@fontsource/ma-shan-zheng/files/ma-shan-zheng-chinese-simplified-400-normal.woff"
+);
+const localFontProvider = fontProviders.local();
 
 // https://astro.build/config
 export default defineConfig({
   site: SITE.website,
+  base: SITE.base,
   output: "static",
   adapter: vercel(),
+  fonts: [
+    {
+      name: "Noto Sans SC Variable",
+      cssVariable: "--font-noto-sans-sc",
+      provider: localFontProvider,
+      weights: ["100 900"],
+      styles: ["normal"],
+      formats: ["woff2"],
+      fallbacks: ["ui-sans-serif", "system-ui", "sans-serif"],
+      options: {
+        variants: notoSansScVariants,
+      },
+    },
+    {
+      name: "Noto Serif SC Variable",
+      cssVariable: "--font-noto-serif-sc",
+      provider: localFontProvider,
+      weights: ["200 900"],
+      styles: ["normal"],
+      formats: ["woff2"],
+      fallbacks: ["ui-serif", "Songti SC", "serif"],
+      options: {
+        variants: notoSerifScVariants,
+      },
+    },
+    {
+      name: "Ma Shan Zheng",
+      cssVariable: "--font-og",
+      provider: localFontProvider,
+      weights: [400, 700, 800],
+      styles: ["normal"],
+      formats: ["woff"],
+      fallbacks: [],
+      optimizedFallbacks: false,
+      options: {
+        variants: [
+          {
+            src: [maShanZhengWoff],
+            weight: "400",
+            style: "normal",
+            display: "swap",
+          },
+          {
+            src: [maShanZhengWoff],
+            weight: "700",
+            style: "normal",
+            display: "swap",
+          },
+          {
+            src: [maShanZhengWoff],
+            weight: "800",
+            style: "normal",
+            display: "swap",
+          },
+        ],
+      },
+    },
+  ],
   build: {
     format: "directory",
   },
@@ -43,12 +114,12 @@ export default defineConfig({
     }),
     react(),
     pagefind(),
-    photosuite({
-      scope: "#article",
-      imageAlts: false,
-    }),
     compress({
-      CSS: true,
+      // Tailwind v4 emits range media queries such as `(width >= 40rem)`.
+      // astro-compress 2.4.1 drops those rules during its CSS pass, which
+      // removes every responsive utility from production builds. Vite still
+      // minifies the generated CSS, so skip only this destructive second pass.
+      CSS: false,
       HTML: {
         "html-minifier-terser": {
           removeComments: true,
@@ -70,21 +141,11 @@ export default defineConfig({
     }),
   ],
   markdown: {
-    remarkPlugins: [
-      remarkGfm,
-      [remarkObsidianCalloutLocal, { blockquoteClass: "callout" }],
-      [remarkLinkProcessor, { enableDebug: false }],
-      [remarkMediaCard, { enableDebug: false }],
-      remarkMark,
-      remarkMath,
-    ],
-    rehypePlugins: [
-      rehypeKatex,
-      rehypeSlug,
-      [rehypeAutolinkHeadings, { behavior: "append" }],
-      rehypeFigure,
-    ],
-    remarkRehype: { allowDangerousHtml: true },
+    processor: satteri({
+      mdastPlugins: pageMdastPlugins,
+      hastPlugins: pageHastPlugins,
+      features: markdownFeatures,
+    }),
     shikiConfig: {
       // For more themes, visit https://shiki.style/themes
       themes: { light: "min-light", dark: "night-owl" },
@@ -122,9 +183,6 @@ export default defineConfig({
     optimizeDeps: {
       exclude: ["@resvg/resvg-js"],
     },
-    esbuild: {
-      drop: ["console", "debugger"],
-    },
   },
   image: {
     responsiveStyles: true,
@@ -158,8 +216,5 @@ export default defineConfig({
         optional: true,
       }),
     },
-  },
-  experimental: {
-    preserveScriptOrder: true,
   },
 });

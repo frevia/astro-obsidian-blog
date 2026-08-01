@@ -59,7 +59,9 @@ quarterEntries = quarterEntries.sort((a, b) => {
 });
 
 // 解析所有季度条目（不再分页）
-const parsedEntries = await Promise.all(quarterEntries.map(parseEntry));
+const parsedEntries = await Promise.all(
+  quarterEntries.map(entry => parseEntry(entry))
+);
 
 // 生成季度标题
 const [year, quarter] = quarterKey.split("-Q");
@@ -107,7 +109,7 @@ const paginationInfo = {
           ) : (
             <div class="empty-state-card py-16 sm:py-20">
               <div class="mb-4 text-4xl opacity-40">📝</div>
-              <p class="text-skin-base text-lg opacity-70">
+              <p class="text-lg text-skin-base opacity-70">
                 这个季度还没有碎片
               </p>
               <p class="mt-2 text-sm opacity-50">开始记录您的日常吧</p>

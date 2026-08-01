@@ -31,6 +31,7 @@ import Footer from "@/components/Footer.astro";
 import Twikoo from "@/components/Twikoo.astro";
 import { SITE } from "@/config";
 import { SITE_TIMEZONE } from "@/utils/calendarDate";
+import { getAssetPath, withBase } from "@/utils/withBase";
 import {
   PUBLIC_TWIKOO_ENABLED,
   PUBLIC_TWIKOO_ENV_ID,
@@ -39,7 +40,7 @@ import {
 
 // 初始显示数量
 // 默认头像图片（未设置时使用）
-const FALLBACK_OG_IMAGE = "/data/feeds/default-avatar.svg";
+const FALLBACK_OG_IMAGE = getAssetPath("/data/feeds/default-avatar.svg");
 
 /**
  * 客户端数据配置
@@ -52,7 +53,7 @@ const feedsDataForClient = {
   initialItemCount: SITE.feedsPerIndex,
   itemsPerPage: SITE.feedsPerPage,
   /** 经 API 聚合 Blob（Cron 更新）与构建时静态文件，见 `src/pages/api/feeds.json.ts` */
-  dataSourceUrl: "/api/feeds.json",
+  dataSourceUrl: withBase("/api/feeds.json"),
 };
 
 // 评论配置
@@ -75,20 +76,20 @@ const hasTwikooEnv =
               <li class="mb-4 rounded-xl border border-border/40 bg-muted/10 p-4 shadow-sm transition-all hover:shadow-md">
                 <div class="relative">
                   <div class="flex items-start gap-4">
-                    <!-- 头像骨架 -->
+                    {/* 头像骨架 */}
                     <div class="bg-skeleton h-14 w-14 shrink-0 rounded-full" />
-                    <!-- 内容骨架 -->
+                    {/* 内容骨架 */}
                     <div class="min-w-0 flex-1 space-y-3">
                       <div class="space-y-2">
                         <div class="bg-skeleton h-5 w-3/4 rounded-lg" />
                         <div class="bg-skeleton h-4 w-1/2 rounded" />
                       </div>
-                      <!-- 描述和日期骨架 -->
+                      {/* 描述和日期骨架 */}
                       <div class="space-y-1.5">
                         <div class="bg-skeleton h-3.5 w-full rounded" />
                         <div class="bg-skeleton h-3.5 w-2/3 rounded" />
                       </div>
-                      <!-- 标签骨架 -->
+                      {/* 标签骨架 */}
                       <div class="flex flex-wrap gap-1.5">
                         <div class="bg-skeleton h-6 w-16 rounded-full" />
                         <div class="bg-skeleton h-6 w-20 rounded-full" />
@@ -103,15 +104,17 @@ const hasTwikooEnv =
       </div>
       <!-- 错误提示 -->
       <div id="feeds-error" class="my-8 hidden">
-        <div class="rounded-xl border border-error/30 bg-error/5 p-6 text-center">
+        <div
+          class="border-error/30 bg-error/5 rounded-xl border p-6 text-center"
+        >
           <div class="mb-3 text-4xl">⚠️</div>
-          <p class="text-error font-medium mb-2">加载失败</p>
+          <p class="text-error mb-2 font-medium">加载失败</p>
           <p class="text-error/80 text-sm">
             无法加载博客订阅内容，请稍后重试或检查网络连接。
           </p>
           <button
             onclick="window.location.reload()"
-            class="mt-4 rounded-full bg-error/10 px-4 py-2 text-sm font-medium text-error transition-colors hover:bg-error/20"
+            class="bg-error/10 text-error hover:bg-error/20 mt-4 rounded-full px-4 py-2 text-sm font-medium transition-colors"
           >
             重新加载
           </button>
@@ -121,23 +124,28 @@ const hasTwikooEnv =
       <div id="feeds-no-content" class="my-12 hidden">
         <div class="empty-state-card p-8">
           <div class="mb-4 text-5xl text-foreground/40">📚</div>
-          <p class="text-foreground/80 font-medium mb-2">暂无内容</p>
-          <p class="text-foreground/60 text-sm">当前没有可显示的博客订阅内容。</p>
+          <p class="mb-2 font-medium text-foreground/80">暂无内容</p>
+          <p class="text-sm text-foreground/60">
+            当前没有可显示的博客订阅内容。
+          </p>
         </div>
       </div>
       <!-- Feeds 列表容器 -->
       <ul id="feeds-list" class="mb-12 list-none"></ul>
       <!-- 加载更多触发器和状态指示器 -->
       <div id="load-more-trigger" class="h-10" style="display: none;"></div>
-      
+
       <!-- 加载更多状态指示器 -->
       <div id="loading-more-indicator" class="my-8 hidden">
         <div class="flex items-center justify-center gap-3">
-          <div class="h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent"></div>
+          <div
+            class="h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent"
+          >
+          </div>
           <span class="text-sm text-foreground/60">正在加载更多内容...</span>
         </div>
       </div>
-      
+
       <!-- 已加载全部内容提示 -->
       <div id="all-loaded-indicator" class="my-8 hidden">
         <div class="text-center">
@@ -150,38 +158,36 @@ const hasTwikooEnv =
     <!-- 评论区域 -->
     {
       commentsEnabled && (
-        <section class="mt-16 pt-8 border-t border-border/30">
+        <section class="mt-16 border-t border-border/30 pt-8">
           <div class="mb-8">
-            <h2 class="text-2xl font-semibold text-foreground/90 mb-2">留言</h2>
-            <p class="text-foreground/60 text-sm">
+            <h2 class="mb-2 text-2xl font-semibold text-foreground/90">留言</h2>
+            <p class="text-sm text-foreground/60">
               欢迎分享您对博客订阅内容的看法和建议
             </p>
           </div>
 
           {commentsEnabled && hasTwikooEnv && <Twikoo />}
 
-          {
-            commentsEnabled && !hasTwikooEnv && (
-              <div class="rounded-xl border border-border/40 bg-muted/10 p-6 text-center">
-                <div class="mb-3 text-3xl">💬</div>
-                <p class="font-medium text-foreground/80 mb-2">留言功能已开启</p>
-                <p class="text-foreground/60 text-sm mb-4">
-                  但尚未完成 Twikoo 配置，暂时无法显示留言区域。
-                </p>
-                <div class="bg-muted/20 rounded-lg p-3 text-sm">
-                  <p class="font-medium mb-1">需要配置的环境变量：</p>
-                  <div class="flex flex-wrap justify-center gap-2">
-                    <code class="rounded bg-muted/40 px-2 py-1">
-                      PUBLIC_TWIKOO_ENV_ID
-                    </code>
-                    <code class="rounded bg-muted/40 px-2 py-1">
-                      PUBLIC_TWIKOO_REGION
-                    </code>
-                  </div>
+          {commentsEnabled && !hasTwikooEnv && (
+            <div class="rounded-xl border border-border/40 bg-muted/10 p-6 text-center">
+              <div class="mb-3 text-3xl">💬</div>
+              <p class="mb-2 font-medium text-foreground/80">留言功能已开启</p>
+              <p class="mb-4 text-sm text-foreground/60">
+                但尚未完成 Twikoo 配置，暂时无法显示留言区域。
+              </p>
+              <div class="rounded-lg bg-muted/20 p-3 text-sm">
+                <p class="mb-1 font-medium">需要配置的环境变量：</p>
+                <div class="flex flex-wrap justify-center gap-2">
+                  <code class="rounded bg-muted/40 px-2 py-1">
+                    PUBLIC_TWIKOO_ENV_ID
+                  </code>
+                  <code class="rounded bg-muted/40 px-2 py-1">
+                    PUBLIC_TWIKOO_REGION
+                  </code>
                 </div>
               </div>
-            )
-          }
+            </div>
+          )}
         </section>
       )
     }

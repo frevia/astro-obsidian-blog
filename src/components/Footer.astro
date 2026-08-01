@@ -1,9 +1,12 @@
 ---
 import Hr from "./Hr.astro";
 import Socials from "./Socials.astro";
+import { SITE } from "@/config";
+import { useTranslations } from "@/i18n";
 import { getSiteYear } from "@/utils/calendarDate";
 
 const currentYear = getSiteYear(new Date());
+const t = useTranslations(SITE.lang);
 
 export interface Props {
   noMarginTop?: boolean;
@@ -18,10 +21,14 @@ const { noMarginTop = false } = Astro.props;
     class="mx-auto flex w-full max-w-app flex-col items-center justify-between gap-3 px-4 py-7 text-foreground/78 sm:flex-row-reverse sm:gap-4 sm:py-5"
   >
     <div class="flex flex-col items-center gap-1.5 sm:flex-row">
-      <span class="italic text-foreground/70">联系我<span class="hidden sm:inline">：</span></span>
+      <span class="text-foreground/70 italic"
+        >{t.footer.contactMe}<span class="hidden sm:inline">：</span></span
+      >
       <Socials centered />
     </div>
-    <div class="my-1 flex flex-col items-center whitespace-nowrap text-sm sm:flex-row">
+    <div
+      class="my-1 flex flex-col items-center text-sm whitespace-nowrap sm:flex-row"
+    >
       <span>Copyright &#169; {currentYear}</span>
       <span class="hidden sm:inline">&nbsp;|&nbsp;</span>
       <span>Frevia</span>

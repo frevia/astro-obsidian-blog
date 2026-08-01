@@ -1,5 +1,6 @@
 ---
 import IconHash from "@/assets/icons/IconHash.svg";
+import { withBase } from "@/utils/withBase";
 
 export interface Props {
   tag: string;
@@ -12,7 +13,7 @@ const { tag, tagName, size = "sm" } = Astro.props;
 
 <li class="group shrink-0 group-hover:cursor-pointer">
   <a
-    href={`/posts/${tag}/`}
+    href={withBase(`/posts/${tag}/`)}
     transition:name={tag}
     class:list={[
       "relative inline-flex items-center gap-0.5 underline decoration-dashed underline-offset-2 group-hover:-top-0.5 group-hover:text-accent focus-visible:p-1 focus-visible:no-underline",

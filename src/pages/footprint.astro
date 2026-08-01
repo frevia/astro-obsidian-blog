@@ -37,7 +37,10 @@ function parseLocationText(text: string): PlaceRecord | null {
 function toPlaceRecords(post: (typeof publishedPosts)[number]): PlaceRecord[] {
   const { locations } = post.data;
   if (!locations?.length) return [];
-  return locations.filter(Boolean).map(parseLocationText).filter(Boolean) as PlaceRecord[];
+  return locations
+    .filter(Boolean)
+    .map(parseLocationText)
+    .filter(Boolean) as PlaceRecord[];
 }
 
 const placesFromPosts = publishedPosts
@@ -52,23 +55,24 @@ type PostLocationRecord = {
   lat: number;
 };
 
-const postLocationRecords = publishedPosts
-  .flatMap(post =>
-    toPlaceRecords(post).map(
-      loc =>
-        ({
-          title: post.data.title,
-          url: getPath(post.id, post.filePath),
-          name: loc.name,
-          lng: loc.lng,
-          lat: loc.lat,
-        }) satisfies PostLocationRecord
-    )
-  );
+const postLocationRecords = publishedPosts.flatMap(post =>
+  toPlaceRecords(post).map(
+    loc =>
+      ({
+        title: post.data.title,
+        url: getPath(post.id, post.filePath),
+        name: loc.name,
+        lng: loc.lng,
+        lat: loc.lat,
+      }) satisfies PostLocationRecord
+  )
+);
 
 const uniquePlaces = Array.from(
   new Map(
-    placesFromPosts.map(loc => [`${loc.name}:${loc.lng},${loc.lat}`, loc] as const)
+    placesFromPosts.map(
+      loc => [`${loc.name}:${loc.lng},${loc.lat}`, loc] as const
+    )
   ).values()
 );
 

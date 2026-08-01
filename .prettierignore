@@ -14,3 +14,6 @@
 !README.md
 
 /src/data
+/public/data/feeds/feeds.json
+/public/data/footprint/footprint-city-label-chords.json
+/src/utils/solarTermsByDate.json
