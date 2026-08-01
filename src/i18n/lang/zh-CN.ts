@@ -31,6 +31,9 @@ export default {
     tocTitle: "页面导航",
     copyCode: "复制",
     copiedCode: "已复制",
+    wikilinksTitle: "双向链接",
+    wikilinksOutgoing: "链接到",
+    wikilinksBacklinks: "引用本文",
     originalPublishedAt: "原创发布时间",
     collectedAt: "收录时间",
     publishedMeta: "发布",
@@ -123,6 +126,7 @@ export default {
   },
   search: {
     placeholder: "搜索文章...",
+    close: "关闭搜索",
     clear: "清空搜索",
     submit: "提交搜索",
     results: "搜索结果",

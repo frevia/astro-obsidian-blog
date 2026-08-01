@@ -1,26 +1,236 @@
 ---
-import MediaCardComponent from "./MediaCard.tsx";
-import type { MediaCardProps } from "../types/media";
 import { optimizeImage } from "@/utils/optimizeImages";
+import { formatInTimeZone } from "@/utils/calendarDate";
+import type { MediaCardData, MediaCardProps } from "../types/media";
 
-let {
-  mediaData,
+type AstroMediaCardProps = Omit<MediaCardProps, "mediaData"> & {
+  mediaData: MediaCardData | string;
+};
+
+const {
+  mediaData: rawMediaData,
   theme = "light",
   cardType = "movie",
-} = Astro.props as MediaCardProps;
+} = Astro.props as AstroMediaCardProps;
 
-if (typeof mediaData === "string") {
-  mediaData = JSON.parse(mediaData);
-}
+const mediaData =
+  typeof rawMediaData === "string"
+    ? (JSON.parse(rawMediaData) as MediaCardData)
+    : rawMediaData;
 
+const {
+  id,
+  title,
+  release_date,
+  region,
+  rating,
+  runtime,
+  genres,
+  overview,
+  author,
+  album,
+  duration,
+} = mediaData;
+
+let posterUrl = mediaData.poster ?? "";
 if (mediaData.poster) {
-  mediaData.poster = (await optimizeImage(mediaData.poster)).thumbnail;
+  posterUrl = (await optimizeImage(mediaData.poster)).thumbnail;
 }
+
+const mediaRating = rating ? Math.round(rating * 10) / 10 : 0;
+
+function formatRuntime(minutes?: number): string {
+  if (!minutes) return "";
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours}h ${mins}m`;
+}
+
+function formatDuration(seconds?: number): string {
+  if (!seconds) return "";
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, "0")}:${secs
+    .toString()
+    .padStart(2, "0")}`;
+}
+
+function formatReleaseDate(dateStr?: string): string {
+  if (!dateStr) return "";
+  return formatInTimeZone(new Date(dateStr), "zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
+
+function getCardUrl(): string {
+  if (cardType === "music" && mediaData.url) return mediaData.url;
+  if (mediaData.external_url) return mediaData.external_url;
+  if (!id) return "#";
+
+  if (cardType === "tv") {
+    const baseUrl =
+      mediaData.source === "douban"
+        ? "https://movie.douban.com/subject/"
+        : "https://www.themoviedb.org/tv/";
+    return `${baseUrl}${id}`;
+  }
+
+  if (cardType === "book") {
+    return `https://book.douban.com/subject/${id}`;
+  }
+
+  const baseUrl =
+    mediaData.source === "douban"
+      ? "https://movie.douban.com/subject/"
+      : "https://www.themoviedb.org/movie/";
+  return `${baseUrl}${id}`;
+}
+
+const cardUrl = getCardUrl();
 ---
 
-<MediaCardComponent
-  mediaData={mediaData}
-  theme={theme}
-  cardType={cardType}
-  client:load
-/>
+<a
+  href={cardUrl}
+  target="_blank"
+  rel="noopener noreferrer"
+  data-media-type={cardType}
+  class={`media-card ${theme === "dark" ? "dark" : "light"} block w-full max-w-app cursor-pointer rounded-xl border border-border/80 bg-surface no-underline shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-accent/50 hover:shadow-md`}
+>
+  <div class="flex items-start gap-3 p-3 sm:gap-4 sm:p-4">
+    {
+      posterUrl && (
+        <div class="relative w-20 flex-shrink-0 sm:w-24">
+          <img
+            src={posterUrl}
+            alt={title}
+            class={`my-0 w-full rounded-md object-cover shadow-sm ${
+              cardType === "music" ? "aspect-square" : "aspect-[2/3]"
+            }`}
+          />
+        </div>
+      )
+    }
+
+    <div class="min-w-0 flex-1">
+      <div class="mb-2 flex items-start justify-between gap-2 sm:mb-3">
+        <div class="min-w-0 flex-1">
+          <div class="mb-1.5">
+            <h3
+              class="mt-0 line-clamp-2 text-base leading-snug font-bold text-skin-accent sm:text-xl"
+            >
+              {title}
+            </h3>
+          </div>
+
+          <div
+            class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-skin-base/70 sm:text-sm"
+          >
+            {
+              cardType === "music" ? (
+                <>
+                  {author && <span>{author}</span>}
+                  {album && <span>{`• ${album}`}</span>}
+                  {duration && <span>{`• ${formatDuration(duration)}`}</span>}
+                </>
+              ) : (
+                <>
+                  {release_date && (
+                    <>
+                      <span>{formatReleaseDate(release_date)}</span>
+                      <span>
+                        {(cardType === "book" ? author : region) &&
+                          ` (${cardType === "book" ? author : region})`}
+                      </span>
+                    </>
+                  )}
+                  {runtime && <span>{`• ${formatRuntime(runtime)}`}</span>}
+                </>
+              )
+            }
+          </div>
+        </div>
+
+        <div class="flex flex-shrink-0 flex-col items-end gap-1.5">
+          {
+            mediaRating > 0 && cardType !== "music" && (
+              <div class="flex items-center gap-1">
+                <div class="flex items-center">
+                  {Array.from({ length: 5 }, (_, star) => {
+                    const starRating = mediaRating / 2;
+                    const isFull = star < Math.floor(starRating);
+                    const isHalf =
+                      star === Math.floor(starRating) && starRating % 1 >= 0.5;
+                    const starClipId = `half-star-${id ?? title}-${star}`;
+
+                    return (
+                      <div class="relative h-3 w-3">
+                        <svg class="h-3 w-3" viewBox="0 0 20 20" fill="none">
+                          <defs>
+                            <clipPath id={starClipId}>
+                              <rect x="0" y="0" width="10" height="20" />
+                            </clipPath>
+                          </defs>
+
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                            fill="var(--border)"
+                          />
+
+                          {isFull && (
+                            <path
+                              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                              fill="#fbbf24"
+                            />
+                          )}
+
+                          {isHalf && (
+                            <path
+                              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                              fill="#fbbf24"
+                              clip-path={`url(#${starClipId})`}
+                            />
+                          )}
+                        </svg>
+                      </div>
+                    );
+                  })}
+                </div>
+                <span class="text-sm font-semibold text-skin-accent">
+                  {mediaRating.toFixed(1)}
+                </span>
+              </div>
+            )
+          }
+        </div>
+      </div>
+
+      <div class="mb-2 flex flex-wrap gap-1.5 sm:mb-3">
+        {
+          genres &&
+            genres
+              .split(/[,，]/)
+              .map(genre => (
+                <span class="rounded-full border border-accent/20 bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent transition-colors hover:bg-accent/15 sm:px-2.5 sm:py-1 sm:text-xs">
+                  {genre.trim()}
+                </span>
+              ))
+        }
+      </div>
+
+      {
+        overview && cardType !== "music" && (
+          <div class="mb-2">
+            <p
+              class="mb-0 line-clamp-2 text-left text-xs leading-relaxed text-skin-base/80 sm:text-sm"
+              style="display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;"
+            >
+              {overview}
+            </p>
+          </div>
+        )
+      }
+    </div>
+  </div>
+</a>

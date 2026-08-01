@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createSatteriMarkdownProcessor } from "@astrojs/markdown-satteri";
+import { load } from "cheerio";
 
 import {
   markdownFeatures,
@@ -69,5 +70,21 @@ describe("Astro Satteri markdown integration", () => {
     expect(result.code).toContain("&quot;alt&quot;:&quot;图像&quot;");
     expect(result.code).toContain("&quot;title&quot;:&quot;标题&quot;");
     expect(result.code).not.toContain('src="./assets/pic.png"');
+  });
+
+  it("preserves static code toolbar semantics in Astro component output", async () => {
+    const renderer = await createPageRenderer();
+    const result = await renderer.render(
+      "```ts\nconst greeting = 'hello';\n```",
+      { fileURL: fixtureUrl }
+    );
+    const $ = load(result.code);
+
+    expect(result.code).toContain('data-code-toolbar="true"');
+    expect(result.code).toContain('data-code-language="true"');
+    expect(result.code).toContain('data-copy-button="true"');
+    expect($("[data-code-language]").text()).toBe("ts");
+    expect($("pre code").text()).toBe("const greeting = 'hello';");
+    expect(result.code.match(/tabindex="0"/g)).toHaveLength(1);
   });
 });

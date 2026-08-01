@@ -31,6 +31,9 @@ export default {
     tocTitle: "On this page",
     copyCode: "Copy",
     copiedCode: "Copied",
+    wikilinksTitle: "Linked notes",
+    wikilinksOutgoing: "Links to",
+    wikilinksBacklinks: "Referenced by",
     originalPublishedAt: "Original publication time",
     collectedAt: "Collected time",
     publishedMeta: "Published",
@@ -123,6 +126,7 @@ export default {
   },
   search: {
     placeholder: "Search posts...",
+    close: "Close search",
     clear: "Clear search",
     submit: "Submit search",
     results: "Search results",

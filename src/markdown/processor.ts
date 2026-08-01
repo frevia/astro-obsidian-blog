@@ -9,6 +9,7 @@ import { calloutHastPlugin, calloutMdastPlugin } from "./plugins/callouts";
 import { linkProcessorPlugin, rssLinkProcessorPlugin } from "./plugins/links";
 import { mediaCardPlugin } from "./plugins/mediaCards";
 import {
+  codeToolbarPlugin,
   figurePlugin,
   headingAnchorPlugin,
   highlightPlugin,
@@ -37,6 +38,7 @@ export const pageHastPlugins: HastPluginDefinition[] = [
   headingAnchorPlugin,
   highlightPlugin,
   mathPlugin,
+  codeToolbarPlugin,
   figurePlugin,
 ];
 

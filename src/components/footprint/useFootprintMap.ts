@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { geoBounds, geoContains, geoMercator, geoPath } from "d3-geo";
-import { ChinaData, ProvinceData } from "china-map-geojson";
+import ChinaData from "china-map-geojson/lib/china.js";
 import {
   MAP_HEIGHT,
   MAP_PADDING,
@@ -17,6 +17,10 @@ import {
   computeCityLabelLayoutForCity,
   nationProvinceLabelKey,
 } from "@/components/footprint/computeCityLabels";
+import {
+  loadProvinceData,
+  type ProvinceDataMap,
+} from "@/components/footprint/loadProvinceData";
 
 export interface FootprintPlace {
   name: string;
@@ -59,6 +63,19 @@ export function useFootprintMap(
   );
   const [selectedCityKey, setSelectedCityKey] = useState<string | null>(null);
   const [selectedPlaceKey, setSelectedPlaceKey] = useState<string | null>(null);
+  const [provinceData, setProvinceData] = useState<ProvinceDataMap>(() => ({}));
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void loadProvinceData().then(data => {
+      if (!cancelled) setProvinceData(data);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const focusedProvinceFeature = useMemo(() => {
     if (!focusedProvinceKey) return null;
@@ -76,13 +93,11 @@ export function useFootprintMap(
   /** 与地图绘制一致：用市级要素并集拟合投影，避免省界简要与市级轮廓不一致导致四周留白 */
   const focusedProvinceCityCollection = useMemo(() => {
     if (!focusedProvinceKey) return null;
-    const coll = (ProvinceData as Record<string, { features?: unknown[] }>)[
-      focusedProvinceKey
-    ];
+    const coll = provinceData[focusedProvinceKey];
     const features = coll?.features ?? [];
     if (!features.length) return null;
     return { type: "FeatureCollection" as const, features };
-  }, [focusedProvinceKey]);
+  }, [focusedProvinceKey, provinceData]);
 
   const projection = useMemo(() => {
     const mercator = geoMercator();
@@ -111,7 +126,7 @@ export function useFootprintMap(
   // 不依赖投影：用于异步计算 visited（geoContains 不需要 d / projection）。
   const cityMetas = useMemo((): CityMeta[] => {
     return Object.entries(
-      ProvinceData as Record<string, { features?: unknown[] }>
+      provinceData as Record<string, { features?: unknown[] }>
     ).flatMap(([provinceKey, collection]) =>
       (collection.features ?? []).map((feature, idx) => {
         let bbox = geoBounds(feature as never) as [
@@ -137,7 +152,7 @@ export function useFootprintMap(
         };
       })
     );
-  }, []);
+  }, [provinceData]);
 
   const inBbox = (
     lng: number,

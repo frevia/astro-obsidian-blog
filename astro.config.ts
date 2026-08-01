@@ -46,6 +46,8 @@ export default defineConfig({
   base: SITE.base,
   output: "static",
   adapter: vercel(),
+  // Warm high-intent navigations without downloading every route up front.
+  prefetch: { defaultStrategy: "hover" },
   fonts: [
     {
       name: "Noto Sans SC Variable",

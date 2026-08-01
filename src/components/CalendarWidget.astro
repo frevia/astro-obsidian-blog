@@ -13,6 +13,7 @@
 import Calendar from "./Calendar.tsx";
 import { getCollection } from "astro:content";
 import { getCalendarEventsByDate } from "@/utils/getCalendarEvents";
+import { toSiteYMD } from "@/utils/calendarDate";
 
 interface Props {
   /** 紧凑模式，适合侧边栏等窄区域：隐藏图例与下方事件列表，缩小格子与字体 */
@@ -25,8 +26,14 @@ const blogEntries = await getCollection("blog");
 const diaryEntries = await getCollection("diary");
 const byDate = getCalendarEventsByDate(blogEntries, diaryEntries);
 const eventsByDate = Object.fromEntries(byDate);
+const initialDateKey = toSiteYMD(new Date());
 ---
 
 <div class="calendar-widget">
-  <Calendar client:only="react" eventsByDate={eventsByDate} compact={compact} />
+  <Calendar
+    client:idle
+    eventsByDate={eventsByDate}
+    initialDateKey={initialDateKey}
+    compact={compact}
+  />
 </div>

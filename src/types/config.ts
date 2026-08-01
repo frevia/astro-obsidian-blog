@@ -72,6 +72,12 @@ export interface FeaturesConfig {
    * Set to false to disable search entirely.
    */
   search?: "pagefind" | false;
+  /**
+   * Navigation transition engine. Native uses the browser View Transition API
+   * without shipping Astro's client router; client-router remains the explicit
+   * compatibility fallback for browsers where native transitions are not ready.
+   */
+  viewTransitions?: "client-router" | "native";
 }
 
 export interface SocialLink {
@@ -178,6 +184,7 @@ export interface ResolvedFeaturesConfig {
   showBackButton: boolean;
   editPost: ResolvedEditPostConfig;
   search: "pagefind" | false;
+  viewTransitions: "client-router" | "native";
 }
 
 export interface ResolvedLocalConfig {

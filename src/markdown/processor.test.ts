@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createSatteriMarkdownProcessor } from "@astrojs/markdown-satteri";
+import { load } from "cheerio";
 import { markdownToHtml, mdxToJs } from "satteri";
 
 import {
@@ -198,6 +199,23 @@ describe("processor contract", () => {
     expect(second.html).toContain('id="重复标题"');
     expect(second.html).not.toContain('id="重复标题-1"');
     expect(first.html).not.toContain("properties=");
+  });
+
+  it("renders a readable code toolbar before client JavaScript runs", async () => {
+    const result = await markdownToHtml("```ts\nconst answer = 42;\n```", {
+      features: markdownFeatures,
+      mdastPlugins: pageMdastPlugins,
+      hastPlugins: pageHastPlugins,
+    });
+    const $ = load(result.html);
+    const toolbar = $("[data-code-toolbar]").first();
+
+    expect(toolbar.find("pre code").text()).toBe("const answer = 42;\n");
+    expect(toolbar.find("pre").attr("tabindex")).toBe("0");
+    expect(toolbar.find("[data-code-language]").text()).toBe("ts");
+    expect(
+      toolbar.find('[data-copy-button="true"]').attr("hidden")
+    ).toBeDefined();
   });
 
   it("keeps figure behavior scoped to image-only paragraphs", async () => {

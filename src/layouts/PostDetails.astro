@@ -1,5 +1,4 @@
 ---
-import "tocbot/dist/tocbot.css";
 import { render, type CollectionEntry } from "astro:content";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
@@ -18,6 +17,8 @@ import MediaCard from "../components/MediaCard.astro";
 import Twikoo from "@/components/Twikoo.astro";
 import AiSummaryCard from "@/components/AiSummaryCard.astro";
 import ArticleLightbox from "@/components/ArticleLightbox.astro";
+import WikilinkPanel from "@/components/WikilinkPanel.astro";
+import { buildWikilinkGraph } from "@/utils/wikilinkGraph";
 import { PUBLIC_TWIKOO_ENV_ID } from "astro:env/client";
 import { tplStr, useTranslations } from "@/i18n";
 
@@ -46,7 +47,8 @@ const {
   // mainPoints,
 } = post.data;
 
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
+const tocHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 4);
 
 let coverUrl: string | undefined;
 
@@ -95,6 +97,9 @@ const postDetailsLabels = {
   nextPost: t.post.nextPost,
   copyCode: t.post.copyCode,
   copiedCode: t.post.copiedCode,
+  wikilinksTitle: t.post.wikilinksTitle,
+  wikilinksOutgoing: t.post.wikilinksOutgoing,
+  wikilinksBacklinks: t.post.wikilinksBacklinks,
 };
 const twikooEnvName = "PUBLIC_TWIKOO_ENV_ID";
 const commentsMissingTwikoo = tplStr(t.post.commentsMissingTwikoo, {
@@ -102,6 +107,9 @@ const commentsMissingTwikoo = tplStr(t.post.commentsMissingTwikoo, {
 });
 const [commentsMissingTwikooBefore, commentsMissingTwikooAfter = ""] =
   commentsMissingTwikoo.split(twikooEnvName);
+const wikilinkGraph = buildWikilinkGraph(posts);
+const outgoingWikilinks = wikilinkGraph.outgoing.get(post.id) ?? [];
+const backlinks = wikilinkGraph.backlinks.get(post.id) ?? [];
 ---
 
 <Layout {...layoutProps}>
@@ -146,6 +154,14 @@ const [commentsMissingTwikooBefore, commentsMissingTwikooAfter = ""] =
     </article>
     <ArticleLightbox />
 
+    <WikilinkPanel
+      outgoing={outgoingWikilinks}
+      {backlinks}
+      title={postDetailsLabels.wikilinksTitle}
+      outgoingLabel={postDetailsLabels.wikilinksOutgoing}
+      backlinksLabel={postDetailsLabels.wikilinksBacklinks}
+    />
+
     <hr class="my-8 border-dashed" />
 
     <EditPost class="sm:hidden" {hideEditPost} {post} />
@@ -171,12 +187,30 @@ const [commentsMissingTwikooBefore, commentsMissingTwikooAfter = ""] =
     <BackToTopButton />
 
     <!-- 目录侧边栏 -->
-    <aside id="sidebar" class="sidebar toc-empty hidden lg:block">
-      <div class="toc-title mb-2 text-sm font-medium">
-        {postDetailsLabels.tocTitle}
-      </div>
-      <div id="toc-container" class="js-toc"></div>
-    </aside>
+    {
+      tocHeadings.length > 0 && (
+        <aside id="sidebar" class="sidebar hidden lg:block">
+          <div id="post-toc-title" class="toc-title mb-2 text-sm font-medium">
+            {postDetailsLabels.tocTitle}
+          </div>
+          <nav aria-labelledby="post-toc-title">
+            <ol class="toc-list">
+              {tocHeadings.map(heading => (
+                <li class="toc-list-item">
+                  <a
+                    href={`#${heading.slug}`}
+                    class:list={["toc-link", `node-name--H${heading.depth}`]}
+                    data-toc-link
+                  >
+                    {heading.text}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        </aside>
+      )
+    }
 
     <!-- Previous/Next Post Buttons -->
     <div data-pagefind-ignore class="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -184,6 +218,7 @@ const [commentsMissingTwikooBefore, commentsMissingTwikooAfter = ""] =
         prevPost && (
           <a
             href={getPath(prevPost.id, prevPost.filePath)}
+            data-astro-prefetch="hover"
             class="flex w-full gap-1 hover:opacity-75"
           >
             <IconChevronLeft class="inline-block flex-none rtl:rotate-180" />
@@ -198,6 +233,7 @@ const [commentsMissingTwikooBefore, commentsMissingTwikooAfter = ""] =
         nextPost && (
           <a
             href={getPath(nextPost.id, nextPost.filePath)}
+            data-astro-prefetch="hover"
             class="flex w-full justify-end gap-1 text-end hover:opacity-75 sm:col-start-2"
           >
             <div>
@@ -214,8 +250,6 @@ const [commentsMissingTwikooBefore, commentsMissingTwikooAfter = ""] =
 </Layout>
 
 <script>
-  import tocbot from "tocbot";
-
   declare global {
     interface Window {
       __postDetailsCleanup?: () => void;
@@ -278,8 +312,60 @@ const [commentsMissingTwikooBefore, commentsMissingTwikooAfter = ""] =
       onScroll();
     }
 
-    /** 为代码块添加复制按钮 */
-    function addCopyButtons() {
+    /** 为服务端目录补充当前章节反馈 */
+    function setupTableOfContents() {
+      const links = Array.from(
+        document.querySelectorAll<HTMLAnchorElement>("#sidebar [data-toc-link]")
+      );
+      const entries = links.flatMap(link => {
+        const href = link.getAttribute("href");
+        if (!href?.startsWith("#")) return [];
+
+        let id = href.slice(1);
+        try {
+          id = decodeURIComponent(id);
+        } catch {
+          // Keep the literal id when the fragment is not URI encoded.
+        }
+
+        const heading = document.getElementById(id);
+        return heading instanceof HTMLElement ? [{ heading, link }] : [];
+      });
+      if (!entries.length) return;
+
+      const updateActiveLink = () => {
+        const header = document.getElementById("site-header");
+        const offset =
+          (header instanceof HTMLElement ? header.offsetHeight : 0) + 8;
+        let activeLink = entries[0].link;
+
+        for (const entry of entries) {
+          if (entry.heading.getBoundingClientRect().top > offset) break;
+          activeLink = entry.link;
+        }
+
+        links.forEach(link => {
+          const isActive = link === activeLink;
+          link.classList.toggle("is-active-link", isActive);
+          if (isActive) {
+            link.setAttribute("aria-current", "location");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+      };
+
+      document.addEventListener("scroll", updateActiveLink, { passive: true });
+      window.addEventListener("resize", updateActiveLink, { passive: true });
+      cleanupCallbacks.push(() => {
+        document.removeEventListener("scroll", updateActiveLink);
+        window.removeEventListener("resize", updateActiveLink);
+      });
+      updateActiveLink();
+    }
+
+    /** 激活构建阶段生成的代码复制按钮 */
+    function setupCopyButtons() {
       const main = document.getElementById("main-content");
       if (!(main instanceof HTMLElement)) return;
 
@@ -287,136 +373,53 @@ const [commentsMissingTwikooBefore, commentsMissingTwikooAfter = ""] =
       const copiedLabel = main.dataset.copiedLabel;
       if (!copyLabel || !copiedLabel) return;
 
-      const preElements = document.querySelectorAll("pre");
+      const copyButtons = main.querySelectorAll<HTMLButtonElement>(
+        '[data-copy-button="true"]'
+      );
 
-      // 使用 DocumentFragment 批量处理 DOM 操作
-      const elementsToProcess: {
-        pre: HTMLPreElement;
-        parent: Node;
-        nextSibling: Node | null;
-      }[] = [];
+      copyButtons.forEach(copyButton => {
+        const toolbar = copyButton.closest("[data-code-toolbar]");
+        const pre = toolbar?.querySelector("pre");
+        if (!(pre instanceof HTMLPreElement)) return;
 
-      preElements.forEach(pre => {
-        // 检查是否已经被包装过（即已经有复制按钮）
-        if (
-          pre.parentElement?.tagName === "DIV" &&
-          pre.parentElement?.style.position === "relative" &&
-          pre.parentElement?.querySelector('[data-copy-button="true"]')
-        ) {
-          return;
-        }
-
-        // 记录需要处理的元素信息
-        const parent = pre.parentNode;
-        const nextSibling = pre.nextSibling;
-        if (parent) {
-          elementsToProcess.push({ pre, parent, nextSibling });
-        }
-      });
-
-      // 批量创建包装器和按钮
-      elementsToProcess.forEach(({ pre, parent, nextSibling }) => {
-        // 添加 tabindex 属性
-        pre.setAttribute("tabindex", "0");
-
-        // 创建包装器
-        const wrapper = document.createElement("div");
-        wrapper.style.position = "relative";
-
-        // 创建复制按钮
-        const copyButton = document.createElement("button");
-        copyButton.className = [
-          "copy-code",
-          "absolute",
-          "end-3",
-          "-top-3",
-          "rounded",
-          "bg-muted",
-          "border",
-          "border-muted/30",
-          "hover:border-muted/60",
-          "hover:bg-surface-muted",
-          "px-2",
-          "py-1",
-          "text-xs",
-          "leading-4",
-          "text-foreground",
-          "font-medium",
-          "transition-colors",
-          "duration-200",
-        ].join(" ");
-        copyButton.setAttribute("data-copy-button", "true");
-        copyButton.setAttribute("type", "button");
         copyButton.textContent = copyLabel;
+        copyButton.hidden = false;
+        let resetTimer: number | undefined;
 
-        // 添加点击事件
-        copyButton.addEventListener("click", async () => {
+        const onCopy = async () => {
           const code = pre.querySelector("code");
           const text = code?.textContent || code?.innerText || "";
 
           try {
             await navigator.clipboard.writeText(text);
-
-            // 视觉反馈
-            const originalText = copyButton.textContent;
             copyButton.textContent = copiedLabel;
 
-            setTimeout(() => {
-              copyButton.textContent = originalText;
+            if (resetTimer !== undefined) window.clearTimeout(resetTimer);
+            resetTimer = window.setTimeout(() => {
+              copyButton.textContent = copyLabel;
+              resetTimer = undefined;
             }, 700);
           } catch {
             // console.error("Failed to copy code:", err);
           }
+        };
+
+        copyButton.addEventListener("click", onCopy);
+        cleanupCallbacks.push(() => {
+          copyButton.removeEventListener("click", onCopy);
+          if (resetTimer !== undefined) window.clearTimeout(resetTimer);
+          copyButton.textContent = copyLabel;
         });
-
-        wrapper.appendChild(pre);
-        wrapper.appendChild(copyButton);
-
-        // 一次性插入到 DOM 中
-        parent.insertBefore(wrapper, nextSibling);
       });
     }
 
     createProgressBar();
     updateScrollProgress();
-    addCopyButtons();
-
-    // Match TOC calculations with the fixed header height.
-    function getTocOffset() {
-      const header = document.getElementById("site-header");
-      if (!(header instanceof HTMLElement)) return 0;
-      return header.offsetHeight + 8;
-    }
-
-    const sidebar = document.getElementById("sidebar");
-    const tocContainer = document.getElementById("toc-container");
-
-    // initialize tocbot if sidebar exists
-    if (tocContainer) {
-      const tocOffset = getTocOffset();
-      tocbot.destroy();
-      tocbot.init({
-        tocSelector: ".js-toc",
-        contentSelector: ".js-toc-content",
-        headingSelector: "h2, h3, h4",
-        ignoreSelector: ".media-card h3, h1",
-        hasInnerContainers: true,
-        headingsOffset: tocOffset,
-        scrollSmoothDuration: 300,
-        scrollSmoothOffset: -tocOffset,
-      });
-
-      const hasTocItem =
-        tocContainer.querySelector(".toc-list-item, .toc-link") !== null;
-      if (sidebar) {
-        sidebar.classList.toggle("toc-empty", !hasTocItem);
-        sidebar.setAttribute("aria-hidden", String(!hasTocItem));
-      }
-    }
+    setupTableOfContents();
+    setupCopyButtons();
 
     window.__postDetailsCleanup = () => {
       cleanupCallbacks.forEach(cleanup => cleanup());
-      tocbot.destroy();
       window.__postDetailsCleanup = undefined;
     };
   }

@@ -89,6 +89,27 @@ function figureFromImage(image: Element): Element {
   };
 }
 
+function codeLanguage(node: Readonly<Element>): string {
+  const code = node.children.find(
+    child => child.type === "element" && child.tagName === "code"
+  );
+  if (!code || code.type !== "element") return "text";
+
+  const declaredLanguage = [
+    node.properties.dataLanguage,
+    node.properties["data-language"],
+    code.properties.dataLanguage,
+    code.properties["data-language"],
+  ].find(value => typeof value === "string" && value.trim());
+  if (typeof declaredLanguage === "string") return declaredLanguage;
+
+  const languageClass = [
+    ...classList(node.properties.className),
+    ...classList(code.properties.className),
+  ].find(value => value.startsWith("language-"));
+  return languageClass?.slice("language-".length) || "text";
+}
+
 export const headingAnchorPlugin: HastPluginDefinition = defineHastPlugin({
   name: "heading-anchor",
   element: {
@@ -175,6 +196,105 @@ export const mathPlugin: HastPluginDefinition = defineHastPlugin({
               : "KaTeX render failed",
         });
       }
+    },
+  },
+});
+
+export const codeToolbarPlugin: HastPluginDefinition = defineHastPlugin({
+  name: "code-toolbar",
+  element: {
+    filter: ["pre"],
+    visit(node, ctx) {
+      const parent = ctx.parent(node);
+      if (
+        parent?.type === "element" &&
+        parent.properties.dataCodeToolbar === "true"
+      ) {
+        return;
+      }
+
+      if (
+        node.properties.tabIndex === undefined &&
+        node.properties.tabindex === undefined
+      ) {
+        ctx.setProperty(node, "tabIndex", 0);
+      }
+      ctx.replaceNode(node, {
+        type: "element",
+        tagName: "div",
+        properties: {
+          className: ["code-toolbar", "relative"],
+          dataCodeToolbar: "true",
+        },
+        children: [
+          node,
+          {
+            type: "element",
+            tagName: "div",
+            properties: {
+              className: [
+                "code-toolbar-controls",
+                "absolute",
+                "end-3",
+                "-top-3",
+                "flex",
+                "items-center",
+                "gap-2",
+              ],
+            },
+            children: [
+              {
+                type: "element",
+                tagName: "span",
+                properties: {
+                  className: [
+                    "code-language",
+                    "rounded",
+                    "border",
+                    "border-muted/30",
+                    "bg-muted",
+                    "px-2",
+                    "py-1",
+                    "text-xs",
+                    "leading-4",
+                    "font-medium",
+                    "text-foreground",
+                  ],
+                  dataCodeLanguage: "true",
+                },
+                children: [{ type: "text", value: codeLanguage(node) }],
+              },
+              {
+                type: "element",
+                tagName: "button",
+                properties: {
+                  className: [
+                    "copy-code",
+                    "rounded",
+                    "border",
+                    "border-muted/30",
+                    "bg-muted",
+                    "px-2",
+                    "py-1",
+                    "text-xs",
+                    "leading-4",
+                    "font-medium",
+                    "text-foreground",
+                    "transition-colors",
+                    "duration-200",
+                    "hover:border-muted/60",
+                    "hover:bg-surface-muted",
+                  ],
+                  dataCopyButton: "true",
+                  hidden: true,
+                  type: "button",
+                },
+                children: [],
+              },
+            ],
+          },
+        ],
+      });
     },
   },
 });
