@@ -12,7 +12,7 @@ import { slugifyStr } from "@/utils/slugify";
 import { withBase } from "@/utils/withBase";
 
 const clips = await getCollection("clip");
-const DEFAULT_VISIBLE_TAGS = 20;
+const DEFAULT_VISIBLE_TAGS = 16;
 const tagCountMap = clips
   .flatMap(clip => clip.data.tags.map(tag => tag.trim()).filter(Boolean))
   .reduce((acc, tag) => {
@@ -442,8 +442,8 @@ const yearGroups = Object.entries(
   .favorites-toolbar::after {
     position: absolute;
     inset-inline: 0;
-    bottom: -0.5rem;
-    height: 0.5rem;
+    bottom: -2.5rem;
+    height: 2.5rem;
     background: var(--background);
     content: "";
     pointer-events: none;
