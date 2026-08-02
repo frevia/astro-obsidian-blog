@@ -32,6 +32,7 @@ import Layout from "./Layout.astro";
 import { SITE } from "@/config";
 import { getYMDParts } from "@/utils/calendarDate";
 import { getBlogMetrics } from "@/utils/getBlogMetrics";
+import "@/styles/about-page.css";
 import {
   PUBLIC_TWIKOO_ENABLED,
   PUBLIC_TWIKOO_ENV_ID,
@@ -64,8 +65,77 @@ const {
 
 <Layout title={`${frontmatter.title} | ${SITE.title}`}>
   <Header />
-  <main id="main-content" class="mx-auto mt-6 w-full max-w-app px-4 pb-12">
-    <section id="about" class="app-prose prose-img:border-0">
+  <main
+    id="main-content"
+    class="about-page mx-auto mt-6 w-full max-w-app px-4 pb-12"
+  >
+    <section class="about-hero" aria-labelledby="about-heading">
+      <div class="about-hero-copy">
+        <span class="about-eyebrow">About / Frevia's log</span>
+        <h1 id="about-heading">{frontmatter.title}</h1>
+        {
+          frontmatter.description && (
+            <p class="about-hero-description">{frontmatter.description}</p>
+          )
+        }
+        <div class="about-hero-meta">
+          <span>
+            since
+            <time datetime={`${startYear}-${startMonth}-${startDay}`}>
+              <span id="start-year">0</span>.<span id="start-month">0</span
+              >.<span id="start-day">0</span>
+            </time>
+          </span>
+          <span class="about-hero-meta-dot" aria-hidden="true">·</span>
+          <span>living archive</span>
+        </div>
+      </div>
+      <div class="about-hero-mark" aria-hidden="true">
+        <span class="about-hero-mark-letter">F</span>
+        <span>keep<br />noting</span>
+      </div>
+    </section>
+
+    <section class="about-stats" aria-labelledby="about-stats-title">
+      <header class="about-stats-head">
+        <div>
+          <span class="about-eyebrow">Life in numbers</span>
+          <h2 id="about-stats-title">一段持续更新的记录</h2>
+        </div>
+        <span class="about-stats-status">still writing</span>
+      </header>
+      <div class="about-stat-grid">
+        <article class="about-stat about-stat--days">
+          <span class="about-stat-label">运行天数</span>
+          <div class="about-stat-value">
+            <strong id="running-days">0</strong>
+            <span>days</span>
+          </div>
+          <p>把日子写成可以回访的坐标。</p>
+        </article>
+        <article class="about-stat">
+          <span class="about-stat-label">已发表</span>
+          <div class="about-stat-value">
+            <strong id="total-posts">0</strong>
+            <span>篇</span>
+          </div>
+          <p>
+            <span id="blog-posts">0</span> 篇文章 ·
+            <span id="diary-posts">0</span> 篇碎片
+          </p>
+        </article>
+        <article class="about-stat about-stat--words">
+          <span class="about-stat-label">累计字数</span>
+          <div class="about-stat-value">
+            <strong id="total-words">0.0</strong>
+            <span>万字</span>
+          </div>
+          <p>不追求喧哗，只留下准确的回声。</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="about" class="about-content app-prose prose-img:border-0">
       <!-- 统计数据容器（隐藏） -->
       <!-- 通过 data 属性传递值给客户端脚本 -->
       <div
