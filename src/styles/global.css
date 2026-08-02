@@ -148,7 +148,8 @@
 
 /* About 页图片入场：由 GSAP 做淡入+微缩放+去模糊，此处仅初始隐藏 */
 .disintegration-img {
-  opacity: 0;
+  /* SSR 兜底：动画岛加载失败时图片仍应保持可见。 */
+  opacity: 1;
   will-change: opacity, transform, filter;
 }
 
