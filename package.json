@@ -78,8 +78,7 @@
     "satteri": "0.9.5",
     "sharp": "^0.34.2",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss": "4.3.3",
-    "tocbot": "^4.36.4"
+    "tailwindcss": "4.3.3"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",

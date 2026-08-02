@@ -27,11 +27,14 @@ describe("article reading presentation contracts", () => {
 
     expect(source).toContain('id="sidebar"');
     expect(source).toContain("article-reading-rail");
+    expect(source).toContain("article-reading-rail-card");
     expect(source).toContain("article-reading-rail-mobile");
     expect(source).toContain("<details");
     expect(source).toContain("<summary");
     expect(source).toContain("data-toc-link");
     expect(source).toContain("data-toc-progress");
+    expect(source).toContain("data-toc-progress-bar");
+    expect(source).toContain("data-toc-current");
     expect(source).toContain('aria-labelledby="post-toc-title"');
   });
 
@@ -44,6 +47,9 @@ describe("article reading presentation contracts", () => {
     expect(css).toContain(".article-hero-cover");
     expect(css).toContain("aspect-ratio: 16 / 9");
     expect(css).toContain(".article-reading-rail-mobile");
+    expect(css).toContain(".article-reading-rail-card");
+    expect(css).toContain(".article-reading-rail-progress-track");
+    expect(css).toContain("@media (min-width: 1300px)");
     expect(css).toContain("position: fixed");
     expect(css).toContain(".article-reading-body img");
     for (const component of [
