@@ -52,5 +52,7 @@ describe("calendar and footprint visual integration", () => {
     expect(source).toContain("aria-pressed={selectedKey === item.key}");
     expect(source).toContain("onClick={() => selectPlace(item.key)}");
     expect(source).toContain("marker.openPopup()");
+    expect(source).toContain('data-astro-prefetch="tap"');
+    expect(source).toContain('link.dataset.astroPrefetch = "tap"');
   });
 });

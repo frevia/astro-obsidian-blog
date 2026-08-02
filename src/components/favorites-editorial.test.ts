@@ -12,6 +12,7 @@ describe("favorites editorial catalog", () => {
     expect(source).toContain('id="favorites-filter-status"');
     expect(source).toContain("最近收录");
     expect(source).toContain("data-content-kind={getFavoriteKind(post)}");
+    expect(source).toContain('data-astro-prefetch="tap"');
   });
 
   it("keeps tag filter buttons outside the favorite navigation link", () => {

@@ -61,7 +61,13 @@ const parsePublishedDate = (value: unknown) => {
 };
 
 const blog = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.{md,mdx}", base: `./${BLOG_PATH}` }),
+  loader: glob({
+    pattern: "**/[^_]*.{md,mdx}",
+    base: `./${BLOG_PATH}`,
+    // Astro 7.1 defers expensive markdown rendering until a page actually
+    // calls render(), keeping collection sync light for archive/index routes.
+    deferRender: true,
+  }),
   schema: ({ image }) =>
     z
       .object({
@@ -93,14 +99,22 @@ const blog = defineCollection({
 });
 
 const diary = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.{md,mdx}", base: `./${DIARY_PATH}` }),
+  loader: glob({
+    pattern: "**/[^_]*.{md,mdx}",
+    base: `./${DIARY_PATH}`,
+    deferRender: true,
+  }),
   schema: z.object({
     tags: z.array(z.string()).default(["Diary"]),
   }),
 });
 
 const clip = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.{md,mdx}", base: `./${CLIP_PATH}` }),
+  loader: glob({
+    pattern: "**/[^_]*.{md,mdx}",
+    base: `./${CLIP_PATH}`,
+    deferRender: true,
+  }),
   schema: () =>
     z
       .object({

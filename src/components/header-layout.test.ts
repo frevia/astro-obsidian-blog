@@ -6,5 +6,7 @@ describe("header navigation layout", () => {
     const source = readFileSync("src/components/Header.astro", "utf-8");
 
     expect(source).toContain("whitespace-nowrap text-foreground/85");
+    expect(source).toContain("transition:persist={useClientRouterTransitions}");
+    expect(source).toContain('alt=""');
   });
 });
