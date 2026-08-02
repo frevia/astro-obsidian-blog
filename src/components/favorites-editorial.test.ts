@@ -25,4 +25,11 @@ describe("favorites editorial catalog", () => {
     expect(source).toContain("requestAnimationFrame(updateToolbarVisibility)");
     expect(source).toContain("if (scrollDelta < -8) setToolbarHidden(false)");
   });
+
+  it("keeps toolbar collapse out of the browser scroll-anchor loop", () => {
+    expect(source).toMatch(
+      /\.favorites-catalog \{[\s\S]*?overflow-anchor: none;/
+    );
+    expect(source).not.toContain("window.scrollBy");
+  });
 });
