@@ -1,4 +1,9 @@
-import { defineConfig, envField, fontProviders } from "astro/config";
+import {
+  defineConfig,
+  envField,
+  fontProviders,
+  svgoOptimizer,
+} from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
@@ -189,6 +194,11 @@ export default defineConfig({
   image: {
     responsiveStyles: true,
     layout: "constrained",
+  },
+  // Astro 7's SVG pipeline removes redundant path data from imported icons
+  // while keeping the source SVGs untouched.
+  experimental: {
+    svgOptimizer: svgoOptimizer(),
   },
   env: {
     schema: {

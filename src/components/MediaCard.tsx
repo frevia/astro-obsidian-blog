@@ -97,6 +97,10 @@ const MediaCard: React.FC<MediaCardProps> = ({
             <img
               src={posterUrl}
               alt={title}
+              width={cardType === "music" ? 320 : 267}
+              height={cardType === "music" ? 320 : 400}
+              loading="lazy"
+              decoding="async"
               className={`my-0 w-full rounded-md object-cover shadow-sm ${
                 cardType === "music" ? "aspect-square" : "aspect-[2/3]"
               }`}

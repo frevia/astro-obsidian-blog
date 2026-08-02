@@ -75,4 +75,21 @@ describe("lazy island SSR contracts", () => {
     expect(mapSource).toContain("data-footprint-place-rail");
     expect(mapSource).toContain("正在准备地图图层");
   });
+
+  it("defers the diary timeline until the browser is idle", () => {
+    const homeSource = readFileSync(
+      resolve(import.meta.dirname, "../pages/index.astro"),
+      "utf-8"
+    );
+    const diarySource = readFileSync(
+      resolve(import.meta.dirname, "../pages/diary/[...page].astro"),
+      "utf-8"
+    );
+
+    expect(homeSource).toContain("<DiaryTimeline");
+    expect(homeSource).toContain("client:idle");
+    expect(diarySource).toContain("client:idle");
+    expect(homeSource).not.toContain("client:load");
+    expect(diarySource).not.toContain("client:load");
+  });
 });
