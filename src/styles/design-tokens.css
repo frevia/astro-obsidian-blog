@@ -12,8 +12,11 @@ html[data-theme="light"] {
   --accent: #3d6b7f;
   --accent-strong: #2f596c;
   --border: #e8edf2;
+  --border-strong: #d8e1e8;
   --surface: #ffffff;
   --surface-elevated: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-glass: color-mix(in srgb, #ffffff 86%, transparent);
   --surface-muted: #fafbfc;
   --space-reading-block: 1.25rem;
   --accent-soft: color-mix(in oklab, var(--accent) 12%, transparent);
@@ -35,6 +38,10 @@ html[data-theme="light"] {
   --motion-slow: 320ms;
   --shadow-sm: 0 1px 2px color-mix(in oklab, #1f2937 5%, transparent);
   --shadow-md: 0 4px 12px color-mix(in oklab, #1f2937 7%, transparent);
+  --shadow-lg: 0 18px 45px -30px color-mix(in oklab, #1f2937 35%, transparent);
+  --shadow-accent: 0 18px 42px -28px
+    color-mix(in oklab, var(--accent) 42%, transparent);
+  --page-glow: color-mix(in oklab, var(--accent) 5%, transparent);
   --muted: #e2e8f0;
   --toc-top-text-color: var(--foreground-muted);
 }
@@ -47,8 +54,11 @@ html[data-theme="dark"] {
   --accent: #7ba3b8;
   --accent-strong: #a6c7d6;
   --border: #2d3748;
+  --border-strong: #455468;
   --surface: #1a2230;
   --surface-elevated: #1f2937;
+  --surface-raised: #263244;
+  --surface-glass: color-mix(in srgb, #1f2937 82%, transparent);
   --surface-muted: #243044;
   --space-reading-block: 1.25rem;
   --accent-soft: color-mix(in oklab, var(--accent) 20%, transparent);
@@ -70,13 +80,54 @@ html[data-theme="dark"] {
   --motion-slow: 320ms;
   --shadow-sm: 0 1px 2px color-mix(in oklab, #000 35%, transparent);
   --shadow-md: 0 4px 12px color-mix(in oklab, #000 45%, transparent);
+  --shadow-lg: 0 18px 45px -30px color-mix(in oklab, #000 75%, transparent);
+  --shadow-accent: 0 18px 42px -28px
+    color-mix(in oklab, var(--accent) 56%, transparent);
+  --page-glow: color-mix(in oklab, var(--accent) 9%, transparent);
   --muted: #4b5563;
   --toc-top-text-color: var(--foreground-muted);
 }
 
 @layer components {
+  .page-shell {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .page-shell::before {
+    position: absolute;
+    z-index: -1;
+    inset: -2rem -1rem auto;
+    height: 18rem;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 15% 0%, var(--page-glow), transparent 56%),
+      radial-gradient(
+        circle at 92% 8%,
+        color-mix(in oklab, var(--accent) 3%, transparent),
+        transparent 48%
+      );
+    content: "";
+  }
+
   .page-intro {
+    position: relative;
     max-width: 46rem;
+    padding-inline-start: 0.9rem;
+  }
+
+  .page-intro::before {
+    position: absolute;
+    inset-block: 0.15rem 0.25rem;
+    inset-inline-start: 0;
+    width: 2px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to bottom,
+      var(--accent),
+      color-mix(in oklab, var(--accent) 12%, transparent)
+    );
+    content: "";
   }
 
   .page-kicker {
@@ -91,32 +142,97 @@ html[data-theme="dark"] {
 
   .page-title {
     letter-spacing: -0.045em;
+    text-wrap: balance;
   }
 
   .page-desc {
     max-width: 42rem;
     color: var(--foreground-muted);
+    text-wrap: pretty;
   }
 
   .app-card {
     border: 1px solid color-mix(in oklab, var(--border) 90%, transparent);
     border-radius: var(--radius-card);
-    background: var(--surface);
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--surface-raised) 96%, var(--accent) 4%),
+      var(--surface)
+    );
     box-shadow: var(--shadow-sm);
     transition:
       border-color var(--motion-standard) ease,
-      box-shadow var(--motion-standard) ease;
+      background-color var(--motion-standard) ease,
+      box-shadow var(--motion-standard) ease,
+      transform var(--motion-standard) ease;
   }
 
   .app-card:hover {
     border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
     box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
   }
 
   .app-panel {
     border: 1px solid var(--line-soft);
     border-radius: var(--radius-card);
-    background: var(--surface-muted);
+    background: color-mix(in oklab, var(--surface-muted) 92%, var(--accent) 8%);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .app-chip {
+    display: inline-flex;
+    min-height: 1.7rem;
+    align-items: center;
+    gap: 0.3rem;
+    border: 1px solid color-mix(in oklab, var(--border-strong) 72%, transparent);
+    border-radius: 9999px;
+    padding: 0.25rem 0.6rem;
+    color: var(--foreground-muted);
+    background: color-mix(in oklab, var(--surface) 82%, var(--accent) 18%);
+    font-size: 0.72rem;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .app-skeleton {
+    position: relative;
+    overflow: hidden;
+    background: color-mix(
+      in oklab,
+      var(--surface-muted) 78%,
+      var(--accent) 22%
+    );
+  }
+
+  .app-skeleton::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 18%,
+      color-mix(in oklab, var(--surface) 54%, transparent) 46%,
+      transparent 72%
+    );
+    content: "";
+    transform: translateX(-100%);
+    animation: app-skeleton-shimmer 1.8s ease-in-out infinite;
+  }
+
+  .app-card-media {
+    animation: app-media-reveal 520ms var(--motion-slow) both;
+  }
+
+  .app-loading-state::before {
+    display: inline-block;
+    width: 0.48rem;
+    height: 0.48rem;
+    flex: none;
+    border-radius: 9999px;
+    background: var(--loading-accent, var(--accent));
+    box-shadow: 0 0 0 0.25rem var(--loading-accent-soft, var(--accent-soft));
+    content: "";
+    animation: app-loading-pulse 1.6s ease-in-out infinite;
   }
 
   .app-notice {
@@ -146,5 +262,44 @@ html[data-theme="dark"] {
   .app-hover-row:focus-within {
     border-color: color-mix(in oklab, var(--border) 92%, var(--accent) 8%);
     background: var(--accent-softer);
+  }
+}
+
+@keyframes app-skeleton-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes app-media-reveal {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: scale(1.015);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+@keyframes app-loading-pulse {
+  50% {
+    opacity: 0.38;
+    transform: scale(0.8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-card,
+  .app-card:hover {
+    transform: none;
+  }
+
+  .app-skeleton::after,
+  .app-card-media,
+  .app-loading-state::before {
+    animation: none;
   }
 }

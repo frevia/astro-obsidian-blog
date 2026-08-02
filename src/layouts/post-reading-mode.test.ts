@@ -17,7 +17,7 @@ describe("post reading mode", () => {
     );
     expect(content).toContain('import "@/styles/article-reading.css"');
     expect(content).toContain("getArticleAccentStyle");
-    expect(content).toContain('"article-page mx-auto');
+    expect(content).toContain('"article-page page-shell mx-auto');
     expect(content).toContain("<ArticleHero");
     expect(content).toContain("<ArticleReadingRail");
     expect(content).toContain('class="article-reading-body js-toc-content');

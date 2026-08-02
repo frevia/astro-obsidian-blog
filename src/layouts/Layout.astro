@@ -150,6 +150,18 @@ const structuredData = {
         view-transition-name: site-header;
       }
 
+      ::view-transition-group(site-brand) {
+        z-index: 3;
+      }
+
+      ::view-transition-old(site-brand) {
+        animation: 140ms cubic-bezier(0.4, 0, 1, 1) both brand-out;
+      }
+
+      ::view-transition-new(site-brand) {
+        animation: 220ms cubic-bezier(0, 0, 0.2, 1) both brand-in;
+      }
+
       ::view-transition-old(site-header),
       ::view-transition-new(site-header) {
         animation-duration: 180ms;
@@ -174,6 +186,20 @@ const structuredData = {
         from {
           opacity: 0;
           transform: translateY(0.25rem);
+        }
+      }
+
+      @keyframes brand-out {
+        to {
+          opacity: 0.72;
+          transform: translateX(-0.15rem);
+        }
+      }
+
+      @keyframes brand-in {
+        from {
+          opacity: 0.72;
+          transform: translateX(0.15rem);
         }
       }
 

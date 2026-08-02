@@ -12,7 +12,9 @@ import {
 ---
 
 <div id="tcomment" class="twikoo-root mt-8" aria-live="polite">
-  <p class="twikoo-state twikoo-state--loading">正在加载留言…</p>
+  <p class="twikoo-state twikoo-state--loading app-loading-state">
+    正在加载留言…
+  </p>
   <p class="twikoo-state twikoo-state--error" hidden>
     留言服务暂时没有响应，请稍后重试。
   </p>
@@ -131,6 +133,10 @@ import {
   }
 
   .twikoo-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
     border: 1px dashed color-mix(in oklab, var(--border) 78%, transparent);
     border-radius: var(--radius-card);
     padding: 1rem;

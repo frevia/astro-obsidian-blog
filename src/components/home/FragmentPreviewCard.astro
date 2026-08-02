@@ -21,7 +21,7 @@ const dateLabel = preview.date.replace(/-/g, ".");
   <a
     href={preview.href}
     data-astro-prefetch="tap"
-    class="group relative isolate flex h-full min-h-48 flex-col overflow-hidden rounded-2xl border border-border/65 bg-surface px-4 py-4 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-accent/55 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+    class="app-card group relative isolate flex h-full min-h-48 flex-col overflow-hidden rounded-2xl px-4 py-4 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-accent/55 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
   >
     <span
       aria-hidden="true"
@@ -35,9 +35,10 @@ const dateLabel = preview.date.replace(/-/g, ".");
             alt={preview.image.alt}
             width="480"
             height="270"
+            sizes="(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 100vw"
             loading="lazy"
             decoding="async"
-            class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+            class="app-card-media h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           />
         </div>
       )

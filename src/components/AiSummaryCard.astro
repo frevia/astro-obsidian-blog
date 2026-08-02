@@ -6,9 +6,7 @@ interface Props {
 const { summary, title = "AI 总结" } = Astro.props;
 ---
 
-<div
-  class="mt-6 mb-8 rounded-md border border-l-4 border-border/60 border-l-accent/45 bg-muted/15 px-4 py-3"
->
+<div class="app-panel mt-6 mb-8 border-l-4 border-l-accent/45 px-4 py-3">
   <h3 class="mb-2 text-base font-semibold text-foreground/90">{title}</h3>
   <p class="text-sm leading-relaxed text-foreground/80">{summary}</p>
 </div>

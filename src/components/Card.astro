@@ -75,10 +75,10 @@ const titleClass = isStandard
     href={getPath(id, filePath)}
     data-astro-prefetch={isFeatured ? "viewport" : "tap"}
     class:list={[
-      "group relative isolate block overflow-hidden border border-border/70 bg-background transition duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+      "app-card group relative isolate block overflow-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
       isStandard
         ? "rounded-xl px-4 py-4 hover:border-accent/55 hover:bg-accent/5"
-        : "rounded-2xl bg-surface px-4 py-4 shadow-sm hover:-translate-y-0.5 hover:border-accent/55 hover:shadow-md sm:px-5 sm:py-5",
+        : "rounded-2xl px-4 py-4 shadow-sm hover:-translate-y-0.5 hover:border-accent/55 hover:shadow-md sm:px-5 sm:py-5",
     ]}
   >
     {
@@ -121,8 +121,15 @@ const titleClass = isStandard
                 alt={title}
                 width={coverWidth}
                 height={coverHeight}
+                sizes={
+                  isStandard
+                    ? "(min-width: 640px) 88px, 56px"
+                    : isFeatured
+                      ? "(min-width: 640px) 52vw, 100vw"
+                      : "(min-width: 640px) 192px, 100vw"
+                }
                 loading={isFeatured ? "eager" : "lazy"}
-                class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
+                class="app-card-media h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
               />
             ) : (
               <Image
@@ -130,10 +137,17 @@ const titleClass = isStandard
                 alt={title}
                 width={coverWidth}
                 height={coverHeight}
+                sizes={
+                  isStandard
+                    ? "(min-width: 640px) 88px, 56px"
+                    : isFeatured
+                      ? "(min-width: 640px) 52vw, 100vw"
+                      : "(min-width: 640px) 192px, 100vw"
+                }
                 format="webp"
                 quality={82}
                 loading={isFeatured ? "eager" : "lazy"}
-                class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
+                class="app-card-media h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
               />
             ))
         }
@@ -152,9 +166,7 @@ const titleClass = isStandard
                 {contentKindLabel[contentKind]}
               </span>
               {data.tags.slice(0, 2).map(tag => (
-                <span class="rounded-full border border-border/60 px-2 py-0.5">
-                  {tag}
-                </span>
+                <span class="app-chip">{tag}</span>
               ))}
             </div>
           )

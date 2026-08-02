@@ -159,7 +159,7 @@ const yearGroups = Object.entries(
               latestFavorite.data.title
             )}
             data-astro-prefetch="tap"
-            class="favorites-latest group"
+            class="favorites-latest app-card group"
           >
             <span class="favorites-latest-kicker">最近收录</span>
             <div class="mt-3 flex items-start justify-between gap-4">
@@ -313,7 +313,7 @@ const yearGroups = Object.entries(
                           data-favorite-item
                           data-tags={post.data.tags.join("||")}
                         >
-                          <div class="favorites-item-card">
+                          <div class="favorites-item-card app-card">
                             <a
                               href={getFavoritePath(
                                 post.data.slug,

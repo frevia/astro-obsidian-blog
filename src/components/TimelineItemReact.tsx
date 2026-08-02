@@ -251,7 +251,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
                             alt={originalImg.alt || `图片 ${index + 1}`}
                             width={optimizedImg.width}
                             height={optimizedImg.height}
-                            className="h-full w-full cursor-pointer object-cover transition-transform duration-300 hover:scale-105"
+                            className="app-card-media h-full w-full cursor-pointer object-cover transition-transform duration-300 hover:scale-105"
                             style={
                               optimizedImages.length === 1
                                 ? {}
