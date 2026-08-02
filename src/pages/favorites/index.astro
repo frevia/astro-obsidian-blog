@@ -433,7 +433,8 @@ const yearGroups = Object.entries(
     z-index: 20;
     margin-inline: -0.25rem;
     padding-inline: 0.25rem;
-    background: color-mix(in oklab, var(--background) 92%, transparent);
+    /* 吸顶层必须完全遮住滚动中的卡片，避免文字穿透造成重影。 */
+    background: var(--background);
     backdrop-filter: blur(10px);
     scroll-margin-top: var(--site-header-height, 4rem);
   }
@@ -659,7 +660,8 @@ const yearGroups = Object.entries(
     margin-bottom: 1.25rem;
     padding: 0.7rem 0 0.55rem;
     border-bottom: 1px solid color-mix(in oklab, var(--border) 65%, transparent);
-    background: color-mix(in oklab, var(--background) 92%, transparent);
+    /* 年份标题与筛选栏错层时仍需保持不透明，避免底层内容透出。 */
+    background: var(--background);
     backdrop-filter: blur(8px);
   }
 
