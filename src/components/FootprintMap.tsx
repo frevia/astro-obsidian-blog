@@ -1,756 +1,554 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  MAP_HEIGHT,
-  MAP_WIDTH,
-  PROVINCE_NAME_MAP,
-  SHORT_NAME_TO_PROVINCE_KEY,
-} from "@/components/footprint/mapConstants";
-import {
-  footprintPlaceKey,
-  useFootprintMap,
-  type FootprintPlace,
-  type FootprintRecord,
-} from "@/components/footprint/useFootprintMap";
-import type { CityPathItem } from "@/components/footprint/computeCityLabels";
-import { FOOTPRINT_MAP_THEME as T } from "@/styles/footprint-map-theme";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type {
+  LayerGroup,
+  Map as LeafletMap,
+  Marker as LeafletMarker,
+} from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "@/styles/footprint-leaflet.css";
 
-const labelClassName = `${T.labelFill} ${T.labelStroke} ${T.labelFont}`;
-const regionBase = `${T.regionFill} ${T.regionStroke}`;
-const regionInteractive = `${regionBase} ${T.regionHoverFill} ${T.regionTransition}`;
+export interface FootprintPlace {
+  name: string;
+  lng: number;
+  lat: number;
+}
 
-export type { FootprintPlace };
+export interface FootprintRecord {
+  title: string;
+  url: string;
+  name: string;
+  lng: number;
+  lat: number;
+  date?: string;
+}
 
 export interface FootprintMapProps {
   places?: FootprintPlace[];
   records?: FootprintRecord[];
 }
 
-function postsForFootprintPlace(
+type LeafletApi = typeof import("leaflet");
+
+type PlaceItem = FootprintPlace & {
+  key: string;
+  posts: FootprintRecord[];
+};
+
+const DEFAULT_CENTER: [number, number] = [25, 105];
+const DEFAULT_ZOOM = 3;
+const TILE_URL =
+  import.meta.env.PUBLIC_FOOTPRINT_TILE_URL ??
+  "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+const TILE_ATTRIBUTION =
+  import.meta.env.PUBLIC_FOOTPRINT_TILE_ATTRIBUTION ??
+  '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors';
+
+const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+});
+
+export function footprintPlaceKey(place: FootprintPlace): string {
+  return `${place.name}:${place.lng},${place.lat}`;
+}
+
+function recordsAtPlace(
   place: FootprintPlace,
   records: FootprintRecord[]
 ): FootprintRecord[] {
-  return records.filter(
-    r =>
-      Math.abs(r.lng - place.lng) < 1e-5 && Math.abs(r.lat - place.lat) < 1e-5
-  );
+  return records
+    .filter(
+      record =>
+        Math.abs(record.lng - place.lng) < 1e-5 &&
+        Math.abs(record.lat - place.lat) < 1e-5
+    )
+    .sort((a, b) => recordTime(b) - recordTime(a));
 }
 
-/** 全国视图：单个「已点亮」市一轮约 3s（渐显 -> 停留 -> 渐隐） */
-const NATIONAL_SPOTLIGHT_FADE_CYCLE_MS = 1800;
-const NATIONAL_SPOTLIGHT_GAP_MS = 1200;
+function recordTime(record: FootprintRecord): number {
+  if (!record.date) return 0;
+  const parsed = Date.parse(record.date);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatDate(value?: string): string {
+  if (!value) return "日期未记录";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "日期未记录"
+    : dateFormatter.format(date);
+}
+
+function formatCoordinate(value: number): string {
+  return value.toFixed(4);
+}
+
+function createMarkerIcon(L: LeafletApi, selected: boolean) {
+  return L.divIcon({
+    className: "footprint-marker-icon-wrap",
+    html: `<span class="footprint-marker-icon${selected ? " is-selected" : ""}" aria-hidden="true"></span>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -14],
+  });
+}
+
+function createPopupContent(item: PlaceItem): HTMLElement {
+  const root = document.createElement("div");
+  root.className = "footprint-popup-content";
+
+  const eyebrow = document.createElement("p");
+  eyebrow.className = "footprint-popup-eyebrow";
+  eyebrow.textContent = `${item.posts.length} 篇文章`;
+  root.append(eyebrow);
+
+  const title = document.createElement("h3");
+  title.className = "footprint-popup-title";
+  title.textContent = item.name;
+  root.append(title);
+
+  const coordinate = document.createElement("p");
+  coordinate.className = "footprint-popup-coordinate";
+  coordinate.textContent = `${formatCoordinate(item.lat)}, ${formatCoordinate(item.lng)}`;
+  root.append(coordinate);
+
+  if (item.posts.length > 0) {
+    const list = document.createElement("ul");
+    list.className = "footprint-popup-posts";
+    item.posts.slice(0, 3).forEach(post => {
+      const listItem = document.createElement("li");
+      const link = document.createElement("a");
+      link.href = post.url;
+      link.textContent = post.title;
+      listItem.append(link);
+      list.append(listItem);
+    });
+    root.append(list);
+  }
+
+  if (item.posts.length > 3) {
+    const more = document.createElement("p");
+    more.className = "footprint-popup-more";
+    more.textContent = `还有 ${item.posts.length - 3} 篇文章`;
+    root.append(more);
+  }
+
+  return root;
+}
 
 const FootprintMap: React.FC<FootprintMapProps> = ({
   places = [],
   records = [],
 }) => {
-  const {
-    regionPaths,
-    visibleCityPaths,
-    visitedCityKeys,
-    visibleMarkerPoints,
-    selectedCity,
-    selectedPlace,
-    selectedPlaceKey,
-    cityLabelByKey,
-    nationalProvinceLabelItems,
-    nationalProvinceLabelByKey,
-    isNationalView,
-    focusedProvinceKey,
-    selectedCityKey,
-    handleCityClick,
-    handleMarkerClick,
-    handleProvinceClick,
-    handleResetMapView,
-    provinceCount,
-    cityCount,
-    placeCount,
-  } = useFootprintMap(places, records);
+  const mapElementRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
+  const leafletRef = useRef<LeafletApi | null>(null);
+  const markerLayerRef = useRef<LayerGroup<LeafletMarker> | null>(null);
+  const markersRef = useRef(new Map<string, LeafletMarker>());
 
-  const visitedKeysSig = useMemo(
-    () => Array.from(visitedCityKeys).sort().join("|"),
-    [visitedCityKeys]
+  const [mapReady, setMapReady] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+
+  const placeItems = useMemo<PlaceItem[]>(
+    () =>
+      places
+        .map(place => ({
+          ...place,
+          key: footprintPlaceKey(place),
+          posts: recordsAtPlace(place, records),
+        }))
+        .sort((a, b) => {
+          const latestA = recordTime(a.posts[0]);
+          const latestB = recordTime(b.posts[0]);
+          return latestB - latestA || a.name.localeCompare(b.name, "zh-CN");
+        }),
+    [places, records]
   );
 
-  const visitedRef = useRef(visitedCityKeys);
-  const pathsRef = useRef(visibleCityPaths);
-  visitedRef.current = visitedCityKeys;
-  pathsRef.current = visibleCityPaths;
+  const selectedItem = placeItems.find(item => item.key === selectedKey);
+  const articleCount = new Set(records.map(record => record.url)).size;
+  const latestDate = records.reduce<string | undefined>((latest, record) => {
+    if (!record.date) return latest;
+    if (!latest || recordTime(record) > Date.parse(latest)) return record.date;
+    return latest;
+  }, undefined);
 
-  const [nationalSpotlight, setNationalSpotlight] = useState<{
-    key: string;
-  } | null>(null);
+  const fitAllPlaces = useCallback(
+    (animate = true) => {
+      const map = mapRef.current;
+      const L = leafletRef.current;
+      if (!map || !L) return;
 
-  useEffect(() => {
-    if (!isNationalView || visitedCityKeys.size === 0) {
-      setNationalSpotlight(null);
-      return;
-    }
-
-    let cancelled = false;
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    const schedule = (fn: () => void, ms: number) => {
-      const id = setTimeout(() => {
-        if (!cancelled) fn();
-      }, ms);
-      timers.push(id);
-    };
-
-    let lastKey: string | null = null;
-
-    const pickNext = () => {
-      if (cancelled) return;
-      const keys = Array.from(visitedRef.current).filter(k =>
-        pathsRef.current.some(p => p.key === k)
-      );
-      if (keys.length === 0) {
-        schedule(pickNext, 320);
+      if (placeItems.length === 0) {
+        map.setView(DEFAULT_CENTER, DEFAULT_ZOOM, { animate });
         return;
       }
 
-      let next = keys[Math.floor(Math.random() * keys.length)];
-      if (keys.length > 1) {
-        let guard = 0;
-        while (next === lastKey && guard++ < 14) {
-          next = keys[Math.floor(Math.random() * keys.length)];
+      const bounds = L.latLngBounds(
+        placeItems.map(item => [item.lat, item.lng] as [number, number])
+      );
+      map.fitBounds(bounds, {
+        padding: [48, 48],
+        maxZoom: 12,
+        animate,
+      });
+    },
+    [placeItems]
+  );
+
+  const selectPlace = useCallback((key: string) => {
+    setSelectedKey(key);
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedKey(null);
+    mapRef.current?.closePopup();
+    fitAllPlaces();
+  }, [fitAllPlaces]);
+
+  useEffect(() => {
+    const element = mapElementRef.current;
+    if (!element) return;
+
+    let cancelled = false;
+    let resizeObserver: ResizeObserver | undefined;
+
+    const initializeMap = async () => {
+      try {
+        const module = (await import("leaflet")) as LeafletApi & {
+          default?: LeafletApi;
+        };
+        if (cancelled) return;
+
+        const L = module.default ?? module;
+        const prefersReducedMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches;
+        const map = L.map(element, {
+          zoomControl: false,
+          minZoom: 2,
+          maxZoom: 18,
+          scrollWheelZoom: false,
+          zoomAnimation: !prefersReducedMotion,
+          markerZoomAnimation: !prefersReducedMotion,
+          attributionControl: false,
+        });
+
+        L.tileLayer(TILE_URL, {
+          maxZoom: 19,
+          attribution: TILE_ATTRIBUTION,
+          crossOrigin: true,
+        }).addTo(map);
+        L.control.zoom({ position: "topright" }).addTo(map);
+        L.control.scale({ imperial: false, position: "bottomleft" }).addTo(map);
+        const attributionControl = L.control.attribution({ prefix: false });
+        attributionControl.addTo(map);
+        attributionControl.addAttribution(TILE_ATTRIBUTION);
+
+        leafletRef.current = L;
+        mapRef.current = map;
+        markerLayerRef.current = L.layerGroup().addTo(map);
+        map.setView(DEFAULT_CENTER, DEFAULT_ZOOM, { animate: false });
+        resizeObserver = new ResizeObserver(() => {
+          map.invalidateSize({ pan: false });
+        });
+        resizeObserver.observe(element);
+        window.setTimeout(() => map.invalidateSize({ pan: false }), 0);
+        setMapReady(true);
+      } catch {
+        if (!cancelled) {
+          setMapError("地图暂时无法加载，但仍可从下方地点列表查看足迹。");
         }
       }
-      lastKey = next;
-
-      setNationalSpotlight({ key: next });
-      schedule(() => {
-        setNationalSpotlight(null);
-        schedule(() => pickNext(), NATIONAL_SPOTLIGHT_GAP_MS);
-      }, NATIONAL_SPOTLIGHT_FADE_CYCLE_MS);
     };
 
-    schedule(pickNext, 400);
+    void initializeMap();
+
     return () => {
       cancelled = true;
-      timers.forEach(clearTimeout);
+      resizeObserver?.disconnect();
+      markerLayerRef.current?.clearLayers();
+      markerLayerRef.current = null;
+      markersRef.current.clear();
+      mapRef.current?.remove();
+      mapRef.current = null;
+      leafletRef.current = null;
     };
-  }, [isNationalView, visitedKeysSig]);
+  }, []);
 
-  function easeOutQuart(t: number): number {
-    return 1 - Math.pow(1 - t, 4);
-  }
+  useEffect(() => {
+    const map = mapRef.current;
+    const L = leafletRef.current;
+    const markerLayer = markerLayerRef.current;
+    if (!map || !L || !markerLayer || !mapReady) return;
 
-  function useCountUpNumber(
-    target: number,
-    durationMs: number,
-    delayMs: number = 0
-  ) {
-    const [val, setVal] = useState<number>(0);
-    const rafRef = useRef<number | null>(null);
-    const timeoutRef = useRef<number | null>(null);
-    const startValRef = useRef<number>(0);
-    const targetRef = useRef<number>(target);
+    markerLayer.clearLayers();
+    markersRef.current.clear();
 
-    useEffect(() => {
-      targetRef.current = target;
-    }, [target]);
+    placeItems.forEach(item => {
+      const marker = L.marker([item.lat, item.lng], {
+        icon: createMarkerIcon(L, item.key === selectedKey),
+        title: item.name,
+        keyboard: true,
+        riseOnHover: true,
+        autoPan: true,
+      });
+      marker.bindPopup(createPopupContent(item), {
+        className: "footprint-leaflet-popup",
+        maxWidth: 320,
+        minWidth: 220,
+      });
+      marker.on("click", () => selectPlace(item.key));
+      marker.on("popupopen", () => selectPlace(item.key));
+      marker.addTo(markerLayer);
+      markersRef.current.set(item.key, marker);
+    });
+  }, [mapReady, placeItems, selectPlace]);
 
-    useEffect(() => {
-      if (rafRef.current != null) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-      if (timeoutRef.current != null) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
+  useEffect(() => {
+    const map = mapRef.current;
+    const L = leafletRef.current;
+    if (!map || !L || !mapReady) return;
 
-      const start = performance.now();
-      const startVal = val;
-      startValRef.current = startVal;
+    markersRef.current.forEach((marker, key) => {
+      marker.setIcon(createMarkerIcon(L, key === selectedKey));
+    });
 
-      const tick = (now: number) => {
-        const elapsed = now - start;
-        const p = Math.min(elapsed / durationMs, 1);
-        const next =
-          startVal + (targetRef.current - startVal) * easeOutQuart(p);
-        setVal(next);
-        if (p < 1) rafRef.current = requestAnimationFrame(tick);
-      };
+    if (!selectedKey) return;
+    const item = placeItems.find(place => place.key === selectedKey);
+    const marker = markersRef.current.get(selectedKey);
+    if (!item || !marker) return;
 
-      const startAnimation = () => {
-        rafRef.current = requestAnimationFrame(tick);
-      };
+    const targetZoom = Math.max(map.getZoom(), 12);
+    map.flyTo([item.lat, item.lng], targetZoom, { duration: 0.55 });
+    marker.openPopup();
+  }, [mapReady, placeItems, selectedKey]);
 
-      if (delayMs > 0) {
-        timeoutRef.current = window.setTimeout(startAnimation, delayMs);
-      } else {
-        startAnimation();
-      }
-      return () => {
-        if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-        if (timeoutRef.current != null) clearTimeout(timeoutRef.current);
-      };
-    }, [target, durationMs, delayMs]);
+  useEffect(() => {
+    if (!mapReady) return;
+    fitAllPlaces(false);
+  }, [fitAllPlaces, mapReady]);
 
-    return val;
-  }
-
-  const shownProvinceCount = useCountUpNumber(provinceCount, 900, 0);
-  const shownCityCount = useCountUpNumber(cityCount, 850, 200);
-  const shownPlaceCount = useCountUpNumber(placeCount, 800, 400);
-
-  /** 全国视图地图需全宽；仅放大省或选中市时用侧栏 */
-  const useDetailColumn = Boolean(
-    focusedProvinceKey || selectedCity || selectedPlace
-  );
-  const hasPlaces = places.length > 0;
-  const visiblePlaceItems = useMemo(
-    () =>
-      visibleMarkerPoints
-        .map(place => ({
-          place,
-          key: footprintPlaceKey(place),
-          posts: postsForFootprintPlace(place, records),
-        }))
-        .sort((a, b) => a.place.name.localeCompare(b.place.name, "zh-Hans-CN")),
-    [visibleMarkerPoints, records]
-  );
-
-  const regionPathsJsx = useMemo(
-    () =>
-      regionPaths.map(region => {
-        if (!region.d) return null;
-        const provinceKeyForRegion = SHORT_NAME_TO_PROVINCE_KEY[region.name];
-        const canClickProvince =
-          isNationalView && Boolean(provinceKeyForRegion);
-
-        return (
-          <path
-            key={region.key}
-            d={region.d}
-            style={
-              canClickProvince
-                ? { pointerEvents: "auto" as const, cursor: "pointer" }
-                : isNationalView
-                  ? { pointerEvents: "none" as const }
-                  : { pointerEvents: "none" as const }
-            }
-            onClick={
-              canClickProvince
-                ? e => {
-                    e.stopPropagation();
-                    handleProvinceClick(region.name);
-                  }
-                : undefined
-            }
-            className={
-              isNationalView && canClickProvince
-                ? regionInteractive
-                : regionBase
-            }
-            strokeWidth={isNationalView ? 1.1 : 1.05}
-          >
-            <title>
-              {canClickProvince ? `${region.name}（点击放大）` : region.name}
-            </title>
-          </path>
-        );
-      }),
-    [regionPaths, isNationalView, handleProvinceClick]
-  );
+  const hasPlaces = placeItems.length > 0;
 
   return (
-    <div className="w-full">
-      <p className="mb-4 text-sm text-foreground/55">
-        已经点亮{" "}
-        <span
-          className="font-semibold text-accent tabular-nums"
-          style={{
-            display: "inline-block",
-            minWidth: `${String(provinceCount).length}ch`,
-          }}
-        >
-          {Math.floor(shownProvinceCount)}
-        </span>{" "}
-        个省、
-        <span
-          className="font-semibold text-accent tabular-nums"
-          style={{
-            display: "inline-block",
-            minWidth: `${String(cityCount).length}ch`,
-          }}
-        >
-          {Math.floor(shownCityCount)}
-        </span>{" "}
-        个市、
-        <span
-          className="font-semibold text-accent tabular-nums"
-          style={{
-            display: "inline-block",
-            minWidth: `${String(placeCount).length}ch`,
-          }}
-        >
-          {Math.floor(shownPlaceCount)}
-        </span>{" "}
-        个地点。
-      </p>
+    <section
+      className="footprint-explorer"
+      aria-labelledby="footprint-explorer-title"
+      data-footprint-explorer
+    >
+      <header className="footprint-overview">
+        <div className="footprint-overview-copy">
+          <p className="footprint-eyebrow">Field notes / Map</p>
+          <h2
+            id="footprint-explorer-title"
+            className="footprint-overview-title"
+          >
+            把文章里的地点，放回地图。
+          </h2>
+          <p className="footprint-overview-desc">
+            从一枚地点标记出发，回到那篇文章、那段路和当时的视线。
+          </p>
+        </div>
+        <dl className="footprint-stats">
+          <div>
+            <dt>地点</dt>
+            <dd>{placeItems.length}</dd>
+          </div>
+          <div>
+            <dt>文章</dt>
+            <dd>{articleCount}</dd>
+          </div>
+          <div>
+            <dt>最近记录</dt>
+            <dd className="footprint-stat-date">{formatDate(latestDate)}</dd>
+          </div>
+        </dl>
+      </header>
+
       {!hasPlaces ? (
         <section
-          className="mb-5 overflow-hidden rounded-lg border border-border bg-[linear-gradient(135deg,rgba(255,90,54,0.12),rgba(82,104,255,0.08)_52%,rgba(20,184,166,0.10))] p-5 sm:p-6"
+          className="footprint-empty-state"
           aria-labelledby="footprint-empty-title"
           data-footprint-empty-state
         >
-          <div className="max-w-2xl">
-            <p className="text-xs font-medium tracking-[0.24em] text-foreground/50 uppercase">
-              Footprint
-            </p>
-            <h2
-              id="footprint-empty-title"
-              className="mt-3 text-2xl leading-tight font-semibold text-foreground sm:text-3xl"
-            >
-              下一段旅程会从第一枚地点标记开始
-            </h2>
-            <p className="mt-3 text-sm leading-7 text-foreground/65">
-              在文章 frontmatter
-              添加地点后，这里会点亮地图、生成地点列表，并把每个地点关联到对应文章。
-            </p>
-          </div>
+          <p className="footprint-eyebrow">First pin</p>
+          <h2 id="footprint-empty-title">下一段旅程会从第一枚地点标记开始</h2>
+          <p>
+            在文章 frontmatter
+            添加地点后，这里会自动生成地图标记，并关联对应文章。
+          </p>
         </section>
       ) : null}
-      <div
-        className={
-          useDetailColumn
-            ? "mt-2 lg:grid lg:grid-cols-[minmax(0,1fr)_min(18rem,32%)] lg:items-start lg:gap-6"
-            : "mt-2"
-        }
+
+      <section
+        className="footprint-map-panel"
+        aria-labelledby="footprint-map-title"
       >
-        <div className="min-w-0">
-          <div
-            className={
-              focusedProvinceKey
-                ? "relative overflow-hidden rounded-lg border border-border bg-background"
-                : "relative overflow-hidden rounded-lg border border-border bg-background p-2 sm:p-3"
-            }
-          >
-            {focusedProvinceKey ? (
-              <div className="pointer-events-none absolute top-2 right-2 z-10 sm:top-3 sm:right-3">
-                <button
-                  type="button"
-                  onClick={handleResetMapView}
-                  className="pointer-events-auto rounded-md border border-border/60 bg-background/90 px-2.5 py-1 text-sm font-medium text-accent shadow-sm backdrop-blur-sm hover:underline"
-                >
-                  显示全国
-                </button>
-              </div>
-            ) : null}
-            <div
-              className="w-full"
-              style={{ aspectRatio: `${MAP_WIDTH} / ${MAP_HEIGHT}` }}
+        <header className="footprint-map-panel-head">
+          <div>
+            <p className="footprint-eyebrow">Interactive map</p>
+            <h2 id="footprint-map-title">足迹总览</h2>
+          </div>
+          <div className="footprint-map-actions">
+            <span
+              className="footprint-map-status"
+              role="status"
+              aria-live="polite"
             >
-              <svg
-                viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
-                className="block h-full w-full touch-manipulation"
-                style={{ pointerEvents: "auto" }}
-                role="img"
-                aria-label="中国地图足迹"
-              >
-                {isNationalView ? (
-                  <>
-                    <g style={{ pointerEvents: "none" }}>
-                      {visibleCityPaths.map(city => {
-                        if (!city.d) return null;
-                        const visited = visitedCityKeys.has(city.key);
-                        const isSpotlightTarget =
-                          visited &&
-                          nationalSpotlight !== null &&
-                          nationalSpotlight.key === city.key;
+              {mapError ? "列表模式" : mapReady ? "地图已就绪" : "地图载入中"}
+            </span>
+            <button
+              type="button"
+              className="footprint-map-reset"
+              onClick={clearSelection}
+              disabled={!hasPlaces}
+            >
+              适配全部地点
+            </button>
+          </div>
+        </header>
 
-                        return (
-                          <g key={city.key}>
-                            <path
-                              d={city.d}
-                              style={{
-                                pointerEvents: "none",
-                                opacity: isSpotlightTarget ? 0 : 1,
-                              }}
-                              className={
-                                visited
-                                  ? `${T.visitedNationalFill} ${T.visitedNationalStroke}`
-                                  : `${T.cityDefaultFill} ${T.cityDefaultStroke}`
-                              }
-                              strokeWidth={visited ? 0.85 : 0.35}
-                            >
-                              <title>{city.cityName}</title>
-                            </path>
-                            {isSpotlightTarget ? (
-                              <path
-                                d={city.d}
-                                className={`footprint-national-spot-fade-cycle ${T.visitedNationalSpotlightFill} ${T.visitedNationalSpotlightStroke}`}
-                                style={{ pointerEvents: "none" }}
-                                strokeWidth={0.95}
-                              />
-                            ) : null}
-                          </g>
-                        );
-                      })}
-                    </g>
-                    <g style={{ pointerEvents: "auto" }}>{regionPathsJsx}</g>
-                    <g style={{ pointerEvents: "none" }}>
-                      {nationalProvinceLabelItems.map((item: CityPathItem) => {
-                        const label = nationalProvinceLabelByKey.get(item.key);
-                        if (!label) return null;
-                        const renderedFs = label.fontSize;
-                        const outlinePx = Math.max(0.5, renderedFs * 0.045);
-                        return (
-                          <g key={item.key}>
-                            {label.splitLines?.length ? (
-                              label.splitLines.map((seg, si) => (
-                                <text
-                                  key={si}
-                                  x={seg.cx}
-                                  y={seg.cy}
-                                  transform={`rotate(${label.rotate}, ${seg.cx}, ${seg.cy})`}
-                                  textAnchor="middle"
-                                  dominantBaseline="central"
-                                  pointerEvents="none"
-                                  className={labelClassName}
-                                  style={{
-                                    fontSize: renderedFs,
-                                    letterSpacing: "0.03em",
-                                    strokeWidth: outlinePx,
-                                    paintOrder: "stroke fill",
-                                  }}
-                                >
-                                  <title>{item.provinceName}</title>
-                                  {seg.text}
-                                </text>
-                              ))
-                            ) : (
-                              <text
-                                x={label.cx}
-                                y={label.cy}
-                                transform={`rotate(${label.rotate}, ${label.cx}, ${label.cy})`}
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                pointerEvents="none"
-                                className={labelClassName}
-                                style={{
-                                  fontSize: renderedFs,
-                                  letterSpacing: "0.03em",
-                                  strokeWidth: outlinePx,
-                                  paintOrder: "stroke fill",
-                                }}
-                              >
-                                <title>{item.provinceName}</title>
-                                {item.cityName}
-                              </text>
-                            )}
-                          </g>
-                        );
-                      })}
-                    </g>
-                  </>
-                ) : (
-                  <g style={{ pointerEvents: "none" }}>{regionPathsJsx}</g>
-                )}
-
-                {!isNationalView ? (
-                  <g style={{ pointerEvents: "auto" }}>
-                    {visibleCityPaths.map(city => {
-                      if (!city.d) return null;
-                      const visited = visitedCityKeys.has(city.key);
-                      const selected = selectedCityKey === city.key;
-                      const strokeW = selected ? 2.35 : visited ? 1.45 : 1.3;
-                      const label = cityLabelByKey.get(city.key);
-                      const renderedFs = label?.fontSize ?? 0;
-                      const outlinePx = Math.max(0.5, renderedFs * 0.045);
-                      return (
-                        <g key={city.key}>
-                          <path
-                            d={city.d}
-                            style={{ pointerEvents: "auto", cursor: "pointer" }}
-                            onClick={e => {
-                              e.stopPropagation();
-                              handleCityClick(city.provinceKey, city.key);
-                            }}
-                            className={
-                              visited
-                                ? selected
-                                  ? `${T.visitedProvinceSelectedFill} ${T.visitedProvinceSelectedStroke}`
-                                  : `${T.visitedProvinceFill} ${T.visitedProvinceStroke} hover:opacity-[0.97]`
-                                : selected
-                                  ? `${T.cityProvinceSelectedFill} ${T.cityProvinceSelectedStroke}`
-                                  : `${T.cityProvinceDefaultFill} ${T.cityProvinceDefaultStroke} ${T.cityProvinceHoverFill}`
-                            }
-                            strokeWidth={strokeW}
-                          >
-                            <title>{`${city.cityName}（点击查看）`}</title>
-                          </path>
-                          {label ? (
-                            label.splitLines?.length ? (
-                              label.splitLines.map((seg, si) => (
-                                <text
-                                  key={si}
-                                  x={seg.cx}
-                                  y={seg.cy}
-                                  transform={`rotate(${label.rotate}, ${seg.cx}, ${seg.cy})`}
-                                  textAnchor="middle"
-                                  dominantBaseline="central"
-                                  pointerEvents="none"
-                                  className={labelClassName}
-                                  style={{
-                                    fontSize: renderedFs,
-                                    letterSpacing: "0.03em",
-                                    strokeWidth: outlinePx,
-                                    paintOrder: "stroke fill",
-                                  }}
-                                >
-                                  <title>{city.cityName}</title>
-                                  {seg.text}
-                                </text>
-                              ))
-                            ) : (
-                              <text
-                                x={label.cx}
-                                y={label.cy}
-                                transform={`rotate(${label.rotate}, ${label.cx}, ${label.cy})`}
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                pointerEvents="none"
-                                className={labelClassName}
-                                style={{
-                                  fontSize: renderedFs,
-                                  letterSpacing: "0.03em",
-                                  strokeWidth: outlinePx,
-                                  paintOrder: "stroke fill",
-                                }}
-                              >
-                                {city.cityName}
-                              </text>
-                            )
-                          ) : null}
-                        </g>
-                      );
-                    })}
-                  </g>
-                ) : null}
-                {visibleMarkerPoints.length > 0 ? (
-                  <g style={{ pointerEvents: "auto" }}>
-                    {visibleMarkerPoints.map((p, idx) => {
-                      const placeKey = footprintPlaceKey(p);
-                      const isSelected = selectedPlaceKey === placeKey;
-                      const markerLabel = `${p.name}（点击查看文章）`;
-                      return (
-                        <g
-                          key={`${p.name}-${idx}`}
-                          style={{ cursor: "pointer" }}
-                          role="button"
-                          tabIndex={0}
-                          aria-label={markerLabel}
-                          aria-pressed={isSelected}
-                          onClick={e => {
-                            e.stopPropagation();
-                            handleMarkerClick(p);
-                          }}
-                          onKeyDown={e => {
-                            if (e.key !== "Enter" && e.key !== " ") return;
-                            e.preventDefault();
-                            handleMarkerClick(p);
-                          }}
-                        >
-                          <circle
-                            cx={p.x}
-                            cy={p.y}
-                            r={12}
-                            fill="transparent"
-                            stroke="none"
-                            pointerEvents="all"
-                          />
-                          <circle
-                            cx={p.x}
-                            cy={p.y}
-                            r={isSelected ? 5.5 : 4.2}
-                            className={`${T.markerFill} ${T.markerStroke}`}
-                            strokeWidth={isSelected ? 2.5 : 2}
-                            pointerEvents="none"
-                          />
-                          <title>{markerLabel}</title>
-                        </g>
-                      );
-                    })}
-                  </g>
-                ) : null}
-              </svg>
+        <div className="footprint-map-layout">
+          <div className="footprint-map-column">
+            <div className="footprint-map-frame">
+              <div
+                ref={mapElementRef}
+                className="footprint-leaflet-map"
+                role="region"
+                aria-label="交互式足迹地图"
+              />
+              {!mapReady && !mapError ? (
+                <div className="footprint-map-loading" role="status">
+                  <span
+                    className="footprint-map-loading-dot"
+                    aria-hidden="true"
+                  />
+                  正在准备地图图层…
+                </div>
+              ) : null}
+              {mapError ? (
+                <div className="footprint-map-error" role="status">
+                  {mapError}
+                </div>
+              ) : null}
             </div>
-          </div>
-
-          <div
-            className="text-muted-foreground mt-3 flex flex-col gap-2 text-xs sm:flex-row sm:items-center sm:justify-between"
-            aria-label="地图图例"
-          >
-            <ul className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-              <li className="inline-flex items-center gap-1.5">
-                <span
-                  className="inline-block h-2.5 w-4 rounded-sm border border-foreground/25 bg-muted/30"
-                  aria-hidden="true"
-                />
-                省界
-              </li>
-              <li className="inline-flex items-center gap-1.5">
-                <span
-                  className={`inline-block h-2.5 w-4 rounded-sm border ${T.visitedProvinceFill} ${T.visitedProvinceStroke}`}
-                  aria-hidden="true"
-                />
-                已点亮
-              </li>
-              <li className="inline-flex items-center gap-1.5">
-                <span
-                  className={`inline-block h-2 w-2 rounded-full border ${T.markerFill} ${T.markerStroke}`}
-                  aria-hidden="true"
-                />
-                文章地点
-              </li>
-              <li className="hidden text-foreground/45 sm:inline">
-                全国视图已点亮城市会轮播高亮
-              </li>
-            </ul>
-            <p className="text-foreground/40 sm:text-right">
-              地图仅作轮廓与地点示意，不代表精确边界。
+            <p className="footprint-map-help">
+              拖动地图浏览，点击标记查看地点；也可以直接从右侧地点索引开始。
             </p>
           </div>
-          {!useDetailColumn ? (
-            <p
-              className="text-muted-foreground mt-3 text-sm"
-              data-footprint-map-hint
-            >
-              {hasPlaces ? (
-                <>
-                  全国视图请点击
-                  <strong className="text-foreground">省份</strong>
-                  放大；放大后可从地图圆点或地点列表查看文章。
-                </>
-              ) : (
-                "地图会保留全国轮廓，等待第一条带地点的文章点亮。"
-              )}
-            </p>
-          ) : null}
-        </div>
 
-        {useDetailColumn ? (
           <aside
-            className="mt-4 rounded-xl border border-border/45 bg-background/70 p-4 shadow-sm backdrop-blur-sm lg:sticky lg:top-[calc(var(--site-header-height,4rem)+1rem)] lg:mt-0"
+            className="footprint-place-rail"
             aria-label="足迹地点与文章"
+            data-footprint-place-rail
           >
-            {selectedPlace ? (
-              <>
-                <p className="text-base font-semibold text-foreground sm:text-lg">
-                  {selectedPlace.name}
+            <div className="footprint-place-rail-head">
+              <div>
+                <p className="footprint-eyebrow">Place index</p>
+                <h3>地点档案</h3>
+              </div>
+              <span className="footprint-place-count">{placeItems.length}</span>
+            </div>
+
+            {selectedItem ? (
+              <div
+                id="footprint-place-detail"
+                className="footprint-place-detail"
+                aria-live="polite"
+              >
+                <div className="footprint-place-detail-head">
+                  <div>
+                    <p className="footprint-place-detail-kicker">
+                      Selected place
+                    </p>
+                    <h4>{selectedItem.name}</h4>
+                  </div>
+                  <button
+                    type="button"
+                    className="footprint-place-clear"
+                    onClick={clearSelection}
+                    aria-label="清除当前地点"
+                  >
+                    ×
+                  </button>
+                </div>
+                <p className="footprint-place-coordinate">
+                  {formatCoordinate(selectedItem.lat)},{" "}
+                  {formatCoordinate(selectedItem.lng)}
                 </p>
-                <p className="text-muted-foreground mt-1 text-xs tabular-nums">
-                  {selectedPlace.lng.toFixed(4)}, {selectedPlace.lat.toFixed(4)}
-                </p>
-                {selectedPlace.posts.length > 0 ? (
-                  <ul className="mt-2 space-y-1.5">
-                    {selectedPlace.posts.map((post, index) => (
-                      <li key={`${post.url}-${post.title}`} className="text-sm">
-                        <a
-                          href={post.url}
-                          className="text-accent hover:underline"
-                          title={post.title}
-                        >
-                          {index + 1}. {post.title}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted-foreground mt-2 text-sm">
-                    该地点暂无已标注文章。
-                  </p>
-                )}
-              </>
-            ) : selectedCity ? (
-              <>
-                <p className="text-base font-semibold text-foreground sm:text-lg">
-                  {selectedCity.provinceName} - {selectedCity.cityName}
-                </p>
-                {selectedCity.posts.length > 0 ? (
-                  <ul className="mt-2 space-y-1.5">
-                    {selectedCity.posts.map((post, index) => (
-                      <li key={`${post.url}-${post.title}`} className="text-sm">
-                        <a
-                          href={post.url}
-                          className="text-accent hover:underline"
-                          title={post.title}
-                        >
-                          {index + 1}. {post.title}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted-foreground mt-2 text-sm">
-                    该市暂无已标注文章。
-                  </p>
-                )}
-              </>
-            ) : (
-              <p className="text-muted-foreground text-sm">
-                已放大至{" "}
-                <span className="font-medium text-foreground">
-                  {PROVINCE_NAME_MAP[focusedProvinceKey!] ?? focusedProvinceKey}
-                </span>
-                。请点击
-                <strong className="text-foreground">城市区域</strong>或
-                <strong className="text-foreground">地点圆点</strong>
-                查看文章列表。
-              </p>
-            )}
-            {focusedProvinceKey && visiblePlaceItems.length > 0 ? (
-              <div className="mt-4 border-t border-border/45 pt-4">
-                <p
-                  id="footprint-place-list-title"
-                  className="text-xs font-medium tracking-wide text-foreground/55 uppercase"
-                >
-                  当前视图地点
-                </p>
-                <ul
-                  className="mt-2 space-y-2"
-                  aria-labelledby="footprint-place-list-title"
-                >
-                  {visiblePlaceItems.map(item => {
-                    const selected = selectedPlaceKey === item.key;
-                    return (
-                      <li key={item.key}>
-                        <button
-                          type="button"
-                          className={[
-                            "w-full rounded-lg border px-3 py-2 text-left transition-colors",
-                            selected
-                              ? "border-accent/55 bg-accent/10 text-foreground"
-                              : "border-border/35 bg-background/55 text-foreground hover:border-accent/30 hover:bg-interactive-hover",
-                          ].join(" ")}
-                          aria-pressed={selected}
-                          onClick={() => handleMarkerClick(item.place)}
-                        >
-                          <span className="block text-sm font-medium">
-                            {item.place.name}
-                          </span>
-                          <span className="mt-0.5 block text-xs text-foreground/50">
-                            {item.posts.length > 0
-                              ? `${item.posts.length} 篇文章`
-                              : "暂无已标注文章"}
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
+                <ul className="footprint-post-list">
+                  {selectedItem.posts.map(post => (
+                    <li key={`${post.url}-${post.title}`}>
+                      <a href={post.url} title={post.title}>
+                        <span>{post.title}</span>
+                        <time dateTime={post.date}>
+                          {formatDate(post.date)}
+                        </time>
+                      </a>
+                    </li>
+                  ))}
                 </ul>
               </div>
-            ) : focusedProvinceKey ? (
-              <p className="mt-4 border-t border-border/45 pt-4 text-sm text-foreground/55">
-                当前省份暂无可显示地点。
+            ) : (
+              <p className="footprint-place-prompt">
+                选择一个地点，查看它关联的文章和坐标。
               </p>
-            ) : null}
+            )}
+
+            {placeItems.length > 0 ? (
+              <ul
+                className="footprint-place-list"
+                aria-label="地点列表"
+                id="footprint-place-list"
+              >
+                {placeItems.map(item => (
+                  <li key={item.key}>
+                    <button
+                      type="button"
+                      className={[
+                        "footprint-place-button",
+                        selectedKey === item.key ? "is-selected" : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      aria-pressed={selectedKey === item.key}
+                      aria-controls="footprint-place-detail"
+                      onClick={() => selectPlace(item.key)}
+                    >
+                      <span className="footprint-place-button-main">
+                        <span
+                          className="footprint-place-button-dot"
+                          aria-hidden="true"
+                        />
+                        <span>
+                          <strong>{item.name}</strong>
+                          <small>
+                            {item.posts.length > 0
+                              ? `${item.posts.length} 篇文章`
+                              : "暂无关联文章"}
+                          </small>
+                        </span>
+                      </span>
+                      <span
+                        className="footprint-place-button-arrow"
+                        aria-hidden="true"
+                      >
+                        ↗
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="footprint-place-prompt">暂时还没有地点记录。</p>
+            )}
           </aside>
-        ) : null}
-      </div>
-    </div>
+        </div>
+      </section>
+    </section>
   );
 };
 

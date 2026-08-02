@@ -1,0 +1,637 @@
+/* The map uses Leaflet for spatial interaction while the surrounding UI stays
+ * in the site's quiet editorial language. */
+
+.footprint-explorer {
+  --footprint-accent: var(--accent);
+  --footprint-accent-soft: color-mix(in oklab, var(--accent) 12%, transparent);
+  --footprint-panel: color-mix(in oklab, var(--surface) 88%, var(--background));
+  margin-top: 2rem;
+}
+
+.footprint-eyebrow {
+  color: var(--footprint-accent);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.footprint-overview {
+  display: grid;
+  gap: 1.25rem;
+  border-block: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  padding-block: 1rem 1.25rem;
+}
+
+.footprint-overview-title {
+  margin-top: 0.55rem;
+  color: var(--foreground);
+  font-size: clamp(1.6rem, 4vw, 2.45rem);
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 1.1;
+}
+
+.footprint-overview-desc {
+  max-width: 38rem;
+  margin-top: 0.65rem;
+  color: color-mix(in oklab, var(--foreground) 64%, transparent);
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+.footprint-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.footprint-stats > div {
+  min-width: 0;
+  border-left: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
+  padding: 0.25rem 0.75rem;
+}
+
+.footprint-stats dt {
+  color: color-mix(in oklab, var(--foreground) 50%, transparent);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+}
+
+.footprint-stats dd {
+  margin: 0.3rem 0 0;
+  color: var(--foreground);
+  font-size: 1.55rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}
+
+.footprint-stats .footprint-stat-date {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  letter-spacing: -0.02em;
+}
+
+.footprint-empty-state {
+  margin-top: 1.25rem;
+  border: 1px solid
+    color-mix(in oklab, var(--footprint-accent) 35%, var(--border));
+  border-radius: 1rem;
+  padding: 1.5rem;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in oklab, var(--footprint-accent) 14%, transparent),
+      transparent 48%
+    ),
+    var(--footprint-panel);
+}
+
+.footprint-empty-state h2 {
+  margin-top: 0.6rem;
+  color: var(--foreground);
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+.footprint-empty-state p:last-child {
+  max-width: 38rem;
+  margin-top: 0.55rem;
+  color: color-mix(in oklab, var(--foreground) 62%, transparent);
+  font-size: 0.875rem;
+  line-height: 1.75;
+}
+
+.footprint-map-panel {
+  margin-top: 1.75rem;
+  border: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+  border-radius: 1rem;
+  background: color-mix(in oklab, var(--background) 75%, var(--surface));
+  box-shadow: 0 1.25rem 3.5rem -3rem var(--footprint-accent);
+}
+
+.footprint-map-panel-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1rem 0.85rem;
+}
+
+.footprint-map-panel-head h2 {
+  margin-top: 0.4rem;
+  color: var(--foreground);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.footprint-map-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.footprint-map-status {
+  color: color-mix(in oklab, var(--foreground) 48%, transparent);
+  font-size: 0.6875rem;
+  white-space: nowrap;
+}
+
+.footprint-map-reset,
+.footprint-place-clear {
+  border: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
+  border-radius: 9999px;
+  padding: 0.4rem 0.7rem;
+  color: var(--footprint-accent);
+  background: var(--background);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.footprint-map-reset:hover,
+.footprint-map-reset:focus-visible,
+.footprint-place-clear:hover,
+.footprint-place-clear:focus-visible {
+  border-color: color-mix(in oklab, var(--footprint-accent) 60%, transparent);
+  background: var(--footprint-accent-soft);
+  outline: none;
+}
+
+.footprint-map-reset:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.footprint-map-layout {
+  display: grid;
+  gap: 1rem;
+  padding: 0 0.65rem 0.65rem;
+}
+
+.footprint-map-column {
+  min-width: 0;
+}
+
+.footprint-map-frame {
+  position: relative;
+  min-height: clamp(20rem, 52vw, 36rem);
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--border) 68%, transparent);
+  border-radius: 0.8rem;
+  background: var(--background);
+}
+
+.footprint-leaflet-map {
+  min-height: inherit;
+  width: 100%;
+  background: #eef1f2;
+  isolation: isolate;
+}
+
+.footprint-leaflet-map .leaflet-tile-pane {
+  filter: grayscale(0.85) saturate(0.65) contrast(0.9) opacity(0.72);
+}
+
+.dark .footprint-leaflet-map {
+  background: #1b2226;
+}
+
+.dark .footprint-leaflet-map .leaflet-tile-pane {
+  filter: grayscale(0.95) invert(0.86) hue-rotate(180deg) brightness(0.72)
+    contrast(0.86) opacity(0.62);
+}
+
+.footprint-leaflet-map .leaflet-control-zoom,
+.footprint-leaflet-map .leaflet-control-scale-line,
+.footprint-leaflet-map .leaflet-control-attribution {
+  border-color: color-mix(in oklab, var(--border) 75%, transparent);
+  color: color-mix(in oklab, var(--foreground) 58%, transparent);
+  background: color-mix(in oklab, var(--background) 90%, transparent);
+  box-shadow: 0 0.4rem 1.2rem -0.75rem rgb(15 23 42 / 35%);
+  backdrop-filter: blur(8px);
+}
+
+.footprint-leaflet-map .leaflet-control-zoom a {
+  border-color: color-mix(in oklab, var(--border) 70%, transparent);
+  color: var(--foreground);
+  background: transparent;
+}
+
+.footprint-leaflet-map .leaflet-control-zoom a:hover,
+.footprint-leaflet-map .leaflet-control-zoom a:focus-visible {
+  color: var(--footprint-accent);
+  background: var(--footprint-accent-soft);
+  outline: none;
+}
+
+.footprint-leaflet-map .leaflet-control-attribution a {
+  color: var(--footprint-accent);
+}
+
+.footprint-map-loading,
+.footprint-map-error {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  z-index: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  max-width: min(90%, 24rem);
+  transform: translate(-50%, -50%);
+  border: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+  border-radius: 9999px;
+  padding: 0.65rem 0.85rem;
+  color: color-mix(in oklab, var(--foreground) 70%, transparent);
+  background: color-mix(in oklab, var(--background) 92%, transparent);
+  box-shadow: 0 1rem 2.5rem -1.5rem rgb(15 23 42 / 35%);
+  font-size: 0.75rem;
+  backdrop-filter: blur(8px);
+}
+
+.footprint-map-loading-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--footprint-accent);
+  box-shadow: 0 0 0 0.25rem var(--footprint-accent-soft);
+}
+
+.footprint-map-help {
+  margin: 0.65rem 0.25rem 0.15rem;
+  color: color-mix(in oklab, var(--foreground) 53%, transparent);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.footprint-place-rail {
+  min-width: 0;
+  border: 1px solid color-mix(in oklab, var(--border) 68%, transparent);
+  border-radius: 0.8rem;
+  padding: 0.85rem;
+  background: var(--footprint-panel);
+}
+
+.footprint-place-rail-head,
+.footprint-place-detail-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.footprint-place-rail-head h3 {
+  margin-top: 0.35rem;
+  color: var(--foreground);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.footprint-place-count {
+  display: inline-grid;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  place-items: center;
+  border-radius: 9999px;
+  color: var(--footprint-accent);
+  background: var(--footprint-accent-soft);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.footprint-place-prompt {
+  margin-top: 0.8rem;
+  color: color-mix(in oklab, var(--foreground) 56%, transparent);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.footprint-place-detail {
+  margin-top: 0.8rem;
+  border-block: 1px solid color-mix(in oklab, var(--border) 58%, transparent);
+  padding-block: 0.8rem;
+}
+
+.footprint-place-detail-kicker {
+  color: var(--footprint-accent);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.footprint-place-detail h4 {
+  margin-top: 0.28rem;
+  color: var(--foreground);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.footprint-place-clear {
+  display: inline-grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.footprint-place-coordinate {
+  margin-top: 0.3rem;
+  color: color-mix(in oklab, var(--foreground) 48%, transparent);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.footprint-post-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footprint-post-list a {
+  display: grid;
+  gap: 0.12rem;
+  border-radius: 0.45rem;
+  padding: 0.35rem 0.45rem;
+  color: color-mix(in oklab, var(--foreground) 78%, transparent);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  text-decoration: none;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.footprint-post-list a:hover,
+.footprint-post-list a:focus-visible {
+  color: var(--footprint-accent);
+  background: var(--footprint-accent-soft);
+  outline: none;
+}
+
+.footprint-post-list time {
+  color: color-mix(in oklab, var(--foreground) 45%, transparent);
+  font-size: 0.6875rem;
+}
+
+.footprint-place-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footprint-place-button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  border: 1px solid color-mix(in oklab, var(--border) 55%, transparent);
+  border-radius: 0.65rem;
+  padding: 0.6rem 0.65rem;
+  color: var(--foreground);
+  background: color-mix(in oklab, var(--background) 70%, transparent);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.footprint-place-button:hover,
+.footprint-place-button:focus-visible,
+.footprint-place-button.is-selected {
+  border-color: color-mix(in oklab, var(--footprint-accent) 55%, transparent);
+  background: var(--footprint-accent-soft);
+  outline: none;
+  transform: translateX(2px);
+}
+
+.footprint-place-button-main {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.footprint-place-button-dot {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 0.55rem;
+  height: 0.55rem;
+  border: 2px solid var(--background);
+  border-radius: 50%;
+  background: var(--footprint-accent);
+  box-shadow: 0 0 0 2px
+    color-mix(in oklab, var(--footprint-accent) 30%, transparent);
+}
+
+.footprint-place-button strong,
+.footprint-place-button small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.footprint-place-button strong {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.footprint-place-button small {
+  margin-top: 0.15rem;
+  color: color-mix(in oklab, var(--foreground) 48%, transparent);
+  font-size: 0.6875rem;
+}
+
+.footprint-place-button-arrow {
+  flex: 0 0 auto;
+  color: var(--footprint-accent);
+  font-size: 0.95rem;
+  opacity: 0.45;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.footprint-place-button:hover .footprint-place-button-arrow,
+.footprint-place-button:focus-visible .footprint-place-button-arrow,
+.footprint-place-button.is-selected .footprint-place-button-arrow {
+  opacity: 1;
+  transform: translate(2px, -2px);
+}
+
+.footprint-marker-icon-wrap {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+}
+
+.footprint-marker-icon {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+  border: 3px solid var(--background);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow:
+    0 0 0 2px color-mix(in oklab, var(--accent) 65%, transparent),
+    0 0.35rem 0.9rem -0.2rem rgb(15 23 42 / 55%);
+  transition:
+    width 160ms ease,
+    height 160ms ease,
+    background-color 160ms ease;
+}
+
+.footprint-marker-icon.is-selected {
+  width: 1.35rem;
+  height: 1.35rem;
+  background: var(--foreground);
+}
+
+.footprint-leaflet-popup .leaflet-popup-content-wrapper,
+.footprint-leaflet-popup .leaflet-popup-tip {
+  border: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
+  color: var(--foreground);
+  background: var(--surface);
+  box-shadow: 0 1rem 2.5rem -1rem rgb(15 23 42 / 30%);
+}
+
+.footprint-leaflet-popup .leaflet-popup-content {
+  min-width: 12rem;
+  margin: 0.85rem 0.95rem;
+  font-family: var(--font-noto-sans-sc), sans-serif;
+}
+
+.footprint-popup-eyebrow {
+  color: var(--accent);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.footprint-popup-title {
+  margin-top: 0.25rem;
+  color: var(--foreground);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.footprint-popup-coordinate,
+.footprint-popup-more {
+  margin-top: 0.25rem;
+  color: color-mix(in oklab, var(--foreground) 48%, transparent);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.footprint-popup-posts {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0.65rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footprint-popup-posts a {
+  color: var(--accent);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  text-decoration: none;
+}
+
+.footprint-popup-posts a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+@media (min-width: 640px) {
+  .footprint-overview {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.85fr);
+    align-items: end;
+    gap: 2rem;
+  }
+
+  .footprint-stats {
+    align-self: end;
+  }
+
+  .footprint-map-panel-head {
+    padding-inline: 1.25rem;
+  }
+
+  .footprint-map-layout {
+    padding: 0 1rem 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .footprint-map-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 21rem);
+    align-items: start;
+  }
+
+  .footprint-place-rail {
+    position: sticky;
+    top: calc(var(--site-header-height, 4rem) + 1rem);
+    max-height: min(
+      36rem,
+      calc(100vh - var(--site-header-height, 4rem) - 2rem)
+    );
+    overflow: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .footprint-map-panel-head {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .footprint-map-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .footprint-map-status {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .footprint-map-frame {
+    min-height: 20rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footprint-place-button,
+  .footprint-post-list a,
+  .footprint-map-reset,
+  .footprint-place-clear {
+    transition: none;
+  }
+}

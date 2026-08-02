@@ -35,9 +35,9 @@ describe("calendar and footprint visual integration", () => {
 
     expect(source).toContain("data-footprint-empty-state");
     expect(source).toContain("下一段旅程会从第一枚地点标记开始");
-    expect(source).toContain("等待第一条带地点的文章点亮");
-    expect(source).toContain('role="img"');
-    expect(source).toContain('aria-label="中国地图足迹"');
+    expect(source).toContain("正在准备地图图层");
+    expect(source).toContain("交互式足迹地图");
+    expect(source).toContain("data-footprint-place-rail");
   });
 
   it("keeps map markers and the place list wired through accessible controls", () => {
@@ -47,11 +47,10 @@ describe("calendar and footprint visual integration", () => {
     );
 
     expect(source).toContain('aria-label="足迹地点与文章"');
-    expect(source).toContain('id="footprint-place-list-title"');
-    expect(source).toContain('aria-labelledby="footprint-place-list-title"');
-    expect(source).toContain('role="button"');
-    expect(source).toContain("aria-pressed={isSelected}");
-    expect(source).toContain("onKeyDown={e =>");
-    expect(source).toContain("onClick={() => handleMarkerClick(item.place)}");
+    expect(source).toContain('id="footprint-place-list"');
+    expect(source).toContain('aria-label="地点列表"');
+    expect(source).toContain("aria-pressed={selectedKey === item.key}");
+    expect(source).toContain("onClick={() => selectPlace(item.key)}");
+    expect(source).toContain("marker.openPopup()");
   });
 });

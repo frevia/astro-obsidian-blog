@@ -70,11 +70,9 @@ describe("lazy island SSR contracts", () => {
     expect(pageSource).not.toContain("client:load");
     expect(mapSource).toContain("places = []");
     expect(mapSource).toContain("records = []");
-    expect(mapSource).toContain(
-      "style={{ aspectRatio: `${MAP_WIDTH} / ${MAP_HEIGHT}` }}"
-    );
-    expect(mapSource).toContain('role="img"');
-    expect(mapSource).toContain('aria-label="中国地图足迹"');
-    expect(mapSource).toContain('aria-label="地图图例"');
+    expect(mapSource).toContain('className="footprint-leaflet-map"');
+    expect(mapSource).toContain('aria-label="交互式足迹地图"');
+    expect(mapSource).toContain("data-footprint-place-rail");
+    expect(mapSource).toContain("正在准备地图图层");
   });
 });
