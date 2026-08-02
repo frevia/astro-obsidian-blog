@@ -202,16 +202,20 @@ const yearGroups = Object.entries(
             data-pagefind-ignore
             class="favorites-filter-panel"
           >
-            <div class="flex flex-wrap items-end justify-between gap-2">
+            <div class="favorites-filter-head">
               <div>
                 <p class="favorites-eyebrow">主题筛选</p>
-                <p class="mt-1 text-sm text-foreground/70">按主题筛选收藏</p>
+                <p class="favorites-filter-title">按主题筛选收藏</p>
               </div>
-              <p class="text-xs text-foreground/55">
+              <p class="favorites-filter-hint">
                 {allTags.length} 个标签 · 点击条目上的标签也可筛选
               </p>
             </div>
-            <div class="flex flex-wrap gap-2.5">
+            <div
+              class="favorites-filter-list"
+              role="group"
+              aria-label="收藏主题"
+            >
               <button
                 type="button"
                 data-filter-tag=""
@@ -235,11 +239,15 @@ const yearGroups = Object.entries(
               ))}
             </div>
             {remainingTags.length > 0 && (
-              <details class="favorites-tag-more-wrap mt-3">
+              <details class="favorites-tag-more-wrap">
                 <summary class="favorites-tag-summary">
                   更多标签（{remainingTags.length}）
                 </summary>
-                <div class="mt-2 flex flex-wrap gap-2.5">
+                <div
+                  class="favorites-filter-list favorites-filter-list--more"
+                  role="group"
+                  aria-label="更多收藏主题"
+                >
                   {remainingTags.map(tag => (
                     <button
                       type="button"
@@ -562,21 +570,98 @@ const yearGroups = Object.entries(
   }
 
   .favorites-filter-panel {
+    position: relative;
     min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-card-emphasis);
+    padding: 0.9rem 1rem 1rem;
+    background: color-mix(in oklab, var(--surface-muted) 76%, transparent);
+  }
+
+  .favorites-filter-panel::before {
+    position: absolute;
+    top: -1px;
+    left: 1rem;
+    width: 2.75rem;
+    height: 2px;
+    background: var(--accent);
+    content: "";
+  }
+
+  .favorites-filter-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .favorites-filter-title {
+    margin-top: 0.25rem;
+    color: color-mix(in oklab, var(--foreground) 78%, transparent);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+  }
+
+  .favorites-filter-hint {
+    max-width: 24rem;
+    color: color-mix(in oklab, var(--foreground) 50%, transparent);
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    text-align: right;
+  }
+
+  .favorites-filter-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    padding-top: 0.8rem;
+  }
+
+  .favorites-filter-list--more {
+    padding-top: 0.65rem;
   }
 
   .favorites-tag-summary {
     display: inline-flex;
     align-items: center;
+    list-style: none;
     cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 500;
+    color: color-mix(in oklab, var(--foreground) 58%, transparent);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    transition: color var(--motion-fast) ease;
+  }
+
+  .favorites-tag-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .favorites-tag-summary::after {
+    margin-left: 0.4rem;
     color: var(--accent);
-    transition: color 0.15s ease;
+    content: "↓";
+    font-size: 0.8rem;
+    transition: transform var(--motion-fast) ease;
+  }
+
+  .favorites-tag-more-wrap {
+    margin-top: 0.8rem;
+    padding-top: 0.65rem;
+    border-top: 1px dashed color-mix(in oklab, var(--border) 88%, transparent);
+  }
+
+  .favorites-tag-more-wrap[open] .favorites-tag-summary::after {
+    transform: rotate(180deg);
   }
 
   .favorites-tag-summary:hover {
-    color: color-mix(in oklab, var(--accent) 80%, transparent);
+    color: var(--accent);
   }
 
   .favorites-tag-summary:focus-visible {
@@ -588,37 +673,42 @@ const yearGroups = Object.entries(
   .favorite-filter-btn {
     display: inline-flex;
     align-items: center;
-    border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
-    border-radius: 9999px;
-    padding: 0.375rem 0.75rem;
-    font-size: 0.875rem;
+    border: 1px solid color-mix(in oklab, var(--border) 82%, transparent);
+    border-radius: 0.45rem;
+    padding: 0.4rem 0.65rem;
+    font-size: 0.8125rem;
     font-weight: 500;
-    line-height: 1;
-    color: var(--foreground);
-    background: var(--background);
+    line-height: 1.15;
+    color: color-mix(in oklab, var(--foreground) 78%, transparent);
+    background: color-mix(in oklab, var(--surface) 86%, transparent);
     cursor: pointer;
     transition:
-      color 0.15s ease,
-      border-color 0.15s ease,
-      background-color 0.15s ease;
+      color var(--motion-fast) ease,
+      border-color var(--motion-fast) ease,
+      background-color var(--motion-fast) ease,
+      transform var(--motion-fast) ease;
   }
 
   .favorite-filter-count {
-    margin-left: 0.35rem;
-    color: color-mix(in oklab, currentColor 58%, transparent);
-    font-size: 0.68em;
+    margin-left: 0.45rem;
+    padding-left: 0.4rem;
+    border-left: 1px solid color-mix(in oklab, currentColor 25%, transparent);
+    color: color-mix(in oklab, currentColor 62%, transparent);
+    font-size: 0.72em;
     font-variant-numeric: tabular-nums;
   }
 
   .favorite-filter-btn:hover {
-    border-color: color-mix(in oklab, var(--accent) 50%, transparent);
+    border-color: color-mix(in oklab, var(--accent) 48%, var(--border));
     color: var(--accent);
+    background: var(--accent-softer);
+    transform: translateY(-1px);
   }
 
   .favorite-filter-btn.is-active {
     color: var(--accent);
-    border-color: color-mix(in oklab, var(--accent) 50%, transparent);
-    background: color-mix(in oklab, var(--accent) 8%, var(--background));
+    border-color: color-mix(in oklab, var(--accent) 54%, var(--border));
+    background: var(--accent-soft);
   }
 
   .favorite-filter-btn:focus-visible {
@@ -643,7 +733,10 @@ const yearGroups = Object.entries(
 
   .favorites-year-head {
     position: sticky;
-    top: calc(var(--site-header-height, 4rem) + 10.25rem);
+    top: calc(
+      var(--site-header-height, 4rem) +
+        var(--favorites-toolbar-height, 14.625rem)
+    );
     z-index: 10;
     display: flex;
     align-items: end;
@@ -1045,6 +1138,23 @@ const yearGroups = Object.entries(
     );
     const emptyHint = document.getElementById("favorites-empty");
     const filterStatus = document.getElementById("favorites-filter-status");
+    const catalog = document.querySelector(".favorites-catalog");
+    const toolbar = document.querySelector(".favorites-toolbar");
+
+    if (catalog && toolbar) {
+      const syncStickyOffset = () => {
+        catalog.style.setProperty(
+          "--favorites-toolbar-height",
+          `${toolbar.getBoundingClientRect().height}px`
+        );
+      };
+
+      syncStickyOffset();
+      if ("ResizeObserver" in window) {
+        const observer = new ResizeObserver(syncStickyOffset);
+        observer.observe(toolbar);
+      }
+    }
 
     const listTagButtons = Array.from(
       document.querySelectorAll('[data-action="filter-tag"]')
@@ -1121,7 +1231,6 @@ const yearGroups = Object.entries(
       });
     });
 
-    const catalog = document.querySelector(".favorites-catalog");
     if (catalog) {
       catalog.addEventListener("click", event => {
         const tagBtn = event.target.closest('[data-action="filter-tag"]');
