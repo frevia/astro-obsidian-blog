@@ -33,6 +33,7 @@ const { featuredPost, fragments = [] } = Astro.props;
         </div>
         <a
           href={withBase("/posts")}
+          data-astro-prefetch="hover"
           class="rounded-md px-2 py-1 text-sm font-medium text-accent hover:underline"
         >
           浏览全部文章 <span aria-hidden="true">↗</span>

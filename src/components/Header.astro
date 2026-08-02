@@ -10,11 +10,13 @@ import IconRss from "@/assets/icons/IconRss.svg";
 import IconCalendar from "@/assets/icons/IconCalendar.svg";
 import LinkButton from "./LinkButton.astro";
 import DateDisplay from "./DateDisplay.astro";
-import { SITE } from "@/config";
+import { SITE, config } from "@/config";
 import { useTranslations } from "@/i18n";
 import { stripBase, withBase } from "@/utils/withBase";
 
 const t = useTranslations(SITE.lang);
+const useClientRouterTransitions =
+  config.features.viewTransitions === "client-router";
 
 // Remove trailing slash from current pathname if exists
 const pathname = stripBase(Astro.url.pathname);
@@ -57,6 +59,7 @@ const headerLabels = {
 
 <header
   id="site-header"
+  transition:persist={useClientRouterTransitions}
   class="fixed top-0 right-0 left-0 z-50 w-full border-b border-border/70 bg-surface/90 shadow-sm backdrop-blur-xl"
 >
   <a
@@ -81,7 +84,12 @@ const headerLabels = {
         class="mr-8 py-1 text-xl leading-8 font-semibold whitespace-nowrap sm:my-auto sm:flex-shrink-0 sm:leading-none"
       >
         <div class="relative -left-1.5 flex items-center">
-          <img src={withBase("/favicon.png")} alt="favicon" class="h-10 w-10" />
+          <img
+            src={withBase("/favicon.png")}
+            alt=""
+            aria-hidden="true"
+            class="h-10 w-10"
+          />
           <span class="ml-2">{SITE.title}</span>
         </div>
       </a>

@@ -120,6 +120,7 @@ function createPopupContent(item: PlaceItem): HTMLElement {
       const listItem = document.createElement("li");
       const link = document.createElement("a");
       link.href = post.url;
+      link.dataset.astroPrefetch = "tap";
       link.textContent = post.title;
       listItem.append(link);
       list.append(listItem);
@@ -497,7 +498,11 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                 <ul className="footprint-post-list">
                   {selectedItem.posts.map(post => (
                     <li key={`${post.url}-${post.title}`}>
-                      <a href={post.url} title={post.title}>
+                      <a
+                        href={post.url}
+                        data-astro-prefetch="tap"
+                        title={post.title}
+                      >
                         <span>{post.title}</span>
                         <time dateTime={post.date}>
                           {formatDate(post.date)}

@@ -30,6 +30,7 @@ describe("WikilinkPanel", () => {
       "const href = safeSiteHref(reference.href)"
     );
     expect(componentSource).not.toContain("href={reference.href}");
+    expect(componentSource).toContain('data-astro-prefetch="tap"');
   });
 
   it("keeps article-provided titles in Astro's escaped text binding", () => {
