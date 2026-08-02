@@ -437,7 +437,6 @@ const yearGroups = Object.entries(
     /* 吸顶层必须完全遮住滚动中的卡片，避免文字穿透造成重影。 */
     background: var(--background);
     backdrop-filter: blur(10px);
-    overflow-anchor: none;
     scroll-margin-top: var(--site-header-height, 4rem);
     transition:
       transform var(--motion-standard) ease,
@@ -737,6 +736,8 @@ const yearGroups = Object.entries(
 
   .favorites-catalog {
     --favorites-pad-x: 0.75rem;
+    /* 年份标题随筛选栏收起时，禁止浏览器对列表内容自动补偿滚动位置。 */
+    overflow-anchor: none;
   }
 
   .favorites-year {
@@ -1183,7 +1184,6 @@ const yearGroups = Object.entries(
       const setToolbarHidden = hidden => {
         const wasHidden = toolbar.classList.contains("is-scroll-hidden");
         if (hidden === wasHidden) return;
-        const previousHeight = toolbar.getBoundingClientRect().height;
 
         if (hidden && toolbar.contains(document.activeElement)) {
           if (document.activeElement instanceof HTMLElement) {
@@ -1194,14 +1194,6 @@ const yearGroups = Object.entries(
         toolbar.classList.toggle("is-scroll-hidden", hidden);
         toolbar.toggleAttribute("inert", hidden);
         syncStickyOffset();
-
-        if (hidden && previousHeight > 0) {
-          window.requestAnimationFrame(() => {
-            if (toolbar.classList.contains("is-scroll-hidden")) {
-              window.scrollBy(0, previousHeight);
-            }
-          });
-        }
       };
 
       const header = document.getElementById("site-header");
