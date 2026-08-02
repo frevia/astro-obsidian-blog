@@ -432,11 +432,29 @@ const yearGroups = Object.entries(
     top: var(--site-header-height, 4rem);
     z-index: 20;
     margin-inline: -0.25rem;
+    max-height: 40rem;
     padding-inline: 0.25rem;
     /* 吸顶层必须完全遮住滚动中的卡片，避免文字穿透造成重影。 */
     background: var(--background);
     backdrop-filter: blur(10px);
+    overflow-anchor: none;
     scroll-margin-top: var(--site-header-height, 4rem);
+    transition:
+      transform var(--motion-standard) ease,
+      opacity var(--motion-fast) ease,
+      border-color var(--motion-standard) ease;
+    will-change: transform;
+  }
+
+  .favorites-toolbar.is-scroll-hidden {
+    overflow: hidden;
+    pointer-events: none;
+    max-height: 0;
+    margin-top: 0;
+    padding-bottom: 0;
+    border-bottom-color: transparent;
+    opacity: 0;
+    transform: translateY(-0.75rem);
   }
 
   .favorites-toolbar::after {
@@ -1122,7 +1140,17 @@ const yearGroups = Object.entries(
 </style>
 
 <script is:inline>
+  const favoriteCleanupKey = "__favoritesCleanup";
+
+  const cleanupFavoritePage = () => {
+    const cleanup = Reflect.get(window, favoriteCleanupKey);
+    if (typeof cleanup === "function") cleanup();
+    Reflect.deleteProperty(window, favoriteCleanupKey);
+  };
+
   const initFavoriteTagFilter = () => {
+    cleanupFavoritePage();
+
     const filterRoot = document.getElementById("favorites-tag-filter");
     if (!filterRoot) return;
 
@@ -1140,19 +1168,102 @@ const yearGroups = Object.entries(
     const filterStatus = document.getElementById("favorites-filter-status");
     const catalog = document.querySelector(".favorites-catalog");
     const toolbar = document.querySelector(".favorites-toolbar");
+    const cleanupCallbacks = [];
 
     if (catalog && toolbar) {
       const syncStickyOffset = () => {
         catalog.style.setProperty(
           "--favorites-toolbar-height",
-          `${toolbar.getBoundingClientRect().height}px`
+          toolbar.classList.contains("is-scroll-hidden")
+            ? "0px"
+            : `${toolbar.getBoundingClientRect().height}px`
         );
       };
+
+      const setToolbarHidden = hidden => {
+        const wasHidden = toolbar.classList.contains("is-scroll-hidden");
+        if (hidden === wasHidden) return;
+        const previousHeight = toolbar.getBoundingClientRect().height;
+
+        if (hidden && toolbar.contains(document.activeElement)) {
+          if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+          }
+        }
+
+        toolbar.classList.toggle("is-scroll-hidden", hidden);
+        toolbar.toggleAttribute("inert", hidden);
+        syncStickyOffset();
+
+        if (hidden && previousHeight > 0) {
+          window.requestAnimationFrame(() => {
+            if (toolbar.classList.contains("is-scroll-hidden")) {
+              window.scrollBy(0, previousHeight);
+            }
+          });
+        }
+      };
+
+      const header = document.getElementById("site-header");
+      let previousScrollY = window.scrollY;
+      let frameId = 0;
+
+      const updateToolbarVisibility = () => {
+        frameId = 0;
+        const currentScrollY = window.scrollY;
+        const scrollDelta = currentScrollY - previousScrollY;
+        previousScrollY = currentScrollY;
+
+        if (window.innerWidth < 768 || currentScrollY <= 0) {
+          setToolbarHidden(false);
+          return;
+        }
+
+        const headerHeight = header?.getBoundingClientRect().height ?? 0;
+        const toolbarIsHidden = toolbar.classList.contains("is-scroll-hidden");
+
+        if (toolbarIsHidden) {
+          if (scrollDelta < -8) setToolbarHidden(false);
+          return;
+        }
+
+        const toolbarIsPinned =
+          toolbar.getBoundingClientRect().top <= headerHeight + 2;
+
+        if (!toolbarIsPinned) {
+          setToolbarHidden(false);
+          return;
+        }
+
+        if (scrollDelta > 8) setToolbarHidden(true);
+        if (scrollDelta < -8) setToolbarHidden(false);
+      };
+
+      const onScroll = () => {
+        if (frameId !== 0) return;
+        frameId = window.requestAnimationFrame(updateToolbarVisibility);
+      };
+
+      const onResize = () => {
+        if (window.innerWidth < 768) setToolbarHidden(false);
+        syncStickyOffset();
+      };
+
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onResize, { passive: true });
+      cleanupCallbacks.push(() => {
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onResize);
+        if (frameId !== 0) window.cancelAnimationFrame(frameId);
+        setToolbarHidden(false);
+        catalog.style.removeProperty("--favorites-toolbar-height");
+      });
 
       syncStickyOffset();
       if ("ResizeObserver" in window) {
         const observer = new ResizeObserver(syncStickyOffset);
         observer.observe(toolbar);
+        cleanupCallbacks.push(() => observer.disconnect());
       }
     }
 
@@ -1226,31 +1337,44 @@ const yearGroups = Object.entries(
     window.applyFilter = applyFilter;
 
     buttons.forEach(btn => {
-      btn.addEventListener("click", () => {
+      const onClick = () => {
         applyFilter(btn.dataset.filterTag ?? "");
-      });
+      };
+      btn.addEventListener("click", onClick);
+      cleanupCallbacks.push(() => btn.removeEventListener("click", onClick));
     });
 
     if (catalog) {
-      catalog.addEventListener("click", event => {
+      const onCatalogClick = event => {
         const tagBtn = event.target.closest('[data-action="filter-tag"]');
         if (!tagBtn) return;
         event.preventDefault();
         event.stopPropagation();
         applyFilter(tagBtn.dataset.filterTag ?? "");
-      });
+      };
 
-      catalog.addEventListener("keydown", event => {
+      const onCatalogKeydown = event => {
         if (event.key !== "Enter" && event.key !== " ") return;
         const tagBtn = event.target.closest('[data-action="filter-tag"]');
         if (!tagBtn) return;
         event.preventDefault();
         event.stopPropagation();
         applyFilter(tagBtn.dataset.filterTag ?? "");
+      };
+
+      catalog.addEventListener("click", onCatalogClick);
+      catalog.addEventListener("keydown", onCatalogKeydown);
+      cleanupCallbacks.push(() => {
+        catalog.removeEventListener("click", onCatalogClick);
+        catalog.removeEventListener("keydown", onCatalogKeydown);
       });
     }
 
     applyFilter("");
+    Reflect.set(window, favoriteCleanupKey, () => {
+      cleanupCallbacks.forEach(cleanup => cleanup());
+      if (window.applyFilter === applyFilter) delete window.applyFilter;
+    });
   };
 
   initFavoriteTagFilter();
