@@ -9,7 +9,9 @@ const stylesheet = readFileSync(
 
 describe("footprint Leaflet theme", () => {
   it("follows the site's data-theme contract for dark mode", () => {
-    expect(stylesheet).toContain('html[data-theme="dark"] .footprint-leaflet-map');
+    expect(stylesheet).toContain(
+      'html[data-theme="dark"] .footprint-leaflet-map'
+    );
     expect(stylesheet).not.toContain(".dark .footprint-leaflet-map");
   });
 

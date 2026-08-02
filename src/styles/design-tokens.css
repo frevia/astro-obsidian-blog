@@ -10,6 +10,7 @@ html[data-theme="light"] {
   --foreground-muted: #5b6573;
   --foreground-subtle: #6b7280;
   --accent: #3d6b7f;
+  --accent-strong: #2f596c;
   --border: #e8edf2;
   --surface: #ffffff;
   --surface-elevated: #ffffff;
@@ -20,6 +21,18 @@ html[data-theme="light"] {
   --line-soft: color-mix(in oklab, var(--border) 75%, transparent);
   --interactive-hover: color-mix(in oklab, var(--accent) 7%, var(--surface));
   --interactive-active: color-mix(in oklab, var(--accent) 12%, var(--surface));
+  --progress: #b7791f;
+  --success: #2f855a;
+  --danger: #c05640;
+  --warning: #b7791f;
+  --rating: #c58a22;
+  --focus-ring: color-mix(in oklab, var(--accent) 78%, transparent);
+  --overlay: color-mix(in srgb, #0f172a 24%, transparent);
+  --radius-card: 0.75rem;
+  --radius-card-emphasis: 1rem;
+  --motion-fast: 140ms;
+  --motion-standard: 200ms;
+  --motion-slow: 320ms;
   --shadow-sm: 0 1px 2px color-mix(in oklab, #1f2937 5%, transparent);
   --shadow-md: 0 4px 12px color-mix(in oklab, #1f2937 7%, transparent);
   --muted: #e2e8f0;
@@ -32,6 +45,7 @@ html[data-theme="dark"] {
   --foreground-muted: #94a3b8;
   --foreground-subtle: #7c8a9e;
   --accent: #7ba3b8;
+  --accent-strong: #a6c7d6;
   --border: #2d3748;
   --surface: #1a2230;
   --surface-elevated: #1f2937;
@@ -42,6 +56,18 @@ html[data-theme="dark"] {
   --line-soft: color-mix(in oklab, var(--border) 65%, transparent);
   --interactive-hover: color-mix(in oklab, var(--accent) 12%, var(--surface));
   --interactive-active: color-mix(in oklab, var(--accent) 18%, var(--surface));
+  --progress: #d6a24a;
+  --success: #68b684;
+  --danger: #ef9583;
+  --warning: #d6a24a;
+  --rating: #e0b45e;
+  --focus-ring: color-mix(in oklab, var(--accent) 86%, transparent);
+  --overlay: color-mix(in srgb, #020617 50%, transparent);
+  --radius-card: 0.75rem;
+  --radius-card-emphasis: 1rem;
+  --motion-fast: 140ms;
+  --motion-standard: 200ms;
+  --motion-slow: 320ms;
   --shadow-sm: 0 1px 2px color-mix(in oklab, #000 35%, transparent);
   --shadow-md: 0 4px 12px color-mix(in oklab, #000 45%, transparent);
   --muted: #4b5563;
@@ -49,14 +75,37 @@ html[data-theme="dark"] {
 }
 
 @layer components {
+  .page-intro {
+    max-width: 46rem;
+  }
+
+  .page-kicker {
+    margin: 0 0 0.45rem;
+    color: var(--accent);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .page-title {
+    letter-spacing: -0.045em;
+  }
+
+  .page-desc {
+    max-width: 42rem;
+    color: var(--foreground-muted);
+  }
+
   .app-card {
     border: 1px solid color-mix(in oklab, var(--border) 90%, transparent);
-    border-radius: 0.75rem;
+    border-radius: var(--radius-card);
     background: var(--surface);
     box-shadow: var(--shadow-sm);
     transition:
-      border-color 0.2s ease,
-      box-shadow 0.2s ease;
+      border-color var(--motion-standard) ease,
+      box-shadow var(--motion-standard) ease;
   }
 
   .app-card:hover {
@@ -66,13 +115,13 @@ html[data-theme="dark"] {
 
   .app-panel {
     border: 1px solid var(--line-soft);
-    border-radius: 0.75rem;
+    border-radius: var(--radius-card);
     background: var(--surface-muted);
   }
 
   .app-notice {
     border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
-    border-radius: 0.75rem;
+    border-radius: var(--radius-card);
     background: var(--surface);
     color: color-mix(in oklab, var(--foreground) 78%, transparent);
   }
@@ -87,10 +136,10 @@ html[data-theme="dark"] {
 
   .app-hover-row {
     border: 1px solid transparent;
-    border-radius: 0.5rem;
+    border-radius: 0.625rem;
     transition:
-      border-color 0.2s ease,
-      background-color 0.2s ease;
+      border-color var(--motion-standard) ease,
+      background-color var(--motion-standard) ease;
   }
 
   .app-hover-row:hover,

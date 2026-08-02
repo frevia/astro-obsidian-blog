@@ -65,7 +65,7 @@ describe("UI i18n migration", () => {
     expect(source).toContain('skipToContent: "跳到主要内容"');
     expect(source).toContain('sharePostIntro: "分享链接:"');
     expect(source).toContain('notFoundBrowserTitle: "404 Not Found"');
-    expect(source).toContain('searchBrowserTitle: "Search"');
+    expect(source).toContain('searchBrowserTitle: "搜索"');
     expect(source).toContain('archivesTooltip: "Archives"');
     expect(source).toContain('searchTooltip: "Search"');
     expect(source).toContain('tagPageTitleCompact: "标签:{{tag}}"');

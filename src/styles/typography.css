@@ -206,22 +206,22 @@
 
     blockquote.callout.callout-warning,
     blockquote.callout[data-callout="warning"] {
-      @apply border-l-amber-500/65 bg-amber-500/10;
+      @apply border-l-warning/65 bg-warning/10;
     }
 
     blockquote.callout.callout-danger,
     blockquote.callout[data-callout="danger"] {
-      @apply border-l-rose-500/65 bg-rose-500/10;
+      @apply border-l-danger/65 bg-danger/10;
     }
 
     blockquote.callout.callout-error,
     blockquote.callout[data-callout="error"] {
-      @apply border-l-rose-500/65 bg-rose-500/10;
+      @apply border-l-danger/65 bg-danger/10;
     }
 
     blockquote.callout.callout-success,
     blockquote.callout[data-callout="success"] {
-      @apply border-l-green-500/65 bg-green-500/10;
+      @apply border-l-success/65 bg-success/10;
     }
 
     details {

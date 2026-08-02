@@ -6,13 +6,28 @@ import Tag from "@/components/Tag.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import getUniqueTags from "@/utils/getUniqueTags";
+import postFilter from "@/utils/postFilter";
+import { slugifyStr } from "@/utils/slugify";
 import { SITE } from "@/config";
 import { useTranslations } from "@/i18n";
 
 const posts = await getCollection("blog");
 const t = useTranslations(SITE.lang);
 
-let tags = getUniqueTags(posts);
+const tagCountMap = posts
+  .filter(postFilter)
+  .flatMap(post => post.data.tags)
+  .map(tag => slugifyStr(tag))
+  .reduce((counts, tag) => {
+    counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    return counts;
+  }, new Map<string, number>());
+
+let tags = getUniqueTags(posts).sort(
+  (a, b) =>
+    (tagCountMap.get(b.tag) ?? 0) - (tagCountMap.get(a.tag) ?? 0) ||
+    a.tagName.localeCompare(b.tagName, "zh-CN")
+);
 ---
 
 <Layout title={`${t.pages.tagsTitle} | ${SITE.title}`}>
@@ -30,6 +45,9 @@ let tags = getUniqueTags(posts);
           </p>
           <p class="mb-2">
             {t.pages.tagsIntroDesc}
+          </p>
+          <p class="mb-3 text-xs text-foreground/55">
+            共 {tags.length} 个主题，按文章数量从高到低排列。
           </p>
           <div class="flex flex-wrap gap-4 text-xs text-foreground/60">
             <span class="flex items-center gap-1.5">
@@ -50,8 +68,12 @@ let tags = getUniqueTags(posts);
     </div>
 
     <div class="mb-12">
-      <ul class="flex flex-wrap gap-3">
-        {tags.map(({ tag, tagName }) => <Tag {tag} {tagName} size="lg" />)}
+      <ul class="tags-cloud flex flex-wrap gap-3">
+        {
+          tags.map(({ tag, tagName }) => (
+            <Tag {tag} {tagName} size="lg" count={tagCountMap.get(tag) ?? 0} />
+          ))
+        }
       </ul>
     </div>
 
@@ -72,3 +94,28 @@ let tags = getUniqueTags(posts);
   </Main>
   <Footer />
 </Layout>
+
+<style>
+  .tags-cloud {
+    border-block: 1px solid color-mix(in oklab, var(--border) 64%, transparent);
+    padding-block: 1.25rem;
+  }
+
+  .tags-cloud :global(li) {
+    border: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
+    border-radius: 999px;
+    padding: 0.25rem 0.55rem;
+    background: var(--surface);
+    transition:
+      border-color var(--motion-fast) ease,
+      background-color var(--motion-fast) ease,
+      transform var(--motion-fast) ease;
+  }
+
+  .tags-cloud :global(li:hover),
+  .tags-cloud :global(li:focus-within) {
+    border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
+    background: var(--accent-softer);
+    transform: translateY(-1px);
+  }
+</style>

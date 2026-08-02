@@ -6,9 +6,10 @@ export interface Props {
   tag: string;
   tagName: string;
   size?: "sm" | "lg";
+  count?: number;
 }
 
-const { tag, tagName, size = "sm" } = Astro.props;
+const { tag, tagName, size = "sm", count } = Astro.props;
 ---
 
 <li class="group shrink-0 group-hover:cursor-pointer">
@@ -27,5 +28,27 @@ const { tag, tagName, size = "sm" } = Astro.props;
       ]}
     />
     <span>{tagName}</span>
+    {
+      count !== undefined && (
+        <span class="tag-count" aria-label={`${count} 篇文章`}>
+          {count}
+        </span>
+      )
+    }
   </a>
 </li>
+
+<style>
+  .tag-count {
+    display: inline-flex;
+    min-width: 1.2rem;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 0 0.3rem;
+    color: var(--accent);
+    background: var(--accent-soft);
+    font-size: 0.68em;
+    font-variant-numeric: tabular-nums;
+    text-decoration: none;
+  }
+</style>

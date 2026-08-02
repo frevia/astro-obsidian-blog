@@ -341,7 +341,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
     >
       <header className="footprint-overview">
         <div className="footprint-overview-copy">
-          <p className="footprint-eyebrow">Field notes / Map</p>
+          <p className="footprint-eyebrow">地点地图</p>
           <h2
             id="footprint-explorer-title"
             className="footprint-overview-title"
@@ -374,7 +374,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
           aria-labelledby="footprint-empty-title"
           data-footprint-empty-state
         >
-          <p className="footprint-eyebrow">First pin</p>
+          <p className="footprint-eyebrow">第一枚标记</p>
           <h2 id="footprint-empty-title">下一段旅程会从第一枚地点标记开始</h2>
           <p>
             在文章 frontmatter
@@ -389,7 +389,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
       >
         <header className="footprint-map-panel-head">
           <div>
-            <p className="footprint-eyebrow">Interactive map</p>
+            <p className="footprint-eyebrow">交互地图</p>
             <h2 id="footprint-map-title">足迹总览</h2>
           </div>
           <div className="footprint-map-actions">
@@ -410,6 +410,23 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
             </button>
           </div>
         </header>
+
+        <div className="footprint-map-legend" aria-label="地图图例">
+          <span className="footprint-map-legend-item">
+            <span className="footprint-map-legend-dot" aria-hidden="true" />
+            已记录地点
+          </span>
+          <span className="footprint-map-legend-item">
+            <span
+              className="footprint-map-legend-dot footprint-map-legend-dot--selected"
+              aria-hidden="true"
+            />
+            当前选中
+          </span>
+          <span className="footprint-map-legend-note">
+            点击地点可查看关联文章
+          </span>
+        </div>
 
         <div className="footprint-map-layout">
           <div className="footprint-map-column">
@@ -447,7 +464,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
           >
             <div className="footprint-place-rail-head">
               <div>
-                <p className="footprint-eyebrow">Place index</p>
+                <p className="footprint-eyebrow">地点索引</p>
                 <h3>地点档案</h3>
               </div>
               <span className="footprint-place-count">{placeItems.length}</span>
@@ -461,9 +478,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
               >
                 <div className="footprint-place-detail-head">
                   <div>
-                    <p className="footprint-place-detail-kicker">
-                      Selected place
-                    </p>
+                    <p className="footprint-place-detail-kicker">当前地点</p>
                     <h4>{selectedItem.name}</h4>
                   </div>
                   <button

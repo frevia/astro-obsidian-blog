@@ -37,6 +37,12 @@ const isStandard = presentation === "standard";
 const isFeatured = presentation === "featured";
 const inferredKind = inferPostContentKind({ data, body });
 const contentKind: ContentKind = isFeatured ? "featured" : inferredKind;
+const contentKindLabel: Record<ContentKind, string> = {
+  text: "文字",
+  media: "媒体",
+  image: "图像",
+  featured: "精选",
+};
 const titleTransitionName = toTransitionName(title);
 const coverTransitionName = `${titleTransitionName}-cover`;
 
@@ -100,7 +106,7 @@ const titleClass = isStandard
         class:list={[
           "shrink-0 overflow-hidden border border-border/60 bg-muted/15",
           isStandard
-            ? "hidden h-[88px] w-[88px] rounded-lg sm:block"
+            ? "block h-14 w-14 rounded-lg sm:h-[88px] sm:w-[88px]"
             : isFeatured
               ? "aspect-[16/10] w-full rounded-xl sm:min-h-64 sm:w-[52%]"
               : "aspect-[16/10] w-full rounded-xl sm:h-40 sm:w-48",
@@ -142,7 +148,7 @@ const titleClass = isStandard
           !isStandard && (
             <div class="mb-3 flex flex-wrap items-center gap-2 text-xs tracking-wide text-foreground/55">
               <span class="font-semibold text-accent uppercase">
-                {isFeatured ? "Featured" : contentKind}
+                {contentKindLabel[contentKind]}
               </span>
               {data.tags.slice(0, 2).map(tag => (
                 <span class="rounded-full border border-border/60 px-2 py-0.5">

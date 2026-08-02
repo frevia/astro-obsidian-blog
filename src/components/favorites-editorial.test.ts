@@ -10,7 +10,7 @@ describe("favorites editorial catalog", () => {
   it("exposes a curated masthead and a live filter summary", () => {
     expect(source).toContain('class="favorites-masthead');
     expect(source).toContain('id="favorites-filter-status"');
-    expect(source).toContain("Latest capture");
+    expect(source).toContain("最近收录");
     expect(source).toContain("data-content-kind={getFavoriteKind(post)}");
   });
 
