@@ -439,6 +439,16 @@ const yearGroups = Object.entries(
     scroll-margin-top: var(--site-header-height, 4rem);
   }
 
+  .favorites-toolbar::after {
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1.5rem;
+    height: 1.5rem;
+    background: var(--background);
+    content: "";
+    pointer-events: none;
+  }
+
   .favorites-eyebrow {
     color: var(--accent);
     font-size: 0.6875rem;
@@ -950,6 +960,10 @@ const yearGroups = Object.entries(
     .favorites-toolbar {
       position: static;
       backdrop-filter: none;
+    }
+
+    .favorites-toolbar::after {
+      display: none;
     }
 
     .favorites-year-head {
