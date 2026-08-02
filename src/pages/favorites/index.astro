@@ -442,8 +442,8 @@ const yearGroups = Object.entries(
   .favorites-toolbar::after {
     position: absolute;
     inset-inline: 0;
-    bottom: -2.5rem;
-    height: 2.5rem;
+    bottom: -0.75rem;
+    height: 0.75rem;
     background: var(--background);
     content: "";
     pointer-events: none;
@@ -661,7 +661,7 @@ const yearGroups = Object.entries(
 
   .favorites-year-head {
     position: sticky;
-    top: calc(var(--site-header-height, 4rem) + 12.5rem);
+    top: calc(var(--site-header-height, 4rem) + 9.25rem);
     z-index: 10;
     display: flex;
     align-items: end;
@@ -673,6 +673,16 @@ const yearGroups = Object.entries(
     /* 年份标题与筛选栏错层时仍需保持不透明，避免底层内容透出。 */
     background: var(--background);
     backdrop-filter: blur(8px);
+  }
+
+  .favorites-year-head::after {
+    position: absolute;
+    inset-inline: 0;
+    bottom: -2rem;
+    height: 2rem;
+    background: var(--background);
+    content: "";
+    pointer-events: none;
   }
 
   .favorites-year-title {
@@ -968,6 +978,10 @@ const yearGroups = Object.entries(
 
     .favorites-year-head {
       top: var(--site-header-height, 4rem);
+    }
+
+    .favorites-year-head::after {
+      display: none;
     }
   }
 
