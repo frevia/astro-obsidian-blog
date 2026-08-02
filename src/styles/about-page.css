@@ -1,0 +1,321 @@
+@layer components {
+  .about-page {
+    --about-accent: var(--accent);
+    --about-accent-soft: var(--accent-soft, var(--accent-softer));
+  }
+
+  .about-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.34fr);
+    gap: 1.5rem;
+    align-items: end;
+    margin: 1.25rem 0 1.75rem;
+    padding: clamp(1.25rem, 3.5vw, 2.25rem);
+    border: 1px solid
+      color-mix(in oklab, var(--about-accent) 22%, var(--border));
+    border-radius: 1.25rem;
+    background:
+      radial-gradient(
+        circle at 100% 0%,
+        color-mix(in oklab, var(--about-accent) 12%, transparent),
+        transparent 56%
+      ),
+      var(--surface);
+    box-shadow: 0 1.25rem 3.5rem -2.5rem var(--about-accent);
+  }
+
+  .about-hero-copy {
+    min-width: 0;
+  }
+
+  .about-eyebrow {
+    color: var(--about-accent);
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .about-hero h1 {
+    margin-top: 0.55rem;
+    color: var(--foreground);
+    font-size: clamp(2.2rem, 7vw, 4.6rem);
+    font-weight: 700;
+    letter-spacing: -0.08em;
+    line-height: 0.95;
+  }
+
+  .about-hero-description {
+    max-width: 33rem;
+    margin-top: 1rem;
+    color: color-mix(in oklab, var(--foreground) 72%, transparent);
+    font-size: clamp(0.92rem, 1.7vw, 1.08rem);
+    line-height: 1.85;
+  }
+
+  .about-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 1.35rem;
+    color: var(--foreground-muted);
+    font-size: 0.67rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .about-hero-meta time {
+    margin-left: 0.3rem;
+    color: var(--about-accent);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .about-hero-meta-dot {
+    color: color-mix(in oklab, var(--about-accent) 55%, transparent);
+  }
+
+  .about-hero-mark {
+    display: grid;
+    justify-items: end;
+    align-content: end;
+    gap: 0.35rem;
+    color: var(--foreground-muted);
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    line-height: 1.35;
+    text-align: right;
+    text-transform: uppercase;
+  }
+
+  .about-hero-mark-letter {
+    color: color-mix(in oklab, var(--about-accent) 68%, var(--foreground));
+    font-family: var(--font-serif);
+    font-size: clamp(4.5rem, 13vw, 8rem);
+    font-weight: 700;
+    letter-spacing: -0.14em;
+    line-height: 0.7;
+    opacity: 0.85;
+  }
+
+  .about-stats {
+    margin-bottom: 2.4rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+    padding-bottom: 1.6rem;
+  }
+
+  .about-stats-head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .about-stats-head h2 {
+    margin-top: 0.35rem;
+    color: var(--foreground);
+    font-size: 1.15rem;
+    font-weight: 650;
+    letter-spacing: -0.04em;
+  }
+
+  .about-stats-status {
+    color: var(--foreground-subtle);
+    font-size: 0.64rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .about-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .about-stat {
+    min-width: 0;
+    border: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
+    border-radius: 0.85rem;
+    padding: 0.9rem 0.95rem;
+    background: var(--surface-muted);
+    transition:
+      border-color 180ms ease,
+      background-color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .about-stat:hover {
+    border-color: color-mix(in oklab, var(--about-accent) 32%, var(--border));
+    background: color-mix(
+      in oklab,
+      var(--about-accent) 4%,
+      var(--surface-muted)
+    );
+    transform: translateY(-2px);
+  }
+
+  .about-stat-label {
+    color: var(--about-accent);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .about-stat-value {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    margin-top: 0.65rem;
+  }
+
+  .about-stat-value strong {
+    color: var(--foreground);
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-variant-numeric: tabular-nums;
+    font-weight: 650;
+    letter-spacing: -0.08em;
+    line-height: 0.95;
+  }
+
+  .about-stat-value span {
+    color: var(--foreground-muted);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .about-stat p {
+    min-height: 2.6em;
+    margin-top: 0.65rem;
+    color: var(--foreground-muted);
+    font-size: 0.69rem;
+    line-height: 1.55;
+  }
+
+  .about-stat p span {
+    color: var(--about-accent);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+
+  .about-content {
+    max-width: 44rem;
+    margin-inline: auto;
+  }
+
+  .about-portrait {
+    margin: 0 0 2rem;
+    overflow: hidden;
+    border: 1px solid
+      color-mix(in oklab, var(--about-accent) 18%, var(--border));
+    border-radius: 1.1rem;
+    background: var(--surface-muted);
+    box-shadow: 0 1.5rem 3rem -2rem var(--about-accent);
+  }
+
+  .about-portrait > div {
+    border-radius: inherit;
+  }
+
+  .about-content .about-lede {
+    margin: 0;
+    color: var(--foreground);
+    font-size: clamp(1rem, 1.8vw, 1.15rem);
+    line-height: 1.95;
+  }
+
+  .about-content .about-note {
+    margin: 1.35rem 0 2.6rem;
+    border-inline-start: 2px solid var(--about-accent);
+    padding: 0.25rem 0 0.25rem 1rem;
+    color: var(--foreground-muted);
+    font-size: 0.88rem;
+    line-height: 1.9;
+  }
+
+  .about-content h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-top: 2.5rem;
+    color: var(--foreground);
+    font-size: 1.25rem;
+    letter-spacing: -0.04em;
+  }
+
+  .about-content h2::before {
+    width: 1.5rem;
+    height: 2px;
+    background: var(--about-accent);
+    content: "";
+  }
+
+  .about-content h2 + blockquote {
+    margin-top: 0.9rem;
+    border-inline-start: 2px solid
+      color-mix(in oklab, var(--about-accent) 45%, var(--border));
+    padding-inline-start: 1rem;
+    color: color-mix(in oklab, var(--foreground) 78%, transparent);
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    line-height: 1.95;
+  }
+
+  .about-content > hr {
+    margin-block: 2.5rem;
+    border-color: color-mix(in oklab, var(--border) 80%, transparent);
+  }
+
+  .about-comments h2 {
+    margin-top: 0;
+  }
+
+  @media (max-width: 680px) {
+    .about-hero {
+      grid-template-columns: minmax(0, 1fr) 5.5rem;
+      gap: 0.75rem;
+      padding: 1.2rem;
+    }
+
+    .about-hero-mark-letter {
+      font-size: 5.5rem;
+    }
+
+    .about-stat-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .about-stat p {
+      min-height: 0;
+    }
+  }
+
+  @media (max-width: 430px) {
+    .about-hero {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .about-hero-mark {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-direction: row-reverse;
+      text-align: left;
+    }
+
+    .about-hero-mark-letter {
+      font-size: 4.6rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .about-stat {
+      transition: none;
+    }
+  }
+}

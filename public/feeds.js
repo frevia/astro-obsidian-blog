@@ -5,65 +5,102 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-function createFeedCardHTML(item, fallbackOgImageGlobal) {
-  const defaultImageClass =
-    "w-12 h-12 object-cover rounded-md shrink-0 transition-opacity duration-300";
+const escapeHtml = value =>
+  String(value ?? "").replace(
+    /[&<>'"]/g,
+    character =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "'": "&#39;",
+        '"': "&quot;",
+      })[character]
+  );
 
-  let imgSrc = item.avatar || "";
-  if ((!imgSrc || imgSrc.trim() === "") && fallbackOgImageGlobal) {
-    imgSrc = fallbackOgImageGlobal;
+const safeUrl = (value, fallback = "") => {
+  const rawValue = typeof value === "string" ? value.trim() : "";
+  if (!rawValue) return fallback;
+
+  try {
+    const url = new URL(rawValue, window.location.origin);
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return url.href;
+    }
+  } catch {
+    // Ignore malformed feed URLs and use the fallback.
   }
 
-  const onerrorHandler = fallbackOgImageGlobal
-    ? `this.onerror=null; this.src='${fallbackOgImageGlobal}';`
-    : "";
+  return fallback;
+};
 
+const getHostLabel = value => {
+  try {
+    return new URL(value).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+};
+
+const formatPublishedDate = (value, siteTimezone) => {
+  if (!value || value === "未知") return "未知日期";
+
+  const parsed = dayjs(value);
+  if (!parsed.isValid()) return value;
+
+  return siteTimezone
+    ? parsed.tz(siteTimezone).format("YYYY.MM.DD")
+    : parsed.format("YYYY.MM.DD");
+};
+
+function createFeedCardHTML(item, fallbackOgImageGlobal, siteTimezone) {
   const blogName =
-    typeof item.blog_name === "string" ? item.blog_name.trim() : "";
+    typeof item.blog_name === "string" ? item.blog_name.trim() : "未命名站点";
   const latestPostTitle =
     typeof item.title === "string" ? item.title.trim() : "";
   const publishedDate =
     typeof item.published === "string" ? item.published.trim() : "";
-  const postLink = item.link || "";
+  const postLink = safeUrl(item.link, "#");
+  const avatarUrl = safeUrl(item.avatar, safeUrl(fallbackOgImageGlobal));
+  const sourceLabel = getHostLabel(postLink);
+  const accessibleLabel = latestPostTitle
+    ? `${blogName}：${latestPostTitle}`
+    : `${blogName}：打开站点`;
 
   return `
-    <li class="p-4 rounded-lg border border-border/60 hover:shadow-sm transition-shadow">
-      <div class="flex items-center gap-4">
-        ${
-          imgSrc
-            ? `
-            <img
-              src="${imgSrc}"
-              alt="${blogName}"
-              class="${defaultImageClass}"
-              loading="lazy"
-              onerror="${onerrorHandler}"
-            />
-          `
-            : `
-            <div class="${defaultImageClass} bg-muted/30 flex items-center justify-center">
-              <span class="text-sm text-muted-foreground">${blogName.charAt(0)}</span>
-            </div>
-          `
-        }
-        <div class="flex-1 min-w-0">
-          <h3 class="font-medium text-foreground hover:text-accent transition-colors">
-            <a href="${postLink}" target="_blank" rel="noopener noreferrer" class="hover:underline">${blogName}</a>
-          </h3>
+    <li class="feeds-card" data-feed-item data-feed-source="${escapeHtml(blogName)}">
+      <a
+        class="feeds-card-link"
+        href="${escapeHtml(postLink)}"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="${escapeHtml(accessibleLabel)}"
+      >
+        <span class="feeds-card-avatar" aria-hidden="true">
           ${
-            latestPostTitle
-              ? `
-            <div class="flex items-center gap-2 flex-wrap">
-              <a href="${postLink}" target="_blank" rel="noopener noreferrer" class="text-sm text-accent hover:underline flex-1">
-                ${latestPostTitle}
-              </a>
-              ${publishedDate ? `<p class="text-xs text-muted-foreground whitespace-nowrap">${publishedDate}</p>` : ""}
-            </div>
-          `
-              : ""
+            avatarUrl
+              ? `<img src="${escapeHtml(avatarUrl)}" alt="" loading="lazy" />`
+              : escapeHtml(blogName.charAt(0))
           }
-        </div>
-      </div>
+        </span>
+        <span class="feeds-card-main">
+          <span class="feeds-card-meta">
+            <span class="feeds-card-source">${escapeHtml(blogName)}</span>
+            <time class="feeds-card-date" datetime="${escapeHtml(publishedDate)}">
+              ${escapeHtml(formatPublishedDate(publishedDate, siteTimezone))}
+            </time>
+          </span>
+          <span class="feeds-card-title">
+            ${escapeHtml(latestPostTitle || "打开站点阅读最新内容")}
+          </span>
+        </span>
+        <span class="feeds-card-arrow" aria-hidden="true">↗</span>
+      </a>
+      ${
+        sourceLabel
+          ? `<p class="feeds-card-note">${escapeHtml(sourceLabel)}</p>`
+          : ""
+      }
     </li>
   `;
 }
@@ -72,15 +109,18 @@ export async function initFeeds(
   fallbackOgImageGlobal,
   initialItemCount,
   itemsPerPage,
-  dataSourceUrl
+  dataSourceUrl,
+  siteTimezone
 ) {
-  // 使用传入的数据源 URL，如果没有则使用默认本地数据
   const localDataSourceUrl = dataSourceUrl || "/data/feeds/feeds.json";
   const feedsListElement = document.getElementById("feeds-list");
   const loadMoreTrigger = document.getElementById("load-more-trigger");
   const loadingContainer = document.getElementById("feeds-loading");
   const errorContainer = document.getElementById("feeds-error");
   const noContentContainer = document.getElementById("feeds-no-content");
+  const countElement = document.getElementById("feeds-count");
+  const sourceCountElement = document.getElementById("feeds-source-count");
+  const updatedElement = document.getElementById("feeds-updated");
 
   if (
     !feedsListElement ||
@@ -93,99 +133,94 @@ export async function initFeeds(
   }
 
   let allFeeds = [];
-  let currentIndex = 0; // Start with 0 as initial items will also be loaded by loadMoreItems
+  let currentIndex = 0;
   let observer;
 
-  async function fetchFeeds() {
-    try {
-      // 从本地加载数据
-      const response = await fetch(localDataSourceUrl);
+  const updateFeedSummary = data => {
+    const sourceCount = new Set(
+      allFeeds.map(item => item.blog_name?.trim()).filter(Boolean)
+    ).size;
 
-      if (!response.ok) {
-        throw new Error(`本地数据加载失败: ${response.status}`);
-      }
-
-      const data = await response.json();
-      // 按日期倒序排序（最新的文章排在前面）
-      allFeeds = (data.items || []).sort((a, b) => {
-        // 处理空日期的情况
-        if (!a.published || a.published === "未知") return 1;
-        if (!b.published || b.published === "未知") return -1;
-
-        // 解析日期字符串为日期对象
-        const dateA = new Date(a.published);
-        const dateB = new Date(b.published);
-
-        // 处理无效日期的情况
-        if (isNaN(dateA.getTime())) return 1;
-        if (isNaN(dateB.getTime())) return -1;
-
-        // 按日期倒序排序
-        return dateB.getTime() - dateA.getTime();
-      });
-      loadingContainer.classList.add("hidden");
-
-      if (allFeeds.length === 0) {
-        noContentContainer.classList.remove("hidden");
-        if (loadMoreTrigger) loadMoreTrigger.style.display = "none";
-        return;
-      }
-
-      // Initial load of items
-      loadMoreItems(initialItemCount);
-
-      // Setup Intersection Observer if there are more items than initially shown
-      if (loadMoreTrigger && allFeeds.length > initialItemCount) {
-        loadMoreTrigger.style.display = "block"; // Show trigger if more items exist
-        observer = new IntersectionObserver(
-          entries => {
-            if (entries[0].isIntersecting) {
-              loadMoreItems(itemsPerPage);
-            }
-          },
-          { threshold: 0.1 }
-        );
-        observer.observe(loadMoreTrigger);
-      } else if (loadMoreTrigger) {
-        loadMoreTrigger.style.display = "none";
-      }
-    } catch (e) {
-      console.error("Failed to fetch feeds:", e);
-      loadingContainer.classList.add("hidden");
-      errorContainer.classList.remove("hidden");
-      if (loadMoreTrigger) loadMoreTrigger.style.display = "none";
+    if (countElement) countElement.textContent = `${allFeeds.length} 条订阅`;
+    if (sourceCountElement) sourceCountElement.textContent = sourceCount;
+    if (updatedElement) {
+      updatedElement.textContent = data.updated
+        ? `更新于 ${data.updated}`
+        : "RSS network";
     }
-  }
+  };
 
-  function loadMoreItems(count) {
-    if (!feedsListElement) {
-      return;
-    }
+  const loadMoreItems = count => {
     const itemsToLoad = allFeeds.slice(currentIndex, currentIndex + count);
-
     if (itemsToLoad.length === 0) {
       if (loadMoreTrigger) loadMoreTrigger.style.display = "none";
-      if (observer) {
-        observer.disconnect();
-      }
-      // If it's the initial load and no items, noContentContainer would have been shown by fetchFeeds
+      observer?.disconnect();
       return;
     }
 
-    let newItemsHTML = "";
-    itemsToLoad.forEach(item => {
-      newItemsHTML += createFeedCardHTML(item, fallbackOgImageGlobal);
-    });
+    const newItemsHTML = itemsToLoad
+      .map(item =>
+        createFeedCardHTML(item, fallbackOgImageGlobal, siteTimezone)
+      )
+      .join("");
     feedsListElement.insertAdjacentHTML("beforeend", newItemsHTML);
     currentIndex += itemsToLoad.length;
 
     if (currentIndex >= allFeeds.length) {
       if (loadMoreTrigger) loadMoreTrigger.style.display = "none";
-      if (observer) {
-        observer.disconnect();
-      }
+      observer?.disconnect();
+      document
+        .getElementById("all-loaded-indicator")
+        ?.classList.remove("hidden");
     }
-  }
+  };
 
-  await fetchFeeds();
+  try {
+    const response = await fetch(localDataSourceUrl);
+    if (!response.ok) {
+      throw new Error(`本地数据加载失败: ${response.status}`);
+    }
+
+    const data = await response.json();
+    allFeeds = (data.items || []).sort((a, b) => {
+      if (!a.published || a.published === "未知") return 1;
+      if (!b.published || b.published === "未知") return -1;
+
+      const dateA = new Date(a.published);
+      const dateB = new Date(b.published);
+      if (Number.isNaN(dateA.getTime())) return 1;
+      if (Number.isNaN(dateB.getTime())) return -1;
+      return dateB.getTime() - dateA.getTime();
+    });
+
+    loadingContainer.classList.add("hidden");
+    updateFeedSummary(data);
+
+    if (allFeeds.length === 0) {
+      if (countElement) countElement.textContent = "0 条订阅";
+      noContentContainer.classList.remove("hidden");
+      if (loadMoreTrigger) loadMoreTrigger.style.display = "none";
+      return;
+    }
+
+    loadMoreItems(initialItemCount);
+
+    if (loadMoreTrigger && allFeeds.length > initialItemCount) {
+      loadMoreTrigger.style.display = "block";
+      observer = new IntersectionObserver(
+        entries => {
+          if (entries[0]?.isIntersecting) loadMoreItems(itemsPerPage);
+        },
+        { threshold: 0.1 }
+      );
+      observer.observe(loadMoreTrigger);
+    }
+  } catch (error) {
+    console.error("Failed to fetch feeds:", error);
+    loadingContainer.classList.add("hidden");
+    errorContainer.classList.remove("hidden");
+    if (countElement) countElement.textContent = "同步失败";
+    if (updatedElement) updatedElement.textContent = "请稍后再试";
+    if (loadMoreTrigger) loadMoreTrigger.style.display = "none";
+  }
 }

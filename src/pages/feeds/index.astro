@@ -6,7 +6,7 @@
  *
  * 核心逻辑：
  * 1. 从外部 JSON 数据源加载博客列表
- * 2. 初始显示前 N 项（INITIAL_ITEMS_TO_SHOW = 4）
+ * 2. 初始显示前 N 项（由 SITE.feedsPerIndex 配置）
  * 3. 滚动到底部自动加载更多（每次 12 项）
  * 4. 显示加载状态、错误提示、无内容提示
  * 5. 使用 initFeeds 函数初始化（定义在 public/feeds.js）
@@ -66,36 +66,50 @@ const hasTwikooEnv =
 
 <Layout title={`邻居 | ${SITE.title}`}>
   <Header />
-  <Main pageTitle="邻居" pageDesc="">
-    <section id="feeds-list-section" class="px-0">
+  <Main
+    pageTitle="邻居"
+    pageDesc="把网络上正在认真写作的人，收进一张可以慢慢浏览的阅读地图。"
+    pageDescClass="max-w-2xl"
+  >
+    <section slot="header-extra" class="feeds-masthead" data-pagefind-ignore>
+      <div class="feeds-masthead-copy">
+        <span class="feeds-eyebrow">Neighborhood / 订阅网络</span>
+        <p>
+          这里保存着一些值得反复访问的站点。它们不必同频，却都在认真留下自己的
+          注脚。
+        </p>
+      </div>
+      <div class="feeds-masthead-note" aria-label="订阅来源">
+        <strong id="feeds-source-count">—</strong>
+        <span>curated sources</span>
+      </div>
+    </section>
+
+    <section id="feeds-list-section" class="feeds-page-stage">
+      <header class="feeds-stage-head">
+        <div>
+          <span class="feeds-eyebrow">Latest signals</span>
+          <h2>最近更新</h2>
+        </div>
+        <div class="feeds-stage-status" aria-live="polite">
+          <span id="feeds-count">正在同步</span>
+          <span aria-hidden="true">·</span>
+          <span id="feeds-updated">RSS network</span>
+        </div>
+      </header>
+
       <!-- 加载提示（骨架屏） -->
       <div id="feeds-loading">
-        <ul class="mb-12 animate-pulse list-none">
+        <ul class="feeds-list feeds-list--skeleton">
           {
             Array.from({ length: SITE.feedsPerIndex }).map(() => (
-              <li class="mb-4 rounded-xl border border-border/40 bg-muted/10 p-4 shadow-sm transition-all hover:shadow-md">
-                <div class="relative">
-                  <div class="flex items-start gap-4">
-                    {/* 头像骨架 */}
-                    <div class="bg-skeleton h-14 w-14 shrink-0 rounded-full" />
-                    {/* 内容骨架 */}
-                    <div class="min-w-0 flex-1 space-y-3">
-                      <div class="space-y-2">
-                        <div class="bg-skeleton h-5 w-3/4 rounded-lg" />
-                        <div class="bg-skeleton h-4 w-1/2 rounded" />
-                      </div>
-                      {/* 描述和日期骨架 */}
-                      <div class="space-y-1.5">
-                        <div class="bg-skeleton h-3.5 w-full rounded" />
-                        <div class="bg-skeleton h-3.5 w-2/3 rounded" />
-                      </div>
-                      {/* 标签骨架 */}
-                      <div class="flex flex-wrap gap-1.5">
-                        <div class="bg-skeleton h-6 w-16 rounded-full" />
-                        <div class="bg-skeleton h-6 w-20 rounded-full" />
-                      </div>
-                    </div>
-                  </div>
+              <li class="feeds-skeleton-card">
+                <div class="feeds-skeleton-avatar" />
+                <div class="feeds-skeleton-copy">
+                  <div class="feeds-skeleton-line feeds-skeleton-line--wide" />
+                  <div class="feeds-skeleton-line feeds-skeleton-line--medium" />
+                  <div class="feeds-skeleton-line" />
+                  <div class="feeds-skeleton-line feeds-skeleton-line--short" />
                 </div>
               </li>
             ))
@@ -103,67 +117,48 @@ const hasTwikooEnv =
         </ul>
       </div>
       <!-- 错误提示 -->
-      <div id="feeds-error" class="my-8 hidden">
-        <div
-          class="border-error/30 bg-error/5 rounded-xl border p-6 text-center"
-        >
-          <div class="mb-3 text-4xl">⚠️</div>
-          <p class="text-error mb-2 font-medium">加载失败</p>
-          <p class="text-error/80 text-sm">
-            无法加载博客订阅内容，请稍后重试或检查网络连接。
-          </p>
-          <button
-            onclick="window.location.reload()"
-            class="bg-error/10 text-error hover:bg-error/20 mt-4 rounded-full px-4 py-2 text-sm font-medium transition-colors"
-          >
-            重新加载
-          </button>
-        </div>
+      <div id="feeds-error" class="feeds-state feeds-state--error hidden">
+        <div class="feeds-state-icon" aria-hidden="true">!</div>
+        <p class="feeds-state-title">同步暂时中断</p>
+        <p class="feeds-state-copy">
+          无法加载博客订阅内容，请稍后重试或检查网络连接。
+        </p>
+        <button onclick="window.location.reload()" class="feeds-state-action">
+          再试一次
+        </button>
       </div>
       <!-- 无内容提示 -->
-      <div id="feeds-no-content" class="my-12 hidden">
-        <div class="empty-state-card p-8">
-          <div class="mb-4 text-5xl text-foreground/40">📚</div>
-          <p class="mb-2 font-medium text-foreground/80">暂无内容</p>
-          <p class="text-sm text-foreground/60">
-            当前没有可显示的博客订阅内容。
-          </p>
-        </div>
+      <div id="feeds-no-content" class="feeds-state empty-state-card hidden">
+        <div class="feeds-state-icon" aria-hidden="true">∅</div>
+        <p class="feeds-state-title">暂时没有新的信号</p>
+        <p class="feeds-state-copy">当前没有可显示的博客订阅内容。</p>
       </div>
       <!-- Feeds 列表容器 -->
-      <ul id="feeds-list" class="mb-12 list-none"></ul>
+      <ul id="feeds-list" class="feeds-list"></ul>
       <!-- 加载更多触发器和状态指示器 -->
       <div id="load-more-trigger" class="h-10" style="display: none;"></div>
 
       <!-- 加载更多状态指示器 -->
-      <div id="loading-more-indicator" class="my-8 hidden">
-        <div class="flex items-center justify-center gap-3">
-          <div
-            class="h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent"
-          >
-          </div>
-          <span class="text-sm text-foreground/60">正在加载更多内容...</span>
-        </div>
+      <div id="loading-more-indicator" class="feeds-loading-more hidden">
+        <span class="feeds-loading-dot" aria-hidden="true"></span>
+        <span>正在读取下一页…</span>
       </div>
 
       <!-- 已加载全部内容提示 -->
-      <div id="all-loaded-indicator" class="my-8 hidden">
-        <div class="text-center">
-          <div class="mb-2 text-2xl">🎉</div>
-          <p class="text-sm text-foreground/60">已加载全部内容</p>
-        </div>
+      <div id="all-loaded-indicator" class="feeds-all-loaded hidden">
+        <span aria-hidden="true">✦</span>
+        <span>已抵达这张阅读地图的边缘</span>
       </div>
     </section>
 
     <!-- 评论区域 -->
     {
       commentsEnabled && (
-        <section class="mt-16 border-t border-border/30 pt-8">
-          <div class="mb-8">
-            <h2 class="mb-2 text-2xl font-semibold text-foreground/90">留言</h2>
-            <p class="text-sm text-foreground/60">
-              欢迎分享您对博客订阅内容的看法和建议
-            </p>
+        <section class="feeds-comments">
+          <div class="feeds-comments-head">
+            <span class="feeds-eyebrow">Open thread</span>
+            <h2>留言</h2>
+            <p>欢迎分享您对博客订阅内容的看法和建议</p>
           </div>
 
           {commentsEnabled && hasTwikooEnv && <Twikoo />}
@@ -206,142 +201,522 @@ const hasTwikooEnv =
 <script>
   import { initFeeds } from "../../../public/feeds.js";
 
-  /**
-   * 初始化 Feeds 功能
-   *
-   * 1. 解析客户端配置
-   * 2. 调用 initFeeds 函数
-   * 3. 错误处理：显示错误提示
-   */
-  document.addEventListener("astro:page-load", () => {
+  declare global {
+    interface Window {
+      __feedsPageLoadHandler?: () => void;
+    }
+  }
+
+  const initializeFeeds = () => {
     const dataElement = document.getElementById("feeds-data-json-container");
 
-    if (dataElement && dataElement.dataset.json) {
-      try {
-        const clientData = JSON.parse(dataElement.dataset.json);
-        initFeeds(
-          clientData.fallbackOgImage,
-          clientData.initialItemCount,
-          clientData.itemsPerPage,
-          clientData.dataSourceUrl
-        );
-      } catch (e) {
-        console.error(
-          "Failed to parse feeds client data or initialize feeds:",
-          e
-        );
-        // 显示错误提示
-        const errorContainer = document.getElementById("feeds-error");
-        const loadingContainer = document.getElementById("feeds-loading");
-        if (errorContainer) errorContainer.classList.remove("hidden");
-        if (loadingContainer) loadingContainer.classList.add("hidden");
-      }
+    if (
+      !dataElement?.dataset.json ||
+      dataElement.dataset.initialized === "true"
+    ) {
+      return;
     }
-  });
+
+    dataElement.dataset.initialized = "true";
+    try {
+      const clientData = JSON.parse(dataElement.dataset.json);
+      void initFeeds(
+        clientData.fallbackOgImage,
+        clientData.initialItemCount,
+        clientData.itemsPerPage,
+        clientData.dataSourceUrl,
+        clientData.siteTimezone
+      );
+    } catch (error) {
+      console.error("Failed to initialize feeds:", error);
+      const errorContainer = document.getElementById("feeds-error");
+      const loadingContainer = document.getElementById("feeds-loading");
+      errorContainer?.classList.remove("hidden");
+      loadingContainer?.classList.add("hidden");
+    }
+  };
+
+  if (window.__feedsPageLoadHandler) {
+    document.removeEventListener(
+      "astro:page-load",
+      window.__feedsPageLoadHandler
+    );
+  }
+  window.__feedsPageLoadHandler = initializeFeeds;
+  document.addEventListener("astro:page-load", initializeFeeds);
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeFeeds, {
+      once: true,
+    });
+  } else {
+    initializeFeeds();
+  }
 </script>
 
-<style>
-  #feeds-list-section {
+<style is:global>
+  .feeds-masthead {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: end;
+    margin-top: 1.25rem;
+    padding: 1rem 0 1.1rem;
+    border-block: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  }
+
+  .feeds-eyebrow {
+    color: var(--accent);
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .feeds-masthead-copy p {
+    max-width: 38rem;
+    margin: 0.55rem 0 0;
+    color: color-mix(in oklab, var(--foreground) 68%, transparent);
+    font-size: 0.82rem;
+    line-height: 1.8;
+  }
+
+  .feeds-masthead-note {
+    display: grid;
+    min-width: 7.5rem;
+    justify-items: end;
+    gap: 0.15rem;
+    color: var(--foreground-muted);
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .feeds-masthead-note strong {
+    color: var(--accent);
+    font-size: 2rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 650;
+    letter-spacing: -0.06em;
+    line-height: 1;
+  }
+
+  .feeds-page-stage {
     padding-inline: 0;
   }
 
-  #feeds-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 1.5rem;
-  }
-
-  #feeds-loading ul {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 1.5rem;
-  }
-
-  #feeds-loading li {
-    margin-bottom: 0;
-  }
-
-  /* 优化卡片样式 */
-  #feeds-list li {
-    padding: 1.5rem;
-    border-radius: 1rem;
-    border: 1px solid color-mix(in oklab, var(--border) 40%, transparent);
-    background: color-mix(in oklab, var(--muted) 5%, transparent);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  }
-
-  #feeds-list li:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-    border-color: color-mix(in oklab, var(--accent) 30%, var(--border));
-    background: color-mix(in oklab, var(--accent) 3%, transparent);
-  }
-
-  #feeds-list li > div {
+  .feeds-stage-head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
     gap: 1rem;
+    margin: 2.25rem 0 1.15rem;
   }
 
-  #feeds-list h3 {
-    margin-bottom: 0.5rem;
-    font-size: 1.125rem;
-    font-weight: 600;
-    line-height: 1.4;
+  .feeds-stage-head h2 {
+    margin-top: 0.3rem;
     color: var(--foreground);
+    font-size: clamp(1.25rem, 2vw, 1.55rem);
+    font-weight: 650;
+    letter-spacing: -0.04em;
   }
 
-  #feeds-list p {
-    margin: 0.25rem 0;
-    line-height: 1.5;
-    color: color-mix(in oklab, var(--foreground) 70%, transparent);
+  .feeds-stage-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--foreground-muted);
+    font-size: 0.68rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
-  #feeds-list li > div > div > div {
-    margin-top: 0.75rem;
+  .feeds-stage-status #feeds-count {
+    color: var(--accent);
+    font-weight: 700;
   }
 
-  /* 响应式设计 */
-  @media (max-width: 768px) {
-    #feeds-list {
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-
-    #feeds-loading ul {
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-
-    #feeds-list li {
-      padding: 1.25rem;
-      border-radius: 0.75rem;
-    }
+  .feeds-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  @media (max-width: 640px) {
-    #feeds-list li {
-      padding: 1rem;
-    }
+  .feeds-card {
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
+    border-radius: 0.95rem;
+    background: var(--surface);
+    box-shadow: 0 0.8rem 2rem -1.7rem
+      color-mix(in oklab, var(--accent) 60%, transparent);
+    transition:
+      border-color 180ms ease,
+      background-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
   }
 
-  /* 优化骨架屏动画 */
-  .bg-skeleton {
+  .feeds-card::before {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 2px;
+    background: var(--accent);
+    content: "";
+    opacity: 0.32;
+    transition: opacity 180ms ease;
+  }
+
+  .feeds-card:hover,
+  .feeds-card:focus-within {
+    border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
+    background: color-mix(in oklab, var(--accent) 3%, var(--surface));
+    box-shadow: 0 1.2rem 2.5rem -1.8rem var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .feeds-card:hover::before,
+  .feeds-card:focus-within::before {
+    opacity: 1;
+  }
+
+  .feeds-card-link {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding: 1rem 1rem 0.85rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .feeds-card-avatar {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex: none;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border));
+    border-radius: 0.75rem;
+    color: var(--accent);
+    background: var(--accent-softer);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .feeds-card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .feeds-card-main {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .feeds-card-meta {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .feeds-card-source {
+    overflow: hidden;
+    color: var(--accent);
+    font-size: 0.68rem;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .feeds-card-date {
+    flex: none;
+    color: var(--foreground-subtle);
+    font-size: 0.65rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .feeds-card-title {
+    display: block;
+    overflow: hidden;
+    margin-top: 0.38rem;
+    color: color-mix(in oklab, var(--foreground) 86%, transparent);
+    font-size: 0.84rem;
+    line-height: 1.55;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 160ms ease;
+  }
+
+  .feeds-card:hover .feeds-card-title,
+  .feeds-card:focus-within .feeds-card-title {
+    color: var(--accent);
+  }
+
+  .feeds-card-arrow {
+    flex: none;
+    margin-top: 0.1rem;
+    color: var(--accent);
+    font-size: 1rem;
+    opacity: 0;
+    transform: translate(-0.2rem, 0.2rem);
+    transition:
+      opacity 160ms ease,
+      transform 160ms ease;
+  }
+
+  .feeds-card:hover .feeds-card-arrow,
+  .feeds-card:focus-within .feeds-card-arrow {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  .feeds-card-note {
+    margin: 0 1rem 0.9rem 4.6rem;
+    overflow: hidden;
+    color: color-mix(in oklab, var(--foreground) 52%, transparent);
+    font-size: 0.72rem;
+    line-height: 1.55;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .feeds-skeleton-card {
+    display: flex;
+    min-height: 7.4rem;
+    align-items: flex-start;
+    gap: 0.85rem;
+    border: 1px solid color-mix(in oklab, var(--border) 68%, transparent);
+    border-radius: 0.95rem;
+    padding: 1rem;
+    background: var(--surface-muted);
+  }
+
+  .feeds-skeleton-avatar,
+  .feeds-skeleton-line {
     background: linear-gradient(
-      90deg,
-      color-mix(in oklab, var(--muted) 30%, transparent) 25%,
-      color-mix(in oklab, var(--muted) 20%, transparent) 50%,
-      color-mix(in oklab, var(--muted) 30%, transparent) 75%
+      105deg,
+      color-mix(in oklab, var(--muted) 32%, transparent),
+      color-mix(in oklab, var(--muted) 12%, transparent),
+      color-mix(in oklab, var(--muted) 32%, transparent)
     );
     background-size: 200% 100%;
-    animation: skeleton-pulse 2s ease-in-out infinite;
+    animation: feeds-skeleton-shimmer 1.8s ease-in-out infinite;
   }
 
-  @keyframes skeleton-pulse {
+  .feeds-skeleton-avatar {
+    width: 2.75rem;
+    height: 2.75rem;
+    flex: none;
+    border-radius: 0.75rem;
+  }
+
+  .feeds-skeleton-copy {
+    display: grid;
+    width: 100%;
+    gap: 0.65rem;
+    padding-top: 0.15rem;
+  }
+
+  .feeds-skeleton-line {
+    width: 100%;
+    height: 0.55rem;
+    border-radius: 999px;
+  }
+
+  .feeds-skeleton-line--wide {
+    width: 72%;
+    height: 0.7rem;
+  }
+
+  .feeds-skeleton-line--medium {
+    width: 45%;
+  }
+
+  .feeds-skeleton-line--short {
+    width: 28%;
+  }
+
+  .feeds-state {
+    display: grid;
+    justify-items: center;
+    gap: 0.45rem;
+    margin: 2rem 0 3rem;
+    border: 1px dashed color-mix(in oklab, var(--border) 80%, transparent);
+    border-radius: 1rem;
+    padding: 3rem 1.25rem;
+    color: var(--foreground-muted);
+    text-align: center;
+    background: var(--surface-muted);
+  }
+
+  #feeds-error.hidden,
+  #feeds-no-content.hidden,
+  #loading-more-indicator.hidden,
+  #all-loaded-indicator.hidden {
+    display: none;
+  }
+
+  .feeds-state--error {
+    border-style: solid;
+    border-color: color-mix(in oklab, #b45309 35%, var(--border));
+    background: color-mix(in oklab, #b45309 5%, var(--surface));
+  }
+
+  .feeds-state-icon {
+    display: grid;
+    width: 2.4rem;
+    height: 2.4rem;
+    place-items: center;
+    border: 1px solid color-mix(in oklab, var(--accent) 28%, var(--border));
+    border-radius: 999px;
+    color: var(--accent);
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  .feeds-state-title {
+    margin: 0.35rem 0 0;
+    color: var(--foreground);
+    font-size: 0.95rem;
+    font-weight: 650;
+  }
+
+  .feeds-state-copy {
+    max-width: 28rem;
+    margin: 0;
+    color: var(--foreground-muted);
+    font-size: 0.78rem;
+    line-height: 1.7;
+  }
+
+  .feeds-state-action {
+    margin-top: 0.7rem;
+    border: 1px solid color-mix(in oklab, var(--accent) 42%, var(--border));
+    border-radius: 999px;
+    padding: 0.45rem 0.9rem;
+    color: var(--accent);
+    background: var(--surface);
+    font-size: 0.75rem;
+    font-weight: 650;
+  }
+
+  .feeds-loading-more,
+  .feeds-all-loaded {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    margin: 1.35rem 0;
+    color: var(--foreground-muted);
+    font-size: 0.7rem;
+  }
+
+  .feeds-loading-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: var(--accent);
+    box-shadow: 0 0 0 0 var(--accent-soft);
+    animation: feeds-pulse 1.4s ease-out infinite;
+  }
+
+  .feeds-all-loaded {
+    color: var(--accent);
+  }
+
+  .feeds-comments {
+    margin-top: 4rem;
+    border-top: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+    padding-top: 2rem;
+  }
+
+  .feeds-comments-head h2 {
+    margin-top: 0.35rem;
+    color: var(--foreground);
+    font-size: 1.35rem;
+    font-weight: 650;
+    letter-spacing: -0.04em;
+  }
+
+  .feeds-comments-head p {
+    margin-top: 0.35rem;
+    color: var(--foreground-muted);
+    font-size: 0.8rem;
+  }
+
+  @keyframes feeds-skeleton-shimmer {
     0% {
       background-position: 200% 0;
     }
     100% {
       background-position: -200% 0;
+    }
+  }
+
+  @keyframes feeds-pulse {
+    0% {
+      box-shadow: 0 0 0 0 var(--accent-soft);
+    }
+    70% {
+      box-shadow: 0 0 0 0.45rem transparent;
+    }
+    100% {
+      box-shadow: 0 0 0 0 transparent;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .feeds-masthead {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .feeds-masthead-note {
+      min-width: 5rem;
+    }
+
+    .feeds-list {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .feeds-stage-head {
+      align-items: start;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+
+    .feeds-card-link {
+      padding: 0.9rem;
+    }
+
+    .feeds-card-note {
+      margin-left: 4.45rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .feeds-card,
+    .feeds-card-arrow {
+      transition: none;
+    }
+
+    .feeds-skeleton-avatar,
+    .feeds-skeleton-line,
+    .feeds-loading-dot {
+      animation: none;
     }
   }
 </style>

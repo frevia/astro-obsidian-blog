@@ -1,6 +1,7 @@
 ---
 layout: ../layouts/AboutLayout.astro
 title: "关于"
+description: "把日常、技术和沿途遇见的人，慢慢整理成一座可回访的档案馆。"
 ---
 
 import DisintegrationImg from "../components/DisintegrationImg.tsx";
@@ -13,12 +14,19 @@ export const aboutPlaceholder = {
   format: aboutImage.format,
 };
 
-<figure class="rehype-figure mt-12 mb-16">
+<figure class="about-portrait rehype-figure">
   <DisintegrationImg client:idle image={aboutPlaceholder} />
   {/* <figcaption>🌞🌳🌹🦁🍽️🩸🐆</figcaption> */}
 </figure>
 
-自 <span id="start-year" class="inline-block font-normal text-accent">0</span> 年 <span id="start-month" class="inline-block font-normal text-accent">0</span> 月 <span id="start-day" class="inline-block font-normal text-accent">0</span> 日起，本站已运行 <span id="running-days" class="inline-block font-normal text-accent">0</span> 天，一路走来，记录了 <span id="total-posts" class="inline-block font-normal text-accent">0</span> 篇文章（其中博客 <span id="blog-posts" class="inline-block font-normal text-accent">0</span> 篇，碎片 <span id="diary-posts" class="inline-block font-normal text-accent">0</span> 篇），累计 <span id="total-words" class="inline-block font-normal text-accent">0.0</span> 万字
+<p class="about-lede">
+  这里记录一些正在发生的事：读过的书、做过的实验、走过的路，以及那些还没有
+  想清楚但值得留下来的念头。
+</p>
+
+<p class="about-note">
+  写作对我来说不是归档终点，而是给生活留一盏可以回头找到的灯。
+</p>
 
 ## 签名
 

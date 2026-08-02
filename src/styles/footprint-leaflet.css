@@ -193,23 +193,37 @@
 }
 
 .footprint-leaflet-map {
+  --footprint-map-background: color-mix(
+    in oklab,
+    var(--surface-muted) 72%,
+    var(--background)
+  );
+  /* 保留 OSM 原生的道路、绿地和水域色彩，只做轻微提亮。 */
+  --footprint-map-tile-filter: saturate(1.08) contrast(1.02) brightness(1.02);
   min-height: inherit;
   width: 100%;
-  background: #eef1f2;
+  background: var(--footprint-map-background);
+  color-scheme: light;
   isolation: isolate;
 }
 
 .footprint-leaflet-map .leaflet-tile-pane {
-  filter: grayscale(0.85) saturate(0.65) contrast(0.9) opacity(0.72);
+  filter: var(--footprint-map-tile-filter);
 }
 
-.dark .footprint-leaflet-map {
-  background: #1b2226;
+html[data-theme="dark"] .footprint-leaflet-map {
+  --footprint-map-background: color-mix(
+    in oklab,
+    var(--surface-muted) 72%,
+    var(--background)
+  );
+  --footprint-map-tile-filter: grayscale(0.28) invert(0.82)
+    hue-rotate(180deg) brightness(0.77) contrast(0.94) saturate(0.9);
+  color-scheme: dark;
 }
 
-.dark .footprint-leaflet-map .leaflet-tile-pane {
-  filter: grayscale(0.95) invert(0.86) hue-rotate(180deg) brightness(0.72)
-    contrast(0.86) opacity(0.62);
+html[data-theme="dark"] .footprint-leaflet-map .leaflet-tile-pane {
+  filter: var(--footprint-map-tile-filter);
 }
 
 .footprint-leaflet-map .leaflet-control-zoom,
@@ -509,7 +523,10 @@
 .footprint-marker-icon.is-selected {
   width: 1.35rem;
   height: 1.35rem;
-  background: var(--foreground);
+  background: var(--footprint-accent);
+  box-shadow:
+    0 0 0 3px color-mix(in oklab, var(--footprint-accent) 35%, transparent),
+    0 0.35rem 0.9rem -0.2rem rgb(15 23 42 / 55%);
 }
 
 .footprint-leaflet-popup .leaflet-popup-content-wrapper,

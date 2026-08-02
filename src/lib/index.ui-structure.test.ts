@@ -40,3 +40,31 @@ describe("empty-state visual consistency", () => {
     expect(globalCss).toContain(".empty-state-card");
   });
 });
+
+describe("neighbor and about page presentation", () => {
+  it("keeps the neighbor feed interactive on first load", () => {
+    const feeds = readFileSync("src/pages/feeds/index.astro", "utf-8");
+    const feedsClient = readFileSync("public/feeds.js", "utf-8");
+
+    expect(feeds).toContain("feeds-masthead");
+    expect(feeds).toContain("feeds-stage-status");
+    expect(feeds).toContain("document.readyState");
+    expect(feeds).toContain("DOMContentLoaded");
+    expect(feedsClient).toContain("data-feed-item");
+    expect(feedsClient).toContain("feeds-card-link");
+  });
+
+  it("renders a structured about hero and metrics section", () => {
+    const about = readFileSync("src/layouts/AboutLayout.astro", "utf-8");
+    const aboutPage = readFileSync("src/pages/about.mdx", "utf-8");
+    const aboutCss = readFileSync("src/styles/about-page.css", "utf-8");
+
+    expect(about).toContain('class="about-page');
+    expect(about).toContain("about-hero");
+    expect(about).toContain("about-stat-grid");
+    expect(about).toContain('id="running-days"');
+    expect(aboutPage).toContain("description:");
+    expect(aboutCss).toContain(".about-hero");
+    expect(aboutCss).toContain(".about-stat-grid");
+  });
+});
