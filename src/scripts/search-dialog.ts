@@ -24,6 +24,7 @@ type SearchDialogDependencies = {
 
 type SearchInputBinding = {
   invalidate: () => void;
+  resetActiveResult: () => void;
 };
 
 const searchInputBindings = new WeakMap<HTMLInputElement, SearchInputBinding>();
@@ -69,10 +70,13 @@ export function restoreSearchDialogFocus(element: HTMLElement | null) {
 function renderResults(
   dialog: HTMLDialogElement,
   results: PagefindResultData[],
-  runtimeWindow: RuntimeWindow
+  runtimeWindow: RuntimeWindow,
+  resetActiveResult?: () => void
 ) {
   const container = dialog.querySelector("#global-search-results");
   if (!(container instanceof runtimeWindow.HTMLElement)) return;
+
+  resetActiveResult?.();
 
   const ownerDocument = dialog.ownerDocument;
   if (results.length === 0) {
@@ -84,11 +88,14 @@ function renderResults(
   }
 
   container.replaceChildren(
-    ...results.map(result => {
+    ...results.map((result, index) => {
       const link = ownerDocument.createElement("a");
       link.className = "global-search-result";
+      link.id = `global-search-result-${index}`;
       link.href = result.url;
       link.setAttribute("role", "option");
+      link.setAttribute("aria-selected", "false");
+      link.tabIndex = -1;
 
       const title = ownerDocument.createElement("strong");
       title.textContent = result.meta?.title || result.url;
@@ -105,6 +112,49 @@ function renderResults(
   );
 }
 
+function getSearchResultOptions(
+  dialog: HTMLDialogElement,
+  runtimeWindow: RuntimeWindow
+): HTMLElement[] {
+  const container = dialog.querySelector("#global-search-results");
+  if (!(container instanceof runtimeWindow.HTMLElement)) return [];
+
+  return Array.from(container.children).filter(
+    child =>
+      child instanceof runtimeWindow.HTMLElement &&
+      child.getAttribute("role") === "option"
+  ) as HTMLElement[];
+}
+
+function setActiveSearchResult(
+  dialog: HTMLDialogElement,
+  input: HTMLInputElement,
+  runtimeWindow: RuntimeWindow,
+  index: number
+) {
+  const options = getSearchResultOptions(dialog, runtimeWindow);
+  if (options.length === 0) {
+    input.removeAttribute("aria-activedescendant");
+    return -1;
+  }
+
+  const activeIndex = (index + options.length) % options.length;
+  options.forEach((option, optionIndex) => {
+    option.setAttribute(
+      "aria-selected",
+      optionIndex === activeIndex ? "true" : "false"
+    );
+  });
+
+  const activeOption = options[activeIndex];
+  if (activeOption?.id) {
+    input.setAttribute("aria-activedescendant", activeOption.id);
+    activeOption.scrollIntoView?.({ block: "nearest" });
+  }
+
+  return activeIndex;
+}
+
 function bindSearchInput(
   dialog: HTMLDialogElement,
   runtimeWindow: RuntimeWindow,
@@ -118,6 +168,7 @@ function bindSearchInput(
 
   let requestId = 0;
   let timer: number | undefined;
+  let activeResultIndex = -1;
 
   const invalidate = () => {
     requestId += 1;
@@ -125,12 +176,17 @@ function bindSearchInput(
     timer = undefined;
   };
 
+  const resetActiveResult = () => {
+    activeResultIndex = -1;
+    input.removeAttribute("aria-activedescendant");
+  };
+
   input.addEventListener("input", () => {
     invalidate();
     const currentRequest = requestId;
     const query = input.value.trim();
     if (!query) {
-      renderResults(dialog, [], runtimeWindow);
+      renderResults(dialog, [], runtimeWindow, resetActiveResult);
       return;
     }
 
@@ -150,7 +206,7 @@ function bindSearchInput(
           dialog.open &&
           dialog.isConnected
         ) {
-          renderResults(dialog, data, runtimeWindow);
+          renderResults(dialog, data, runtimeWindow, resetActiveResult);
         }
       } catch {
         if (
@@ -159,13 +215,59 @@ function bindSearchInput(
           dialog.open &&
           dialog.isConnected
         ) {
-          renderResults(dialog, [], runtimeWindow);
+          renderResults(dialog, [], runtimeWindow, resetActiveResult);
         }
       }
     }, 120);
   });
 
-  const binding = { invalidate };
+  input.addEventListener("keydown", event => {
+    const options = getSearchResultOptions(dialog, runtimeWindow);
+    if (options.length === 0) return;
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      activeResultIndex = setActiveSearchResult(
+        dialog,
+        input,
+        runtimeWindow,
+        activeResultIndex + 1
+      );
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      activeResultIndex = setActiveSearchResult(
+        dialog,
+        input,
+        runtimeWindow,
+        activeResultIndex < 0 ? options.length - 1 : activeResultIndex - 1
+      );
+      return;
+    }
+
+    if (event.key === "Home" || event.key === "End") {
+      event.preventDefault();
+      activeResultIndex = setActiveSearchResult(
+        dialog,
+        input,
+        runtimeWindow,
+        event.key === "Home" ? 0 : options.length - 1
+      );
+      return;
+    }
+
+    if (event.key === "Enter" && activeResultIndex >= 0) {
+      const activeOption = options[activeResultIndex];
+      if (activeOption) {
+        event.preventDefault();
+        activeOption.click();
+      }
+    }
+  });
+
+  const binding = { invalidate, resetActiveResult };
   searchInputBindings.set(input, binding);
   input.dataset.bound = "true";
   return binding;

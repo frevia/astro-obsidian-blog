@@ -13,7 +13,7 @@ describe("editorial home and post list contracts", () => {
     expect(index).toContain("buildFragmentPreviews(initialParsedEntries, 3)");
     expect(index).toContain("<DiaryTimeline");
     expect(index.match(/client:(?:load|idle|visible|media|only)/g)).toEqual([
-      "client:load",
+      "client:idle",
     ]);
   });
 

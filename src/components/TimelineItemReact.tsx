@@ -249,6 +249,8 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
                           <img
                             src={optimizedImg.thumbnail}
                             alt={originalImg.alt || `图片 ${index + 1}`}
+                            width={optimizedImg.width}
+                            height={optimizedImg.height}
                             className="h-full w-full cursor-pointer object-cover transition-transform duration-300 hover:scale-105"
                             style={
                               optimizedImages.length === 1
@@ -260,6 +262,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
                                   }
                             }
                             loading="lazy"
+                            decoding="async"
                             title={originalImg.title}
                           />
                         </a>

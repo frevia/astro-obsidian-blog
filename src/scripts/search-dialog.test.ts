@@ -81,6 +81,14 @@ class FakeElement extends FakeEventTarget {
   setAttribute(name: string, value: string) {
     this.attributes.set(name, value);
   }
+
+  getAttribute(name: string) {
+    return this.attributes.get(name) ?? null;
+  }
+
+  removeAttribute(name: string) {
+    this.attributes.delete(name);
+  }
 }
 
 class FakeHTMLElement extends FakeElement {
@@ -98,6 +106,11 @@ class FakeHTMLInputElement extends FakeHTMLElement {
 
 class FakeHTMLAnchorElement extends FakeHTMLElement {
   href = "";
+  clickCalls = 0;
+
+  click() {
+    this.clickCalls += 1;
+  }
 }
 
 class FakeHTMLDialogElement extends FakeHTMLElement {
@@ -418,6 +431,61 @@ describe("search dialog controller", () => {
 
     expect(fixture.results.children).toHaveLength(1);
     expect(fixture.results.children[0]?.textContent).toBe("No results found");
+  });
+
+  it("supports arrow-key result navigation and Enter activation", async () => {
+    vi.useFakeTimers();
+    const fixture = createFixture(
+      vi.fn().mockResolvedValue({
+        search: vi.fn().mockResolvedValue({
+          results: [
+            {
+              data: vi.fn().mockResolvedValue({
+                url: "/first",
+                meta: { title: "First result" },
+              }),
+            },
+            {
+              data: vi.fn().mockResolvedValue({
+                url: "/second",
+                meta: { title: "Second result" },
+              }),
+            },
+          ],
+        }),
+      })
+    );
+
+    fixture.documentRoot.emit(
+      "click",
+      createEvent({ target: fixture.trigger })
+    );
+    fixture.input.value = "result";
+    fixture.input.emit("input");
+    await vi.advanceTimersByTimeAsync(120);
+    await flushPromises();
+
+    expect(fixture.results.children).toHaveLength(2);
+    const first = fixture.results.children[0];
+    const second = fixture.results.children[1];
+    expect(first?.attributes.get("aria-selected")).toBe("false");
+
+    const down = createEvent({ key: "ArrowDown" });
+    fixture.input.emit("keydown", down);
+    expect(down.preventDefault).toHaveBeenCalledOnce();
+    expect(first?.attributes.get("aria-selected")).toBe("true");
+    expect(fixture.input.attributes.get("aria-activedescendant")).toBe(
+      "global-search-result-0"
+    );
+
+    const secondDown = createEvent({ key: "ArrowDown" });
+    fixture.input.emit("keydown", secondDown);
+    expect(second?.attributes.get("aria-selected")).toBe("true");
+
+    const enter = createEvent({ key: "Enter" });
+    fixture.input.emit("keydown", enter);
+    expect(enter.preventDefault).toHaveBeenCalledOnce();
+    expect((second as FakeHTMLAnchorElement).clickCalls).toBe(1);
   });
 
   it("skips focus restoration for disconnected triggers", () => {
