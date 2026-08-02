@@ -6,6 +6,7 @@ import type {
 } from "satteri";
 
 import { calloutHastPlugin, calloutMdastPlugin } from "./plugins/callouts";
+import { contentComponentsPlugin } from "./plugins/contentComponents";
 import { linkProcessorPlugin, rssLinkProcessorPlugin } from "./plugins/links";
 import { mediaCardPlugin } from "./plugins/mediaCards";
 import {
@@ -25,9 +26,11 @@ export const markdownFeatures = {
   frontmatter: true,
   math: true,
   wikilinks: true,
+  directive: true,
 } satisfies Features;
 
 export const pageMdastPlugins: MdastPluginDefinition[] = [
+  contentComponentsPlugin,
   calloutMdastPlugin,
   linkProcessorPlugin,
   mediaCardPlugin,
@@ -43,6 +46,7 @@ export const pageHastPlugins: HastPluginDefinition[] = [
 ];
 
 export const rssMdastPlugins: MdastPluginDefinition[] = [
+  contentComponentsPlugin,
   calloutMdastPlugin,
   rssLinkProcessorPlugin,
   mediaCardPlugin,

@@ -8,8 +8,14 @@ import { getCollection } from "astro:content";
 import { parseEntry } from "@/utils/parseEntry";
 import DiaryTimeline from "@/components/DiaryTimeline.tsx";
 import ArchiveHero from "@/components/ArchiveHero.astro";
+import HomeEditorial from "@/components/home/HomeEditorial.astro";
+import { buildFragmentPreviews } from "@/components/home/fragmentPreviews";
+import getSortedPosts from "@/utils/getSortedPosts";
 
-const diaryEntries = await getCollection("diary");
+const [diaryEntries, blogPosts] = await Promise.all([
+  getCollection("diary"),
+  getCollection("blog"),
+]);
 
 // 按文件名（日期）排序，最新的在前
 // 同时确保同一天内的时间块也按时间倒序排列
@@ -27,6 +33,8 @@ const initialEntries = sortedEntries.slice(0, ITEMS_PER_PAGE);
 const initialParsedEntries = await Promise.all(
   initialEntries.map(entry => parseEntry(entry))
 );
+const featuredPost = getSortedPosts(blogPosts)[0];
+const fragmentPreviews = buildFragmentPreviews(initialParsedEntries, 3);
 
 // 为了性能考虑，只解析初始数据，其他数据通过API端点按需加载
 // 创建分页数据结构
@@ -67,6 +75,7 @@ const paginationInfo = {
         <div class="min-h-screen">
           <div class="pb-5 sm:pb-6">
             <ArchiveHero />
+            <HomeEditorial {featuredPost} fragments={fragmentPreviews} />
 
             <div id="diary-description" class="sr-only">
               碎片条目按时间倒序排列，每页显示 {ITEMS_PER_PAGE} 条记录，当前共有

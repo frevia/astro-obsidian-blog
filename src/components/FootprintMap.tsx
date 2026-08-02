@@ -25,6 +25,16 @@ export interface FootprintMapProps {
   records?: FootprintRecord[];
 }
 
+function postsForFootprintPlace(
+  place: FootprintPlace,
+  records: FootprintRecord[]
+): FootprintRecord[] {
+  return records.filter(
+    r =>
+      Math.abs(r.lng - place.lng) < 1e-5 && Math.abs(r.lat - place.lat) < 1e-5
+  );
+}
+
 /** 全国视图：单个「已点亮」市一轮约 3s（渐显 -> 停留 -> 渐隐） */
 const NATIONAL_SPOTLIGHT_FADE_CYCLE_MS = 1800;
 const NATIONAL_SPOTLIGHT_GAP_MS = 1200;
@@ -188,6 +198,18 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
   const useDetailColumn = Boolean(
     focusedProvinceKey || selectedCity || selectedPlace
   );
+  const hasPlaces = places.length > 0;
+  const visiblePlaceItems = useMemo(
+    () =>
+      visibleMarkerPoints
+        .map(place => ({
+          place,
+          key: footprintPlaceKey(place),
+          posts: postsForFootprintPlace(place, records),
+        }))
+        .sort((a, b) => a.place.name.localeCompare(b.place.name, "zh-Hans-CN")),
+    [visibleMarkerPoints, records]
+  );
 
   const regionPathsJsx = useMemo(
     () =>
@@ -267,6 +289,29 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         </span>{" "}
         个地点。
       </p>
+      {!hasPlaces ? (
+        <section
+          className="mb-5 overflow-hidden rounded-lg border border-border bg-[linear-gradient(135deg,rgba(255,90,54,0.12),rgba(82,104,255,0.08)_52%,rgba(20,184,166,0.10))] p-5 sm:p-6"
+          aria-labelledby="footprint-empty-title"
+          data-footprint-empty-state
+        >
+          <div className="max-w-2xl">
+            <p className="text-xs font-medium tracking-[0.24em] text-foreground/50 uppercase">
+              Footprint
+            </p>
+            <h2
+              id="footprint-empty-title"
+              className="mt-3 text-2xl leading-tight font-semibold text-foreground sm:text-3xl"
+            >
+              下一段旅程会从第一枚地点标记开始
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-foreground/65">
+              在文章 frontmatter
+              添加地点后，这里会点亮地图、生成地点列表，并把每个地点关联到对应文章。
+            </p>
+          </div>
+        </section>
+      ) : null}
       <div
         className={
           useDetailColumn
@@ -489,12 +534,22 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                     {visibleMarkerPoints.map((p, idx) => {
                       const placeKey = footprintPlaceKey(p);
                       const isSelected = selectedPlaceKey === placeKey;
+                      const markerLabel = `${p.name}（点击查看文章）`;
                       return (
                         <g
                           key={`${p.name}-${idx}`}
                           style={{ cursor: "pointer" }}
+                          role="button"
+                          tabIndex={0}
+                          aria-label={markerLabel}
+                          aria-pressed={isSelected}
                           onClick={e => {
                             e.stopPropagation();
+                            handleMarkerClick(p);
+                          }}
+                          onKeyDown={e => {
+                            if (e.key !== "Enter" && e.key !== " ") return;
+                            e.preventDefault();
                             handleMarkerClick(p);
                           }}
                         >
@@ -514,7 +569,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                             strokeWidth={isSelected ? 2.5 : 2}
                             pointerEvents="none"
                           />
-                          <title>{`${p.name}（点击查看文章）`}</title>
+                          <title>{markerLabel}</title>
                         </g>
                       );
                     })}
@@ -559,15 +614,28 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
             </p>
           </div>
           {!useDetailColumn ? (
-            <p className="text-muted-foreground mt-3 text-sm">
-              全国视图请点击<strong className="text-foreground">省份</strong>
-              放大；放大后再点击城市查看文章列表。
+            <p
+              className="text-muted-foreground mt-3 text-sm"
+              data-footprint-map-hint
+            >
+              {hasPlaces ? (
+                <>
+                  全国视图请点击
+                  <strong className="text-foreground">省份</strong>
+                  放大；放大后可从地图圆点或地点列表查看文章。
+                </>
+              ) : (
+                "地图会保留全国轮廓，等待第一条带地点的文章点亮。"
+              )}
             </p>
           ) : null}
         </div>
 
         {useDetailColumn ? (
-          <aside className="mt-4 rounded-xl border border-border/45 bg-background/70 p-4 shadow-sm backdrop-blur-sm lg:sticky lg:top-[calc(var(--site-header-height,4rem)+1rem)] lg:mt-0">
+          <aside
+            className="mt-4 rounded-xl border border-border/45 bg-background/70 p-4 shadow-sm backdrop-blur-sm lg:sticky lg:top-[calc(var(--site-header-height,4rem)+1rem)] lg:mt-0"
+            aria-label="足迹地点与文章"
+          >
             {selectedPlace ? (
               <>
                 <p className="text-base font-semibold text-foreground sm:text-lg">
@@ -633,6 +701,52 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                 查看文章列表。
               </p>
             )}
+            {focusedProvinceKey && visiblePlaceItems.length > 0 ? (
+              <div className="mt-4 border-t border-border/45 pt-4">
+                <p
+                  id="footprint-place-list-title"
+                  className="text-xs font-medium tracking-wide text-foreground/55 uppercase"
+                >
+                  当前视图地点
+                </p>
+                <ul
+                  className="mt-2 space-y-2"
+                  aria-labelledby="footprint-place-list-title"
+                >
+                  {visiblePlaceItems.map(item => {
+                    const selected = selectedPlaceKey === item.key;
+                    return (
+                      <li key={item.key}>
+                        <button
+                          type="button"
+                          className={[
+                            "w-full rounded-lg border px-3 py-2 text-left transition-colors",
+                            selected
+                              ? "border-accent/55 bg-accent/10 text-foreground"
+                              : "border-border/35 bg-background/55 text-foreground hover:border-accent/30 hover:bg-interactive-hover",
+                          ].join(" ")}
+                          aria-pressed={selected}
+                          onClick={() => handleMarkerClick(item.place)}
+                        >
+                          <span className="block text-sm font-medium">
+                            {item.place.name}
+                          </span>
+                          <span className="mt-0.5 block text-xs text-foreground/50">
+                            {item.posts.length > 0
+                              ? `${item.posts.length} 篇文章`
+                              : "暂无已标注文章"}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : focusedProvinceKey ? (
+              <p className="mt-4 border-t border-border/45 pt-4 text-sm text-foreground/55">
+                当前省份暂无可显示地点。
+              </p>
+            ) : null}
           </aside>
         ) : null}
       </div>

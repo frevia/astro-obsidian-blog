@@ -5,9 +5,9 @@ import Main from "@/layouts/Main.astro";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
-import Card from "@/components/Card.astro";
 import Pagination from "@/components/Pagination.astro";
 import CollapsibleTagList from "@/components/CollapsibleTagList.astro";
+import EditorialYear from "@/components/post-list/EditorialYear.astro";
 import getSortedPosts from "@/utils/getSortedPosts";
 import { SITE } from "@/config";
 import { getSiteYear } from "@/utils/calendarDate";
@@ -94,23 +94,7 @@ const years = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a));
       }
     </section>
 
-    {
-      years.map(year => (
-        <section class="mb-10" aria-labelledby={`year-${year}`}>
-          <h2
-            id={`year-${year}`}
-            class="sticky top-[var(--site-header-height,4rem)] z-10 mb-4 border-b border-border/60 bg-background/90 py-2 text-sm font-semibold tracking-widest text-accent backdrop-blur-sm"
-          >
-            {year}
-          </h2>
-          <ul>
-            {postsByYear[year].map(data => (
-              <Card {...data} />
-            ))}
-          </ul>
-        </section>
-      ))
-    }
+    {years.map(year => <EditorialYear year={year} posts={postsByYear[year]} />)}
   </Main>
 
   <Pagination {page} />

@@ -337,4 +337,126 @@ describe("processor contract", () => {
     expect(result.code).toContain('href="#重复标题"');
     expect(result.code).toContain("MediaCard");
   });
+
+  it("renders Sätteri content containers as semantic server HTML", async () => {
+    const html = await renderRssMarkdown(
+      [
+        ':::pullquote{cite="Ada Lovelace"}',
+        "**想象力**是发现的能力。",
+        ":::",
+        "",
+        ':::gallery{layout="grid" columns="2"}',
+        "![湖面](assets/lake.png) ![山脊](assets/ridge.png)",
+        ":::",
+        "",
+        ":::timeline",
+        "- **2024** 发布",
+        "- 2025 迭代",
+        ":::",
+        "",
+        ':::aside{title="背景" variant="note"}',
+        "保留 [Markdown 链接](https://example.com)。",
+        ":::",
+        "",
+        ":::stats",
+        "- 文章: **42**",
+        "- 城市：8",
+        ":::",
+        "",
+        ':::map{title="杭州" latitude="30.27" longitude="120.15" zoom="8"}',
+        "浙江杭州",
+        ":::",
+        "",
+        ':::map{label="原点" latitude="0" longitude="0" zoom="0"}',
+        "坐标原点",
+        ":::",
+      ].join("\n")
+    );
+    const $ = load(html);
+
+    const pullquote = $('figure[data-content-component="pullquote"]');
+    expect(pullquote.hasClass("content-block--pullquote")).toBe(true);
+    expect(pullquote.find("blockquote strong").text()).toBe("想象力");
+    expect(pullquote.find("figcaption").text()).toBe("Ada Lovelace");
+
+    const gallery = $('div[data-content-component="gallery"]');
+    expect(gallery.attr("data-layout")).toBe("grid");
+    expect(gallery.attr("data-columns")).toBe("2");
+    expect(gallery.find("figure img")).toHaveLength(2);
+
+    const timeline = $('ol[data-content-component="timeline"]');
+    expect(timeline.children("li")).toHaveLength(2);
+    expect(timeline.children("ul, ol")).toHaveLength(0);
+
+    const aside = $('aside[data-content-component="aside"]');
+    expect(aside.attr("data-title")).toBe("背景");
+    expect(aside.find("a").attr("href")).toBe("https://example.com");
+
+    const stats = $('dl[data-content-component="stats"]');
+    expect(
+      stats
+        .children("dt")
+        .map((_, node) => $(node).text())
+        .get()
+    ).toEqual(["文章", "城市"]);
+    expect(
+      stats
+        .children("dd")
+        .map((_, node) => $(node).text())
+        .get()
+    ).toEqual(["42", "8"]);
+
+    const map = $('section[data-content-component="map"]');
+    expect(map.attr("role")).toBe("group");
+    expect(map.attr("aria-label")).toBe("杭州");
+    expect(map.attr("data-latitude")).toBe("30.27");
+    expect(map.attr("data-longitude")).toBe("120.15");
+    expect(map.attr("data-zoom")).toBe("8");
+    const zeroMap = $('section[data-content-component="map"]').eq(1);
+    expect(zeroMap.attr("data-latitude")).toBe("0");
+    expect(zeroMap.attr("data-longitude")).toBe("0");
+    expect(zeroMap.attr("data-zoom")).toBe("0");
+    expect($("script")).toHaveLength(0);
+  });
+
+  it("whitelists content-container attributes and preserves unknown directives", async () => {
+    const html = await renderRssMarkdown(
+      [
+        ':::map{title="<img src=x>" layout="grid onmouseover=alert(1)" latitude="999" onclick="alert(1)"}',
+        "安全正文",
+        ":::",
+        "",
+        ":::unknown-widget",
+        "未知组件 <script>alert(1)</script>",
+        ":::",
+      ].join("\n")
+    );
+    const $ = load(html);
+    const map = $('[data-content-component="map"]');
+
+    expect(map.attr("data-title")).toBe("<img src=x>");
+    expect(map.attr("data-layout")).toBeUndefined();
+    expect(map.attr("data-latitude")).toBeUndefined();
+    expect(map.attr("onclick")).toBeUndefined();
+    expect(map.find("img, script")).toHaveLength(0);
+    expect($("pre code").text()).toContain(":::unknown-widget");
+    expect($("pre code").text()).toContain(
+      "未知组件 <script>alert(1)</script>"
+    );
+    expect($("script")).toHaveLength(0);
+  });
+
+  it("compiles content containers to intrinsic MDX elements without component hydration", async () => {
+    const result = await mdxToJs(":::aside\n静态内容\n:::", {
+      features: markdownFeatures,
+      mdastPlugins: pageMdastPlugins,
+      hastPlugins: pageHastPlugins,
+      jsx: true,
+    });
+
+    expect(result.code).toContain('data-content-component="aside"');
+    expect(result.code).toContain("<_components.aside");
+    expect(result.code).not.toContain("ContentComponent");
+    expect(result.code).not.toContain("client:");
+  });
 });

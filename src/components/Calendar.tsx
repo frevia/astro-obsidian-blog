@@ -24,6 +24,12 @@ export interface CalendarProps {
 }
 
 const WEEKDAYS = ["一", "二", "三", "四", "五", "六", "日"];
+const TODAY_PANEL_DATE_FORMAT = new Intl.DateTimeFormat("zh-CN", {
+  month: "long",
+  day: "numeric",
+  weekday: "long",
+  timeZone: "Asia/Shanghai",
+});
 
 /** 从 chinese-days 返回的 name（如 "Spring Festival,春节,4"）中只取中文名 */
 /** 周一为一周第一天，返回的 grid 从左到右为 一…日（全东八区时间，与站点时区的 YYYY-MM-DD 对齐） */
@@ -295,6 +301,14 @@ const Calendar: React.FC<CalendarProps> = ({
 
   const cellMinH = compact ? "min-h-[2.5rem]" : "min-h-[4.5rem]";
   const cellPadding = compact ? "p-0.5" : "p-1.5";
+  const todayInfo = chineseDaysInfo[todayKey];
+  const todayEvents = eventsByDate[todayKey] ?? [];
+  const todayEventCount = todayEvents.length;
+  const todayDate = parseYMDAsUTC(todayKey);
+  const todayPanelPrimary =
+    todayInfo?.solarTerm ??
+    todayInfo?.holidayName ??
+    (todayInfo?.lunar ? `农历 ${todayInfo.lunar}` : "今日");
 
   return (
     <div
@@ -303,6 +317,55 @@ const Calendar: React.FC<CalendarProps> = ({
         compact ? "max-w-[280px]" : "max-w-xl",
       ].join(" ")}
     >
+      {compact ? (
+        <section
+          className="mb-4 rounded-lg border border-border/40 bg-surface-muted p-3"
+          aria-labelledby="calendar-today-panel-title"
+          data-calendar-today-panel
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p
+                id="calendar-today-panel-title"
+                className="text-xs font-medium tracking-wide text-foreground-muted"
+              >
+                今天
+              </p>
+              <p className="mt-1 text-lg leading-tight font-semibold text-foreground tabular-nums">
+                {TODAY_PANEL_DATE_FORMAT.format(todayDate)}
+              </p>
+            </div>
+            <div className="shrink-0 rounded-md bg-accent/10 px-2 py-1 text-center text-accent">
+              <span className="block text-[10px] leading-none">日</span>
+              <span className="block text-base leading-tight font-semibold tabular-nums">
+                {getYMDParts(todayKey).day}
+              </span>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-2 text-xs">
+            <p className="leading-snug text-foreground">
+              <span className="font-medium">{todayPanelPrimary}</span>
+              {todayInfo?.solarTerm && todayInfo.holidayName
+                ? ` · ${todayInfo.holidayName}`
+                : todayInfo?.solarTerm && todayInfo.lunar
+                  ? ` · 农历 ${todayInfo.lunar}`
+                  : ""}
+            </p>
+            <p className="leading-snug text-foreground-muted">
+              {todayEventCount > 0
+                ? `当天有 ${todayEventCount} 条碎片或文章可回看。`
+                : "当天暂无碎片或文章，翻阅日历可回看历史记录。"}
+            </p>
+            <p className="leading-snug text-foreground-muted">
+              {todayInfo
+                ? todayInfo.work
+                  ? "今日按工作日记录。"
+                  : "今日按休息日记录。"
+                : "暂无当天节假日数据。"}
+            </p>
+          </div>
+        </section>
+      ) : null}
       {!compact && (
         <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-foreground-muted">
           <span>农历 · 节气 · 节假日（chinese-days）</span>

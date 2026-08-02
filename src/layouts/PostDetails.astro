@@ -3,7 +3,6 @@ import { render, type CollectionEntry } from "astro:content";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
-import Datetime from "@/components/Datetime.astro";
 import EditPost from "@/components/EditPost.astro";
 import ShareLinks from "@/components/ShareLinks.astro";
 import BackButton from "@/components/BackButton.astro";
@@ -18,9 +17,17 @@ import Twikoo from "@/components/Twikoo.astro";
 import AiSummaryCard from "@/components/AiSummaryCard.astro";
 import ArticleLightbox from "@/components/ArticleLightbox.astro";
 import WikilinkPanel from "@/components/WikilinkPanel.astro";
+import ArticleHero from "@/components/article/ArticleHero.astro";
+import ArticleReadingRail from "@/components/article/ArticleReadingRail.astro";
+import {
+  getArticleAccent,
+  getArticleAccentStyle,
+} from "@/components/article/pageAccent";
+import { estimateReadingMinutes } from "@/components/article/readingTime";
 import { buildWikilinkGraph } from "@/utils/wikilinkGraph";
 import { PUBLIC_TWIKOO_ENV_ID } from "astro:env/client";
 import { tplStr, useTranslations } from "@/i18n";
+import "@/styles/article-reading.css";
 
 const commentsEnabled = SITE.comments.enabled;
 const hasTwikooEnv = Boolean(PUBLIC_TWIKOO_ENV_ID?.trim());
@@ -43,12 +50,22 @@ const {
   timezone,
   hideEditPost,
   summary,
-  // keywords,
-  // mainPoints,
+  tags,
 } = post.data;
 
 const { Content, headings } = await render(post);
 const tocHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 4);
+const titleTransitionName = toTransitionName(title);
+const coverTransitionName = `${titleTransitionName}-cover`;
+const articleCategory = tags[0] ?? post.id.split("/")[0] ?? "文章";
+const articleAccentInput = {
+  contentType: post.id.split("/")[0],
+  tags,
+  body: post.body ?? "",
+};
+const articleAccent = getArticleAccent(articleAccentInput);
+const articleAccentStyle = getArticleAccentStyle(articleAccentInput);
+const readingMinutes = estimateReadingMinutes(post.body ?? "");
 
 let coverUrl: string | undefined;
 
@@ -118,37 +135,43 @@ const backlinks = wikilinkGraph.backlinks.get(post.id) ?? [];
   <main
     id="main-content"
     class:list={[
-      "mx-auto mt-4 w-full max-w-app px-4 pb-12",
+      "article-page mx-auto mt-4 w-full max-w-app px-4 pb-12",
       { "mt-8": !SITE.showBackButton },
     ]}
+    style={articleAccentStyle}
+    data-content-kind={articleAccent.key}
     data-pagefind-body
     data-pagefind-weight="5"
     data-copy-label={postDetailsLabels.copyCode}
     data-copied-label={postDetailsLabels.copiedCode}
   >
-    <h1
-      transition:name={toTransitionName(title)}
-      class="inline-block text-2xl font-bold text-accent sm:text-3xl"
-    >
+    <ArticleHero
       {title}
-    </h1>
-    <div class="my-2 flex items-center gap-2">
-      <Datetime {published} {timezone} size="lg" />
-      <span
-        aria-hidden="true"
-        class:list={[
-          "max-sm:hidden",
-          { hidden: !SITE.editPost.enabled || hideEditPost },
-        ]}>|</span
-      >
-      <EditPost {hideEditPost} {post} class="max-sm:hidden" />
-    </div>
+      category={articleCategory}
+      {description}
+      {summary}
+      {published}
+      {timezone}
+      readingMinutes={readingMinutes}
+      cover={cover}
+      {titleTransitionName}
+      {coverTransitionName}
+    />
 
     {summary && <AiSummaryCard {summary} />}
 
+    {
+      tocHeadings.length > 0 && (
+        <ArticleReadingRail
+          headings={tocHeadings}
+          title={postDetailsLabels.tocTitle}
+        />
+      )
+    }
+
     <article
       id="article"
-      class="js-toc-content app-prose relative mx-auto mt-8 max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
+      class="article-reading-body js-toc-content app-prose relative mx-auto mt-8 max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
     >
       <Content components={{ MediaCard }} />
     </article>
@@ -185,32 +208,6 @@ const backlinks = wikilinkGraph.backlinks.get(post.id) ?? [];
     />
 
     <BackToTopButton />
-
-    <!-- 目录侧边栏 -->
-    {
-      tocHeadings.length > 0 && (
-        <aside id="sidebar" class="sidebar hidden lg:block">
-          <div id="post-toc-title" class="toc-title mb-2 text-sm font-medium">
-            {postDetailsLabels.tocTitle}
-          </div>
-          <nav aria-labelledby="post-toc-title">
-            <ol class="toc-list">
-              {tocHeadings.map(heading => (
-                <li class="toc-list-item">
-                  <a
-                    href={`#${heading.slug}`}
-                    class:list={["toc-link", `node-name--H${heading.depth}`]}
-                    data-toc-link
-                  >
-                    {heading.text}
-                  </a>
-                </li>
-              ))}
-            </ol>
-          </nav>
-        </aside>
-      )
-    }
 
     <!-- Previous/Next Post Buttons -->
     <div data-pagefind-ignore class="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -314,9 +311,15 @@ const backlinks = wikilinkGraph.backlinks.get(post.id) ?? [];
 
     /** 为服务端目录补充当前章节反馈 */
     function setupTableOfContents() {
-      const links = Array.from(
+      const desktopLinks = Array.from(
         document.querySelectorAll<HTMLAnchorElement>("#sidebar [data-toc-link]")
       );
+      const mobileLinks = Array.from(
+        document.querySelectorAll<HTMLAnchorElement>(
+          "#mobile-sidebar [data-toc-link]"
+        )
+      );
+      const links = [...desktopLinks, ...mobileLinks];
       const entries = links.flatMap(link => {
         const href = link.getAttribute("href");
         if (!href?.startsWith("#")) return [];
@@ -332,20 +335,35 @@ const backlinks = wikilinkGraph.backlinks.get(post.id) ?? [];
         return heading instanceof HTMLElement ? [{ heading, link }] : [];
       });
       if (!entries.length) return;
+      const headings = Array.from(
+        new Map(
+          entries.map(entry => [entry.heading.id, entry.heading])
+        ).values()
+      );
+      const progressLabels = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-toc-progress]")
+      );
 
       const updateActiveLink = () => {
         const header = document.getElementById("site-header");
         const offset =
           (header instanceof HTMLElement ? header.offsetHeight : 0) + 8;
-        let activeLink = entries[0].link;
+        let activeHeading = entries[0].heading;
 
-        for (const entry of entries) {
-          if (entry.heading.getBoundingClientRect().top > offset) break;
-          activeLink = entry.link;
+        for (const heading of headings) {
+          if (heading.getBoundingClientRect().top > offset) break;
+          activeHeading = heading;
         }
 
+        const activeIndex = Math.max(0, headings.indexOf(activeHeading));
+        progressLabels.forEach(label => {
+          label.textContent = `${activeIndex + 1} / ${headings.length}`;
+        });
+
         links.forEach(link => {
-          const isActive = link === activeLink;
+          const isActive = entries.some(
+            entry => entry.link === link && entry.heading === activeHeading
+          );
           link.classList.toggle("is-active-link", isActive);
           if (isActive) {
             link.setAttribute("aria-current", "location");

@@ -6,22 +6,39 @@ import { SITE } from "@/config";
 import Datetime from "./Datetime.astro";
 import { Image } from "astro:assets";
 import { getAssetPath } from "@/utils/withBase";
+import {
+  contentKindStyle,
+  inferPostContentKind,
+  type ContentKind,
+} from "@/components/post-list/contentPresentation";
 
 export interface Props extends CollectionEntry<"blog"> {
   variant?: "h2" | "h3";
   itemClass?: string;
   hidden?: boolean;
+  presentation?: "standard" | "editorial" | "featured";
+  mediaAlign?: "start" | "end";
 }
 
-const { variant = "h2", itemClass, hidden, data, id, filePath } = Astro.props;
+const {
+  variant = "h2",
+  itemClass,
+  hidden,
+  presentation = "standard",
+  mediaAlign = "start",
+  data,
+  id,
+  filePath,
+  body,
+} = Astro.props;
 
 const { title, description, published, timezone } = data;
-
-const headerProps = {
-  style: { viewTransitionName: toTransitionName(title) },
-  class:
-    "text-lg font-semibold leading-7 text-foreground transition-colors group-hover:text-accent group-focus-visible:text-accent",
-};
+const isStandard = presentation === "standard";
+const isFeatured = presentation === "featured";
+const inferredKind = inferPostContentKind({ data, body });
+const contentKind: ContentKind = isFeatured ? "featured" : inferredKind;
+const titleTransitionName = toTransitionName(title);
+const coverTransitionName = `${titleTransitionName}-cover`;
 
 const fallbackCover = SITE.dynamicOgImage
   ? `${getPath(id, filePath)}/cover.png`
@@ -30,18 +47,64 @@ const defaultCover = SITE.cover
   ? getAssetPath(`/${SITE.cover}`)
   : getAssetPath("/og.png");
 const cardCover = data.cover ?? fallbackCover ?? defaultCover;
+
+const coverWidth = isFeatured ? 720 : isStandard ? 88 : 420;
+const coverHeight = isFeatured ? 450 : isStandard ? 88 : 280;
+const titleClass = isStandard
+  ? "text-lg font-semibold leading-7"
+  : isFeatured
+    ? "text-2xl font-semibold leading-tight sm:text-3xl"
+    : "text-xl font-semibold leading-tight sm:text-2xl";
 ---
 
-<li class:list={["my-5", itemClass]} hidden={hidden}>
+<li
+  data-content-kind={contentKind}
+  data-transition-title={titleTransitionName}
+  data-transition-cover={coverTransitionName}
+  style={contentKindStyle(contentKind)}
+  class:list={[isStandard ? "my-5" : "my-0", itemClass]}
+  hidden={hidden}
+>
   <a
     href={getPath(id, filePath)}
-    class="group block rounded-xl border border-border/70 bg-background px-4 py-4 transition-colors hover:border-accent/55 hover:bg-accent/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+    class:list={[
+      "group relative isolate block overflow-hidden border border-border/70 bg-background transition duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+      isStandard
+        ? "rounded-xl px-4 py-4 hover:border-accent/55 hover:bg-accent/5"
+        : "rounded-2xl bg-surface px-4 py-4 shadow-sm hover:-translate-y-0.5 hover:border-accent/55 hover:shadow-md sm:px-5 sm:py-5",
+    ]}
   >
+    {
+      !isStandard && (
+        <span
+          aria-hidden="true"
+          class="pointer-events-none absolute -top-16 -right-10 -z-10 h-48 w-48 rounded-full bg-[var(--content-accent-soft)] opacity-[var(--content-image-opacity)] blur-3xl"
+        />
+      )
+    }
+
     <div
-      class="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:gap-4"
+      class:list={[
+        "flex min-w-0 flex-col gap-4",
+        {
+          "sm:flex-row sm:items-start sm:gap-4": isStandard,
+          "sm:flex-row sm:items-stretch sm:gap-6":
+            !isStandard && mediaAlign === "start",
+          "sm:flex-row-reverse sm:items-stretch sm:gap-6":
+            !isStandard && mediaAlign === "end",
+        },
+      ]}
     >
       <div
-        class="hidden h-[88px] w-[88px] shrink-0 overflow-hidden rounded-lg border border-border/60 sm:block"
+        transition:name={coverTransitionName}
+        class:list={[
+          "shrink-0 overflow-hidden border border-border/60 bg-muted/15",
+          isStandard
+            ? "hidden h-[88px] w-[88px] rounded-lg sm:block"
+            : isFeatured
+              ? "aspect-[16/10] w-full rounded-xl sm:min-h-64 sm:w-[52%]"
+              : "aspect-[16/10] w-full rounded-xl sm:h-40 sm:w-48",
+        ]}
       >
         {
           cardCover &&
@@ -49,30 +112,61 @@ const cardCover = data.cover ?? fallbackCover ?? defaultCover;
               <Image
                 src={cardCover}
                 alt={title}
-                width={88}
-                height={88}
-                class="h-full w-full object-cover"
+                width={coverWidth}
+                height={coverHeight}
+                loading={isFeatured ? "eager" : "lazy"}
+                class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
               />
             ) : (
               <Image
                 src={cardCover}
                 alt={title}
-                width={88}
-                height={88}
+                width={coverWidth}
+                height={coverHeight}
                 format="webp"
-                quality={80}
-                class="h-full w-full object-cover"
+                quality={82}
+                loading={isFeatured ? "eager" : "lazy"}
+                class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
               />
             ))
         }
       </div>
 
-      <div class="min-w-0 flex-1">
+      <div
+        class:list={[
+          "min-w-0 flex-1",
+          { "flex flex-col justify-center py-1 sm:py-3": !isStandard },
+        ]}
+      >
+        {
+          !isStandard && (
+            <div class="mb-3 flex flex-wrap items-center gap-2 text-xs tracking-wide text-foreground/55">
+              <span class="font-semibold text-accent uppercase">
+                {isFeatured ? "Featured" : contentKind}
+              </span>
+              {data.tags.slice(0, 2).map(tag => (
+                <span class="rounded-full border border-border/60 px-2 py-0.5">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )
+        }
         {
           variant === "h2" ? (
-            <h2 {...headerProps}>{title}</h2>
+            <h2
+              transition:name={titleTransitionName}
+              class={`${titleClass} text-foreground transition-colors group-hover:text-accent group-focus-visible:text-accent`}
+            >
+              {title}
+            </h2>
           ) : (
-            <h3 {...headerProps}>{title}</h3>
+            <h3
+              transition:name={titleTransitionName}
+              class={`${titleClass} text-foreground transition-colors group-hover:text-accent group-focus-visible:text-accent`}
+            >
+              {title}
+            </h3>
           )
         }
         <Datetime
@@ -82,7 +176,23 @@ const cardCover = data.cover ?? fallbackCover ?? defaultCover;
           compact
           class="mt-1 text-xs text-foreground/65"
         />
-        <p class="mt-2 text-sm leading-7 text-foreground/80">{description}</p>
+        <p
+          class:list={[
+            "mt-2 text-foreground/80",
+            isStandard
+              ? "text-sm leading-7"
+              : "line-clamp-3 text-sm leading-7 sm:text-base",
+          ]}
+        >
+          {description}
+        </p>
+        {
+          !isStandard && (
+            <span class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent">
+              阅读全文 <span aria-hidden="true">↗</span>
+            </span>
+          )
+        }
       </div>
     </div>
   </a>
