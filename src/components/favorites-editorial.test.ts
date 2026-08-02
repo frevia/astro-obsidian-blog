@@ -19,4 +19,10 @@ describe("favorites editorial catalog", () => {
     expect(source).toContain('data-action="filter-tag"');
     expect(source).toContain("</a>");
   });
+
+  it("supports hiding the filter toolbar while scrolling", () => {
+    expect(source).toContain(".favorites-toolbar.is-scroll-hidden");
+    expect(source).toContain("requestAnimationFrame(updateToolbarVisibility)");
+    expect(source).toContain("if (scrollDelta < -8) setToolbarHidden(false)");
+  });
 });
