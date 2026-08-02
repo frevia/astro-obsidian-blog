@@ -53,6 +53,7 @@ type PostLocationRecord = {
   name: string;
   lng: number;
   lat: number;
+  date: string;
 };
 
 const postLocationRecords = publishedPosts.flatMap(post =>
@@ -64,6 +65,7 @@ const postLocationRecords = publishedPosts.flatMap(post =>
         name: loc.name,
         lng: loc.lng,
         lat: loc.lat,
+        date: post.data.published.toISOString(),
       }) satisfies PostLocationRecord
   )
 );
@@ -87,8 +89,8 @@ const places = Array.from(
   <Header />
   <Main
     pageTitle="足迹"
-    pageDesc="「旅行是最热闹的孤独，是一场向着内心的出走； 旅行是一部电影，笑中带泪; 旅行是一首没有伴奏的歌，五音不全，旁人全听它不懂，只剩下垂垂暮年的你，独自蜷缩在摇椅上的毯子下面，露出不易察觉的最后一丝微笑。」"
-    pageDescClass="text-justify"
+    pageDesc="把文章里的地点放回地图，点击标记或地点档案，回到那段路上的文字。"
+    pageDescClass="max-w-2xl"
   >
     <FootprintMap
       client:visible
