@@ -605,6 +605,14 @@ video {
   min-height: 2rem !important;
 }
 
+/* Twikoo 多级评论：回复正文与昵称保持和顶级评论一致的字号 */
+#tcomment .tk-replies .tk-content,
+.twikoo .tk-replies .tk-content,
+#tcomment .tk-replies .tk-nick-link,
+.twikoo .tk-replies .tk-nick-link {
+  font-size: 1em !important;
+}
+
 /* 隐藏 Twikoo 底部 footer */
 #tcomment .tk-footer,
 .twikoo .tk-footer {
