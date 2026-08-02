@@ -1,0 +1,82 @@
+---
+export interface ArticleHeading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+export interface Props {
+  headings: ArticleHeading[];
+  title: string;
+}
+
+const { headings, title } = Astro.props;
+---
+
+<div class="article-reading-rail-shell">
+  <aside id="sidebar" class="sidebar article-reading-rail hidden lg:block">
+    <div
+      id="post-toc-title"
+      class="toc-title mb-2 flex items-center justify-between gap-2 text-sm font-medium"
+    >
+      <span>{title}</span>
+      <span
+        class="article-reading-rail-progress"
+        data-toc-progress
+        aria-live="polite"
+      >
+        1 / {headings.length}
+      </span>
+    </div>
+    <nav aria-labelledby="post-toc-title">
+      <ol class="toc-list">
+        {
+          headings.map(heading => (
+            <li class="toc-list-item">
+              <a
+                href={`#${heading.slug}`}
+                class:list={["toc-link", `node-name--H${heading.depth}`]}
+                data-toc-link
+              >
+                {heading.text}
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+  </aside>
+
+  <details id="mobile-sidebar" class="article-reading-rail-mobile lg:hidden">
+    <summary class="article-reading-rail-mobile-toggle">
+      <span class="article-reading-rail-mobile-label">
+        <span>{title}</span>
+        <span
+          class="article-reading-rail-progress"
+          data-toc-progress
+          aria-live="polite"
+        >
+          1 / {headings.length}
+        </span>
+      </span>
+      <span class="article-reading-rail-mobile-icon" aria-hidden="true">⌄</span>
+    </summary>
+    <nav aria-label={title} class="article-reading-rail-mobile-nav">
+      <ol class="toc-list">
+        {
+          headings.map(heading => (
+            <li class="toc-list-item">
+              <a
+                href={`#${heading.slug}`}
+                class:list={["toc-link", `node-name--H${heading.depth}`]}
+                data-toc-link
+              >
+                {heading.text}
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+  </details>
+</div>

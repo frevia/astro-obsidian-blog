@@ -1,0 +1,77 @@
+---
+import Datetime from "@/components/Datetime.astro";
+
+export interface Props {
+  title: string;
+  category: string;
+  description: string;
+  summary?: string;
+  published: Date;
+  timezone?: string;
+  readingMinutes: number;
+  cover?: string;
+  titleTransitionName: string;
+  coverTransitionName: string;
+}
+
+const {
+  title,
+  category,
+  description,
+  summary,
+  published,
+  timezone,
+  readingMinutes,
+  cover,
+  titleTransitionName,
+  coverTransitionName,
+} = Astro.props;
+
+const excerpt = summary?.trim() || description;
+---
+
+<header class="article-hero" data-article-hero>
+  <div class="article-hero-copy">
+    <p class="article-hero-category">{category}</p>
+    <h1 transition:name={titleTransitionName} class="article-hero-title">
+      {title}
+    </h1>
+    <p class="article-hero-summary">{excerpt}</p>
+    <div class="article-hero-meta" aria-label="文章信息">
+      <Datetime
+        {published}
+        {timezone}
+        layout="meta"
+        compact
+        class="article-hero-date"
+      />
+      <span aria-hidden="true" class="article-hero-meta-separator">·</span>
+      <span class="article-hero-reading-time">
+        阅读约 {readingMinutes} 分钟
+      </span>
+    </div>
+  </div>
+
+  <div class="article-hero-media">
+    {
+      cover ? (
+        <img
+          transition:name={coverTransitionName}
+          class="article-hero-cover"
+          src={cover}
+          alt={title}
+          width="1280"
+          height="720"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
+      ) : (
+        <div
+          class="article-hero-cover article-hero-cover-placeholder"
+          aria-hidden="true"
+        />
+      )
+    }
+  </div>
+</header>

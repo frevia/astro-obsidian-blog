@@ -4,13 +4,17 @@ import { readFileSync } from "node:fs";
 describe("post TOC visibility and active feedback", () => {
   it("renders post heading metadata as static TOC links", () => {
     const source = readFileSync("src/layouts/PostDetails.astro", "utf-8");
+    const rail = readFileSync(
+      "src/components/article/ArticleReadingRail.astro",
+      "utf-8"
+    );
 
     expect(source).toContain(
       "const { Content, headings } = await render(post);"
     );
     expect(source).toContain("const tocHeadings = headings.filter");
-    expect(source).toContain("href={`#${heading.slug}`}");
-    expect(source).toContain("{heading.text}");
+    expect(rail).toContain("href={`#${heading.slug}`}");
+    expect(rail).toContain("{heading.text}");
     expect(source).not.toContain('import tocbot from "tocbot"');
     expect(source).not.toContain("tocbot.init");
   });

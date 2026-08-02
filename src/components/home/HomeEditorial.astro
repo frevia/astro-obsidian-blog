@@ -1,0 +1,60 @@
+---
+import type { CollectionEntry } from "astro:content";
+import Card from "@/components/Card.astro";
+import { withBase } from "@/utils/withBase";
+import FragmentPreviewCard from "./FragmentPreviewCard.astro";
+import type { HomeFragmentPreview } from "./fragmentPreviews";
+
+interface Props {
+  featuredPost?: CollectionEntry<"blog">;
+  fragments?: HomeFragmentPreview[];
+}
+
+const { featuredPost, fragments = [] } = Astro.props;
+---
+
+{
+  (featuredPost || fragments.length > 0) && (
+    <section
+      class="mb-12 border-b border-border/50 pb-10"
+      aria-labelledby="home-editorial-heading"
+    >
+      <header class="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p class="text-xs font-semibold tracking-[0.22em] text-accent uppercase">
+            Now &amp; Noted
+          </p>
+          <h2
+            id="home-editorial-heading"
+            class="mt-1 text-2xl font-semibold tracking-tight text-foreground"
+          >
+            最新文章与近况
+          </h2>
+        </div>
+        <a
+          href={withBase("/posts")}
+          class="rounded-md px-2 py-1 text-sm font-medium text-accent hover:underline"
+        >
+          浏览全部文章 <span aria-hidden="true">↗</span>
+        </a>
+      </header>
+
+      {featuredPost && (
+        <ul class="mb-6" aria-label="最新精选文章">
+          <Card {...featuredPost} presentation="featured" variant="h3" />
+        </ul>
+      )}
+
+      {fragments.length > 0 && (
+        <ol
+          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          aria-label="近期碎片预览"
+        >
+          {fragments.map((preview, index) => (
+            <FragmentPreviewCard {preview} {index} />
+          ))}
+        </ol>
+      )}
+    </section>
+  )
+}

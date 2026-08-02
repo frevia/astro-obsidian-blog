@@ -1,0 +1,82 @@
+/*
+ * Content-aware accents for the "digital archive" visual language.
+ *
+ * Pages opt in by adding data-content-kind to their local visual root. The
+ * default remains the site's cool blue-gray accent so existing pages do not
+ * change until they opt in.
+ */
+
+[data-content-kind] {
+  --page-accent: var(--accent);
+  --page-accent-soft: var(--accent-soft);
+  --page-surface: var(--surface);
+}
+
+[data-content-kind="film"],
+[data-content-kind="movie"] {
+  --page-accent: #be123c;
+  --page-accent-soft: color-mix(in oklab, #be123c 14%, transparent);
+  --page-surface: color-mix(in oklab, #be123c 4%, var(--surface));
+}
+
+[data-content-kind="book"] {
+  --page-accent: #92400e;
+  --page-accent-soft: color-mix(in oklab, #92400e 14%, transparent);
+  --page-surface: color-mix(in oklab, #92400e 4%, var(--surface));
+}
+
+[data-content-kind="music"] {
+  --page-accent: #0f766e;
+  --page-accent-soft: color-mix(in oklab, #0f766e 14%, transparent);
+  --page-surface: color-mix(in oklab, #0f766e 4%, var(--surface));
+}
+
+[data-content-kind="travel"] {
+  --page-accent: #0f766e;
+  --page-accent-soft: color-mix(in oklab, #0f766e 14%, transparent);
+  --page-surface: color-mix(in oklab, #0f766e 4%, var(--surface));
+}
+
+[data-content-kind="tech"],
+[data-content-kind="technical"] {
+  --page-accent: #2563eb;
+  --page-accent-soft: color-mix(in oklab, #2563eb 14%, transparent);
+  --page-surface: color-mix(in oklab, #2563eb 4%, var(--surface));
+}
+
+[data-content-kind="reading"] {
+  --page-accent: #a16207;
+  --page-accent-soft: color-mix(in oklab, #a16207 14%, transparent);
+  --page-surface: color-mix(in oklab, #a16207 4%, var(--surface));
+}
+
+[data-content-kind="media"] {
+  --page-accent: #6f72a5;
+  --page-accent-soft: color-mix(in oklab, #6f72a5 14%, transparent);
+  --page-surface: color-mix(in oklab, #6f72a5 4%, var(--surface));
+}
+
+[data-content-kind="image"],
+[data-content-kind="featured"] {
+  --page-accent: var(--accent);
+  --page-accent-soft: var(--accent-soft);
+  --page-surface: var(--surface);
+}
+
+.content-theme-accent {
+  color: var(--page-accent, var(--accent));
+}
+
+.content-theme-surface {
+  background: var(--page-surface, var(--surface));
+}
+
+.content-theme-glow {
+  box-shadow: 0 1rem 3rem -2rem var(--page-accent-soft, var(--accent-soft));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content-theme-glow {
+    transition: none;
+  }
+}
