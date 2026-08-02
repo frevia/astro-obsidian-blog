@@ -54,12 +54,12 @@ const getFavoriteKind = (post: CollectionEntry<"clip">): FavoriteKind => {
 };
 
 const favoriteKindLabel: Record<FavoriteKind, string> = {
-  text: "NOTE",
-  film: "SCREEN",
-  book: "READING",
-  music: "LISTEN",
-  travel: "FIELD",
-  tech: "SYSTEM",
+  text: "文字",
+  film: "影视",
+  book: "阅读",
+  music: "音乐",
+  travel: "旅途",
+  tech: "技术",
 };
 
 const getSourceLabel = (source: string) => {
@@ -124,7 +124,7 @@ const yearGroups = Object.entries(
     >
       <div class="favorites-masthead-copy">
         <div class="flex items-center gap-3">
-          <span class="favorites-eyebrow">Curated / Saved</span>
+          <span class="favorites-eyebrow">精选收藏</span>
           <span class="h-px flex-1 bg-border/60" aria-hidden="true"></span>
         </div>
         <p class="mt-3 max-w-xl text-sm leading-7 text-foreground/70">
@@ -160,7 +160,7 @@ const yearGroups = Object.entries(
             )}
             class="favorites-latest group"
           >
-            <span class="favorites-latest-kicker">Latest capture</span>
+            <span class="favorites-latest-kicker">最近收录</span>
             <div class="mt-3 flex items-start justify-between gap-4">
               <h2 class="favorites-latest-title">
                 {latestFavorite.data.title}
@@ -204,7 +204,7 @@ const yearGroups = Object.entries(
           >
             <div class="flex flex-wrap items-end justify-between gap-2">
               <div>
-                <p class="favorites-eyebrow">Index filter</p>
+                <p class="favorites-eyebrow">主题筛选</p>
                 <p class="mt-1 text-sm text-foreground/70">按主题筛选收藏</p>
               </div>
               <p class="text-xs text-foreground/55">
@@ -215,6 +215,7 @@ const yearGroups = Object.entries(
               <button
                 type="button"
                 data-filter-tag=""
+                aria-pressed="true"
                 class="favorite-filter-btn is-active"
               >
                 全部
@@ -223,9 +224,13 @@ const yearGroups = Object.entries(
                 <button
                   type="button"
                   data-filter-tag={tag}
+                  aria-pressed="false"
                   class="favorite-filter-btn"
                 >
                   {tag}
+                  <span class="favorite-filter-count">
+                    {tagCountMap.get(tag)}
+                  </span>
                 </button>
               ))}
             </div>
@@ -239,9 +244,13 @@ const yearGroups = Object.entries(
                     <button
                       type="button"
                       data-filter-tag={tag}
+                      aria-pressed="false"
                       class="favorite-filter-btn"
                     >
                       {tag}
+                      <span class="favorite-filter-count">
+                        {tagCountMap.get(tag)}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -255,7 +264,7 @@ const yearGroups = Object.entries(
     <div class="favorites-catalog" data-pagefind-body data-pagefind-weight="4">
       <div class="favorites-catalog-head">
         <div>
-          <p class="favorites-eyebrow">The index</p>
+          <p class="favorites-eyebrow">收藏索引</p>
           <h2 class="mt-1 text-xl font-semibold tracking-tight text-foreground">
             按时间整理
           </h2>
@@ -274,7 +283,7 @@ const yearGroups = Object.entries(
           <section class="favorites-year" data-year-group>
             <div class="favorites-year-head">
               <div>
-                <span class="favorites-year-kicker">Archive year</span>
+                <span class="favorites-year-kicker">年份</span>
                 <h2 class="favorites-year-title">{year}</h2>
               </div>
               <span class="favorites-year-count">{yearGroup.length} 条</span>
@@ -373,6 +382,7 @@ const yearGroups = Object.entries(
                                         class="favorites-tag favorites-tag--action"
                                         data-action="filter-tag"
                                         data-filter-tag={tag}
+                                        aria-pressed="false"
                                       >
                                         {tag}
                                       </button>
@@ -418,6 +428,13 @@ const yearGroups = Object.entries(
 
 <style>
   .favorites-toolbar {
+    position: sticky;
+    top: var(--site-header-height, 4rem);
+    z-index: 20;
+    margin-inline: -0.25rem;
+    padding-inline: 0.25rem;
+    background: color-mix(in oklab, var(--background) 92%, transparent);
+    backdrop-filter: blur(10px);
     scroll-margin-top: var(--site-header-height, 4rem);
   }
 
@@ -593,6 +610,13 @@ const yearGroups = Object.entries(
       background-color 0.15s ease;
   }
 
+  .favorite-filter-count {
+    margin-left: 0.35rem;
+    color: color-mix(in oklab, currentColor 58%, transparent);
+    font-size: 0.68em;
+    font-variant-numeric: tabular-nums;
+  }
+
   .favorite-filter-btn:hover {
     border-color: color-mix(in oklab, var(--accent) 50%, transparent);
     color: var(--accent);
@@ -616,6 +640,8 @@ const yearGroups = Object.entries(
 
   .favorites-year {
     margin-bottom: 2.5rem;
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 1200px;
   }
 
   .favorites-year:last-child {
@@ -624,7 +650,7 @@ const yearGroups = Object.entries(
 
   .favorites-year-head {
     position: sticky;
-    top: var(--site-header-height, 4rem);
+    top: calc(var(--site-header-height, 4rem) + 14rem);
     z-index: 10;
     display: flex;
     align-items: end;
@@ -918,6 +944,17 @@ const yearGroups = Object.entries(
     }
   }
 
+  @media (max-width: 767px) {
+    .favorites-toolbar {
+      position: static;
+      backdrop-filter: none;
+    }
+
+    .favorites-year-head {
+      top: var(--site-header-height, 4rem);
+    }
+  }
+
   @media (max-width: 480px) {
     .favorites-item-head :global(.favorites-item-dates) {
       flex: 1 1 100%;
@@ -1003,6 +1040,10 @@ const yearGroups = Object.entries(
 
     const applyFilter = activeTag => {
       buttons.forEach(btn => {
+        btn.setAttribute(
+          "aria-pressed",
+          String((btn.dataset.filterTag ?? "") === activeTag)
+        );
         btn.classList.toggle(
           "is-active",
           (btn.dataset.filterTag ?? "") === activeTag
@@ -1013,6 +1054,12 @@ const yearGroups = Object.entries(
         btn.classList.toggle(
           "is-active",
           activeTag !== "" && (btn.dataset.filterTag ?? "") === activeTag
+        );
+        btn.setAttribute(
+          "aria-pressed",
+          String(
+            activeTag !== "" && (btn.dataset.filterTag ?? "") === activeTag
+          )
         );
       });
 

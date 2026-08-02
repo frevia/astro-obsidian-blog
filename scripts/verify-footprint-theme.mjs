@@ -1,7 +1,11 @@
 import { existsSync, readFileSync } from "node:fs";
 
-const SOURCE = "src/styles/footprint-map-theme.ts";
-const ORANGE = /#ff5a36/;
+const SOURCE = "src/styles/footprint-leaflet.css";
+const REQUIRED = [
+  "--footprint-map-tile-filter",
+  "html[data-theme=\"dark\"] .footprint-leaflet-map",
+  ".footprint-marker-icon.is-selected",
+];
 
 if (!existsSync(SOURCE)) {
   console.error("missing", SOURCE);
@@ -9,9 +13,11 @@ if (!existsSync(SOURCE)) {
 }
 
 const text = readFileSync(SOURCE, "utf8");
-if (!ORANGE.test(text)) {
-  console.error("visited highlight orange not found in", SOURCE);
-  process.exit(1);
+for (const token of REQUIRED) {
+  if (!text.includes(token)) {
+    console.error("required footprint theme token not found", token);
+    process.exit(1);
+  }
 }
 
 process.exit(0);

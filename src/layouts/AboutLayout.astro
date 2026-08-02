@@ -2,21 +2,13 @@
 /**
  * 关于页布局
  *
- * @fileoverview 关于页的特殊布局，包含博客统计动画
+ * @fileoverview 关于页的特殊布局，包含博客统计与时间轴
  *
  * 核心逻辑：
  * 1. 获取博客统计数据（运行天数、文章数、字数）
  * 2. 通过 data 属性传递统计值给客户端脚本
- * 3. 客户端实现数字增长动画
+ * 3. 在页面切换后恢复统计与时间轴内容
  * 4. 支持渲染时间轴（从 JSON 数据）
- *
- * 动画规格：
- * - 起始日期：1000ms
- * - 起始月份：800ms
- * - 起始日期：600ms
- * - 运行天数：2000ms
- * - 文章总数：1500ms
- * - 总字数：2500ms
  *
  * 依赖关系：
  * - 被 /about.astro 页面使用
@@ -71,7 +63,7 @@ const {
   >
     <section class="about-hero" aria-labelledby="about-heading">
       <div class="about-hero-copy">
-        <span class="about-eyebrow">About / Frevia's log</span>
+        <span class="about-eyebrow">Frevia 的记录</span>
         <h1 id="about-heading">{frontmatter.title}</h1>
         {
           frontmatter.description && (
@@ -80,57 +72,58 @@ const {
         }
         <div class="about-hero-meta">
           <span>
-            since
+            开始于
             <time datetime={`${startYear}-${startMonth}-${startDay}`}>
-              <span id="start-year">0</span>.<span id="start-month">0</span
-              >.<span id="start-day">0</span>
+              <span id="start-year">{startYear}</span>.<span id="start-month"
+                >{startMonth}</span
+              >.<span id="start-day">{startDay}</span>
             </time>
           </span>
           <span class="about-hero-meta-dot" aria-hidden="true">·</span>
-          <span>living archive</span>
+          <span>持续更新的档案</span>
         </div>
       </div>
       <div class="about-hero-mark" aria-hidden="true">
         <span class="about-hero-mark-letter">F</span>
-        <span>keep<br />noting</span>
+        <span>继续<br />记录</span>
       </div>
     </section>
 
     <section class="about-stats" aria-labelledby="about-stats-title">
       <header class="about-stats-head">
         <div>
-          <span class="about-eyebrow">Life in numbers</span>
+          <span class="about-eyebrow">记录数据</span>
           <h2 id="about-stats-title">一段持续更新的记录</h2>
         </div>
-        <span class="about-stats-status">still writing</span>
+        <span class="about-stats-status">持续书写</span>
       </header>
       <div class="about-stat-grid">
         <article class="about-stat about-stat--days">
           <span class="about-stat-label">运行天数</span>
           <div class="about-stat-value">
-            <strong id="running-days">0</strong>
-            <span>days</span>
+            <strong id="running-days">{blogStats.runningDays}</strong>
+            <span>天</span>
           </div>
           <p>把日子写成可以回访的坐标。</p>
         </article>
         <article class="about-stat">
           <span class="about-stat-label">已发表</span>
           <div class="about-stat-value">
-            <strong id="total-posts">0</strong>
+            <strong id="total-posts">{blogStats.totalPosts}</strong>
             <span>篇</span>
           </div>
           <p>
-            <span id="blog-posts">0</span> 篇文章 ·
-            <span id="diary-posts">0</span> 篇碎片
+            <span id="blog-posts">{blogStats.blogPosts}</span> 篇文章 ·
+            <span id="diary-posts">{blogStats.diaryPosts}</span> 篇碎片
           </p>
         </article>
         <article class="about-stat about-stat--words">
-          <span class="about-stat-label">累计字数</span>
+          <span class="about-stat-label">估算字数</span>
           <div class="about-stat-value">
-            <strong id="total-words">0.0</strong>
+            <strong id="total-words">{blogStats.totalWordsInWan}</strong>
             <span>万字</span>
           </div>
-          <p>不追求喧哗，只留下准确的回声。</p>
+          <p>按每篇文章约 1500 字估算，实际内容持续增长。</p>
         </article>
       </div>
     </section>
@@ -187,56 +180,12 @@ const {
 
 <script>
   /**
-   * 数字增长动画
+   * 恢复 SSR 统计值。
    *
-   * @param element - 目标元素
-   * @param targetValue - 目标值
-   * @param duration - 动画持续时间（ms）
-   * @param isDecimal - 是否为小数
+   * 统计值直接在 HTML 中渲染，避免客户端动画期间出现误导性的 0，
+   * 同时保证 View Transition 导航后内容仍然可见。
    */
-  function animateNumber(
-    element: HTMLElement,
-    targetValue: number,
-    duration: number = 2000,
-    isDecimal: boolean = false
-  ) {
-    const startValue = 0;
-    const startTime = performance.now();
-
-    function updateNumber(currentTime: number) {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-
-      // 使用 easeOutQuart 缓动函数
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      const currentValue =
-        startValue + (targetValue - startValue) * easeOutQuart;
-
-      if (isDecimal) {
-        element.textContent = currentValue.toFixed(1);
-      } else {
-        element.textContent = Math.floor(currentValue).toString();
-      }
-
-      if (progress < 1) {
-        requestAnimationFrame(updateNumber);
-      } else {
-        // 动画结束，设置最终值
-        if (isDecimal) {
-          element.textContent = targetValue.toFixed(1);
-        } else {
-          element.textContent = targetValue.toString();
-        }
-      }
-    }
-
-    requestAnimationFrame(updateNumber);
-  }
-
-  /**
-   * 启动所有数字动画
-   */
-  function startAnimations() {
+  function renderStats() {
     const statsData = document.getElementById("blog-stats-data");
     if (!statsData) return;
 
@@ -250,25 +199,6 @@ const {
     const startMonth = parseInt(statsData.dataset.startMonth || "3");
     const startDay = parseInt(statsData.dataset.startDay || "17");
 
-    // 动画配置：每个元素的持续时间和是否为小数
-    const elements = [
-      { id: "start-year", value: startYear, duration: 1000 },
-      { id: "start-month", value: startMonth, duration: 800 },
-      { id: "start-day", value: startDay, duration: 600 },
-      { id: "running-days", value: runningDays, duration: 2000 },
-      { id: "total-posts", value: totalPosts, duration: 1500 },
-      { id: "blog-posts", value: blogPosts, duration: 1800 },
-      { id: "diary-posts", value: diaryPosts, duration: 2200 },
-      { id: "total-words", value: totalWords, duration: 2500, isDecimal: true },
-    ];
-
-    // 预占位：根据最终字符串长度设置最小宽度，避免初始 0 导致布局抖动
-    const setMinWidth = (el: HTMLElement, len: number) => {
-      el.style.display = "inline-block";
-      el.style.minWidth = `${len}ch`;
-      el.style.textAlign = "center";
-    };
-
     const elYear = document.getElementById("start-year");
     const elMonth = document.getElementById("start-month");
     const elDay = document.getElementById("start-day");
@@ -278,29 +208,14 @@ const {
     const elDiaryPosts = document.getElementById("diary-posts");
     const elWords = document.getElementById("total-words");
 
-    if (elYear) setMinWidth(elYear, String(startYear).length);
-    if (elMonth) setMinWidth(elMonth, String(startMonth).length);
-    if (elDay) setMinWidth(elDay, String(startDay).length);
-    if (elDays) setMinWidth(elDays, String(runningDays).length);
-    if (elPosts) setMinWidth(elPosts, String(totalPosts).length);
-    if (elBlogPosts) setMinWidth(elBlogPosts, String(blogPosts).length);
-    if (elDiaryPosts) setMinWidth(elDiaryPosts, String(diaryPosts).length);
-    if (elWords) setMinWidth(elWords, totalWords.toFixed(1).length);
-
-    // 启动数字动画（每个延迟 200ms）
-    elements.forEach((item, index) => {
-      const element = document.getElementById(item.id);
-      if (element) {
-        setTimeout(() => {
-          animateNumber(
-            element,
-            item.value,
-            item.duration,
-            item.isDecimal || false
-          );
-        }, index * 200);
-      }
-    });
+    if (elYear) elYear.textContent = String(startYear);
+    if (elMonth) elMonth.textContent = String(startMonth);
+    if (elDay) elDay.textContent = String(startDay);
+    if (elDays) elDays.textContent = String(runningDays);
+    if (elPosts) elPosts.textContent = String(totalPosts);
+    if (elBlogPosts) elBlogPosts.textContent = String(blogPosts);
+    if (elDiaryPosts) elDiaryPosts.textContent = String(diaryPosts);
+    if (elWords) elWords.textContent = totalWords.toFixed(1);
   }
 
   /**
@@ -354,25 +269,22 @@ const {
     }
   }
 
-  /**
-   * 初始化所有动画
-   */
-  function initializeAnimations() {
-    setTimeout(() => {
-      startAnimations();
-      renderTimeline();
-    }, 300);
+  function initializeAboutPage() {
+    renderStats();
+    renderTimeline();
   }
 
   // View Transitions 导航后初始化
   document.addEventListener("astro:page-load", () => {
-    initializeAnimations();
+    initializeAboutPage();
   });
 
   // 初始加载时初始化
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initializeAnimations);
+    document.addEventListener("DOMContentLoaded", initializeAboutPage, {
+      once: true,
+    });
   } else {
-    initializeAnimations();
+    initializeAboutPage();
   }
 </script>

@@ -22,6 +22,12 @@
   --color-surface-muted: var(--surface-muted);
   --color-interactive-hover: var(--interactive-hover);
   --color-interactive-active: var(--interactive-active);
+  --color-progress: var(--progress);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-rating: var(--rating);
+  --color-focus-ring: var(--focus-ring);
   --color-skin-fill: var(--background);
   --color-skin-card: var(--surface);
   --color-skin-base: var(--foreground);
@@ -53,13 +59,14 @@
     @apply overflow-x-hidden overflow-y-scroll scroll-smooth leading-7;
   }
   body {
-    @apply flex min-h-svh flex-col overflow-x-hidden bg-background font-serif text-foreground selection:bg-accent/75 selection:text-background;
+    @apply flex min-h-svh flex-col overflow-x-clip bg-background font-serif text-foreground selection:bg-accent/75 selection:text-background;
     padding-top: var(--site-header-height, 0px);
   }
 
   a,
   button {
-    @apply outline-offset-2 outline-accent/90 focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-solid;
+    @apply outline-offset-2 focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-solid;
+    outline-color: var(--focus-ring);
   }
 
   a:not(.no-ui-link),
@@ -68,13 +75,11 @@
     @apply transition-colors duration-200;
   }
 
-  a:not(.no-ui-link):hover,
   button:hover,
   [role="button"]:hover {
     background-color: var(--interactive-hover);
   }
 
-  a:not(.no-ui-link):active,
   button:active,
   [role="button"]:active {
     background-color: var(--interactive-active);
@@ -86,6 +91,21 @@
   section,
   footer {
     @apply mx-auto max-w-app px-4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -278,22 +298,22 @@ h6 {
 
 .callout.callout-warning .callout-title,
 .callout[data-callout="warning"] .callout-title {
-  @apply text-amber-600 dark:text-amber-300;
+  @apply text-warning;
 }
 
 .callout.callout-danger .callout-title,
 .callout[data-callout="danger"] .callout-title {
-  @apply text-rose-600 dark:text-rose-300;
+  @apply text-danger;
 }
 
 .callout.callout-error .callout-title,
 .callout[data-callout="error"] .callout-title {
-  @apply text-rose-600 dark:text-rose-300;
+  @apply text-danger;
 }
 
 .callout.callout-success .callout-title,
 .callout[data-callout="success"] .callout-title {
-  @apply text-green-600 dark:text-green-300;
+  @apply text-success;
 }
 
 /* rehype-autolink-headings：标题旁 # 用伪元素显示，不写入目录 */

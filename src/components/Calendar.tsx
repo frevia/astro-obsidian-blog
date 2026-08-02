@@ -370,13 +370,11 @@ const Calendar: React.FC<CalendarProps> = ({
         <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-foreground-muted">
           <span>农历 · 节气 · 节假日（chinese-days）</span>
           <span className="flex items-center gap-3">
-            <span className="rounded bg-red-500/20 px-1.5 text-red-600 dark:text-red-400">
-              休
-            </span>
-            <span className="rounded bg-teal-500/20 px-1.5 text-teal-800 dark:text-teal-300">
+            <span className="rounded bg-danger/15 px-1.5 text-danger">休</span>
+            <span className="rounded bg-success/15 px-1.5 text-success">
               班
             </span>
-            <span className="rounded bg-amber-500/25 px-1.5 text-amber-800 dark:text-amber-300">
+            <span className="rounded bg-warning/15 px-1.5 text-warning">
               调
             </span>
           </span>
@@ -467,22 +465,22 @@ const Calendar: React.FC<CalendarProps> = ({
           const isWeekend = weekday === 0 || weekday === 6;
 
           const dayBg = isToday
-            ? "bg-[#5268FF] shadow-sm"
+            ? "bg-accent shadow-sm"
             : tag === "rest"
-              ? "bg-rose-50 dark:bg-rose-950/50"
+              ? "bg-danger/10"
               : tag === "makeup"
-                ? "bg-teal-50 dark:bg-teal-950/40"
+                ? "bg-success/10"
                 : tag === "inLieu"
-                  ? "bg-amber-50 dark:bg-amber-950/40"
+                  ? "bg-warning/10"
                   : "hover:bg-interactive-hover";
           const dayText = isToday
             ? "font-medium text-white"
             : tag === "rest" || tag === "inLieu"
-              ? "text-red-700 dark:text-red-300"
+              ? "text-danger"
               : tag === "makeup"
-                ? "text-teal-800 dark:text-teal-200"
+                ? "text-success"
                 : isWeekend
-                  ? "text-red-600 dark:text-red-400"
+                  ? "text-danger"
                   : "text-foreground";
 
           const cornerBadgeText = tagLabel ?? (isToday ? "今" : null);
@@ -551,15 +549,12 @@ const Calendar: React.FC<CalendarProps> = ({
                     compact
                       ? "px-0.5 py-[1px] text-[9px]"
                       : "px-0.5 py-[1px] text-[10px]",
-                    tag === "rest" &&
-                      "bg-red-500 text-white dark:bg-red-500 dark:text-white",
-                    tag === "makeup" &&
-                      "bg-teal-600/25 text-teal-900 dark:bg-teal-500/35 dark:text-teal-100",
-                    tag === "inLieu" &&
-                      "bg-red-500 text-white dark:bg-red-500 dark:text-white",
+                    tag === "rest" && "bg-danger text-background",
+                    tag === "makeup" && "bg-success/25 text-success",
+                    tag === "inLieu" && "bg-danger text-background",
                     isToday &&
                       !tagLabel &&
-                      "bg-[#8B99FF] text-white ring-1 ring-white/35",
+                      "bg-accent/75 text-background ring-1 ring-background/35",
                   ].join(" ")}
                 >
                   {cornerBadgeText}
@@ -582,26 +577,26 @@ const Calendar: React.FC<CalendarProps> = ({
                       primarySubLabel.type === "solarTerm"
                         ? isToday
                           ? "border border-white/60 bg-white/15 px-1 py-0.5 text-white"
-                          : "border border-amber-500/40 bg-amber-500/15 px-1 py-0.5 text-amber-800 dark:border-amber-400/35 dark:text-amber-200"
+                          : "border border-warning/40 bg-warning/15 px-1 py-0.5 text-warning"
                         : primarySubLabel.type === "holiday"
                           ? isToday
                             ? "px-0.5 text-white/90"
                             : tag === "rest"
-                              ? "px-0.5 text-red-700 dark:text-red-300"
+                              ? "px-0.5 text-danger"
                               : tag === "inLieu"
-                                ? "px-0.5 text-amber-800 dark:text-amber-200"
+                                ? "px-0.5 text-warning"
                                 : tag === "makeup"
-                                  ? "px-0.5 text-teal-800 dark:text-teal-200"
+                                  ? "px-0.5 text-success"
                                   : isWeekend && !tag
-                                    ? "px-0.5 text-red-600/75 dark:text-red-400/75"
+                                    ? "px-0.5 text-danger/75"
                                     : "px-0.5 text-foreground-muted"
                           : // lunar
                             isToday
                             ? "text-white/90"
                             : tag === "rest" || tag === "inLieu"
-                              ? "text-red-600/90 dark:text-red-400/90"
+                              ? "text-danger/90"
                               : isWeekend && !tag
-                                ? "text-red-600/75 dark:text-red-400/75"
+                                ? "text-danger/75"
                                 : "text-foreground-muted",
                     ].join(" ")}
                     title={primarySubLabel.title}
@@ -694,7 +689,7 @@ const Calendar: React.FC<CalendarProps> = ({
                         {info ? (
                           <>
                             {info.solarTerm ? (
-                              <div className="leading-snug font-medium text-amber-800 dark:text-amber-400">
+                              <div className="leading-snug font-medium text-warning">
                                 {info.solarTerm}
                               </div>
                             ) : null}
@@ -703,7 +698,7 @@ const Calendar: React.FC<CalendarProps> = ({
                                 "leading-snug",
                                 info.work
                                   ? "text-foreground-muted"
-                                  : "text-red-600 dark:text-red-400",
+                                  : "text-danger",
                               ].join(" ")}
                             >
                               {info.work

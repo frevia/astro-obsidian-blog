@@ -6,6 +6,7 @@ import Footer from "@/components/Footer.astro";
 import PagefindSearch from "astro-pagefind/components/Search.astro";
 import { SITE } from "@/config";
 import { useTranslations } from "@/i18n";
+import { withBase } from "@/utils/withBase";
 
 const t = useTranslations(SITE.lang);
 const searchLabels = {
@@ -31,6 +32,18 @@ if (SITE.search !== "pagefind") {
           placeholder: searchLabels.placeholder,
         }}
       />
+      <aside id="search-guidance" class="search-guidance" data-pagefind-ignore>
+        <p class="search-guidance-title">从一个关键词开始</p>
+        <p class="search-guidance-copy">
+          支持文章标题、摘要和正文搜索，也可以使用 <kbd>⌘ K</kbd> 或
+          <kbd>Ctrl K</kbd> 随时打开快速搜索。
+        </p>
+        <nav class="search-guidance-links" aria-label="搜索辅助入口">
+          <a href={withBase("/tags")}>浏览标签</a>
+          <a href={withBase("/archives")}>查看归档</a>
+          <a href={withBase("/posts")}>阅读全部文章</a>
+        </nav>
+      </aside>
     </div>
   </Main>
   <Footer />
@@ -97,8 +110,15 @@ if (SITE.search !== "pagefind") {
     searchInput.addEventListener("input", e => {
       const target = e.target as HTMLInputElement;
       if (!target) return;
+      document
+        .getElementById("search-guidance")
+        ?.classList.toggle("is-hidden", target.value.trim().length > 0);
       updateURL(target.value);
     });
+
+    document
+      .getElementById("search-guidance")
+      ?.classList.toggle("is-hidden", searchInput.value.trim().length > 0);
   }
 
   function initSearchFromURL() {
@@ -179,5 +199,57 @@ if (SITE.search !== "pagefind") {
 
   .pagefind-search .pf-searchbox-subresult {
     border-inline-start-color: var(--border);
+  }
+
+  .search-guidance {
+    margin-top: 1.5rem;
+    border: 1px solid color-mix(in oklab, var(--border) 76%, transparent);
+    border-radius: var(--radius-card-emphasis);
+    padding: 1.1rem 1.2rem;
+    background: var(--surface-muted);
+    transition: opacity var(--motion-fast) ease;
+  }
+
+  .search-guidance.is-hidden {
+    display: none;
+  }
+
+  .search-guidance-title {
+    color: var(--foreground);
+    font-size: 0.95rem;
+    font-weight: 650;
+  }
+
+  .search-guidance-copy {
+    max-width: 42rem;
+    margin-top: 0.35rem;
+    color: var(--foreground-muted);
+    font-size: 0.8rem;
+    line-height: 1.7;
+  }
+
+  .search-guidance kbd {
+    border: 1px solid var(--border);
+    border-radius: 0.3rem;
+    padding: 0.08rem 0.3rem;
+    color: var(--foreground);
+    background: var(--surface);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+  }
+
+  .search-guidance-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    margin-top: 0.8rem;
+  }
+
+  .search-guidance-links a {
+    color: var(--accent);
+    font-size: 0.78rem;
+    text-decoration: underline;
+    text-decoration-style: dashed;
+    text-underline-offset: 0.2em;
   }
 </style>

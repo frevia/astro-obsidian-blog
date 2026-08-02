@@ -138,6 +138,47 @@
   gap: 0.7rem;
 }
 
+.footprint-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 1rem;
+  margin: 0 1rem 0.8rem;
+  border-top: 1px solid color-mix(in oklab, var(--border) 55%, transparent);
+  padding-top: 0.7rem;
+  color: color-mix(in oklab, var(--foreground) 58%, transparent);
+  font-size: 0.68rem;
+}
+
+.footprint-map-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.footprint-map-legend-dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border: 2px solid var(--background);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 30%, transparent);
+}
+
+.footprint-map-legend-dot--selected {
+  width: 0.7rem;
+  height: 0.7rem;
+  background: var(--footprint-accent);
+  box-shadow: 0 0 0 2px
+    color-mix(in oklab, var(--footprint-accent) 35%, transparent);
+}
+
+.footprint-map-legend-note {
+  color: var(--foreground-subtle);
+}
+
 .footprint-map-status {
   color: color-mix(in oklab, var(--foreground) 48%, transparent);
   font-size: 0.6875rem;
@@ -217,8 +258,8 @@ html[data-theme="dark"] .footprint-leaflet-map {
     var(--surface-muted) 72%,
     var(--background)
   );
-  --footprint-map-tile-filter: grayscale(0.28) invert(0.82)
-    hue-rotate(180deg) brightness(0.77) contrast(0.94) saturate(0.9);
+  --footprint-map-tile-filter: grayscale(0.28) invert(0.82) hue-rotate(180deg)
+    brightness(0.77) contrast(0.94) saturate(0.9);
   color-scheme: dark;
 }
 
@@ -599,6 +640,10 @@ html[data-theme="dark"] .footprint-leaflet-map .leaflet-tile-pane {
 
   .footprint-map-panel-head {
     padding-inline: 1.25rem;
+  }
+
+  .footprint-map-legend {
+    margin-inline: 1.25rem;
   }
 
   .footprint-map-layout {

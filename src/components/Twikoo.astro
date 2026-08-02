@@ -11,7 +11,12 @@ import {
 } from "astro:env/client";
 ---
 
-<div id="tcomment" class="mt-8"></div>
+<div id="tcomment" class="twikoo-root mt-8" aria-live="polite">
+  <p class="twikoo-state twikoo-state--loading">正在加载留言…</p>
+  <p class="twikoo-state twikoo-state--error" hidden>
+    留言服务暂时没有响应，请稍后重试。
+  </p>
+</div>
 
 <script
   is:inline
@@ -56,18 +61,34 @@ import {
   }
 
   async function loadTwikoo() {
-    if (!envId) return;
+    const stateLoading = document.querySelector(".twikoo-state--loading");
+    const stateError = document.querySelector(".twikoo-state--error");
+    const setState = state => {
+      if (stateLoading) stateLoading.hidden = state !== "loading";
+      if (stateError) stateError.hidden = state !== "error";
+    };
+
+    if (!envId) {
+      setState("error");
+      return;
+    }
 
     const container = document.getElementById("tcomment");
     if (!container) return;
 
     try {
+      setState("loading");
       ensureStyle();
       await ensureScript();
-      if (typeof twikoo === "undefined") return;
+      if (typeof twikoo === "undefined") {
+        setState("error");
+        return;
+      }
 
       // 路由切换时清理旧挂载，避免重复 init 导致评论区尺寸异常
-      container.innerHTML = "";
+      container
+        .querySelectorAll(":scope > .twikoo-state")
+        .forEach(node => node.remove());
 
       const options = {
         envId,
@@ -79,8 +100,14 @@ import {
         options.region = region;
       }
       twikoo.init(options);
+      window.setTimeout(() => {
+        const hasRenderedComments = container.querySelector(
+          ".tk-comments, .tk-comments-container, .tk-main"
+        );
+        if (!hasRenderedComments) setState("error");
+      }, 6000);
     } catch {
-      // ignore
+      setState("error");
     }
   }
 
@@ -90,4 +117,33 @@ import {
   }
   window[HANDLER_KEY] = loadTwikoo;
   document.addEventListener("astro:page-load", window[HANDLER_KEY]);
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", loadTwikoo, { once: true });
+  } else {
+    loadTwikoo();
+  }
 </script>
+
+<style is:global>
+  .twikoo-root {
+    min-height: 5rem;
+  }
+
+  .twikoo-state {
+    border: 1px dashed color-mix(in oklab, var(--border) 78%, transparent);
+    border-radius: var(--radius-card);
+    padding: 1rem;
+    color: var(--foreground-muted);
+    background: var(--surface-muted);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  .twikoo-state--error {
+    border-color: color-mix(in oklab, var(--danger) 38%, var(--border));
+    color: var(--danger);
+    background: color-mix(in oklab, var(--danger) 5%, var(--surface));
+  }
+</style>

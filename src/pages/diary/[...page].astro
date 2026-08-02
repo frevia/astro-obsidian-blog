@@ -8,6 +8,7 @@ import Layout from "@/layouts/Layout.astro";
 import { getCollection } from "astro:content";
 import { parseEntry } from "@/utils/parseEntry";
 import DiaryTimeline from "@/components/DiaryTimeline.tsx";
+import { withBase } from "@/utils/withBase";
 
 export async function getStaticPaths() {
   const diaryEntries = await getCollection("diary");
@@ -42,6 +43,16 @@ const quarterKey = page as string;
 
 const diaryEntries = await getCollection("diary");
 
+const getQuarterKey = (entry: (typeof diaryEntries)[number]) => {
+  const date = entry.id.split("/").pop()!.replace(".md", "");
+  const [year, month] = date.split("-");
+  return `${year}-Q${Math.ceil(parseInt(month) / 3)}`;
+};
+
+const quarterKeys = Array.from(new Set(diaryEntries.map(getQuarterKey))).sort(
+  (a, b) => b.localeCompare(a)
+);
+
 // 按季度过滤条目
 let quarterEntries = diaryEntries.filter(entry => {
   const date = entry.id.split("/").pop()!.replace(".md", "");
@@ -68,6 +79,17 @@ const [year, quarter] = quarterKey.split("-Q");
 const quarterNames = ["春", "夏", "秋", "冬"];
 const quarterName = quarterNames[parseInt(quarter) - 1];
 const pageTitle = `${year}年(${quarterName})`;
+const currentQuarterIndex = quarterKeys.indexOf(quarterKey);
+const newerQuarter =
+  currentQuarterIndex > 0 ? quarterKeys[currentQuarterIndex - 1] : undefined;
+const olderQuarter =
+  currentQuarterIndex >= 0 && currentQuarterIndex < quarterKeys.length - 1
+    ? quarterKeys[currentQuarterIndex + 1]
+    : undefined;
+const quarterLabel = (key: string) => {
+  const [keyYear, keyQuarter] = key.split("-Q");
+  return `${keyYear}年(${quarterNames[parseInt(keyQuarter) - 1]})`;
+};
 
 // 创建简化的分页信息（用于兼容现有组件）
 const paginationInfo = {
@@ -84,16 +106,49 @@ const paginationInfo = {
   <main
     id="main-content"
     class:list={[
-      "mx-auto w-full max-w-app px-4 pb-12",
+      "page-main mx-auto w-full max-w-app px-4 pb-12",
       { "mt-8": !SITE.showBackButton, "mt-4": SITE.showBackButton },
     ]}
     data-pagefind-body
   >
-    <h1
-      class="mb-4 inline-block text-2xl leading-tight font-bold text-accent sm:mb-6 sm:text-3xl"
+    <header class="page-intro mb-5 sm:mb-7">
+      <p class="page-kicker">碎片时间线</p>
+      <h1 class="page-title">{pageTitle}</h1>
+      <p class="page-desc">按季度回看那些还在生长的想法与日常。</p>
+    </header>
+
+    <nav
+      class="mb-3 flex flex-wrap items-center justify-between gap-2 border-y border-border/50 py-3 text-sm"
+      aria-label="碎片季度导航"
     >
-      {pageTitle}
-    </h1>
+      {
+        newerQuarter ? (
+          <a
+            href={withBase(`/diary/${newerQuarter}`)}
+            class="rounded-md px-2 py-1 text-accent hover:bg-accent/8"
+          >
+            ← {quarterLabel(newerQuarter)}
+          </a>
+        ) : (
+          <span class="px-2 py-1 text-foreground/35">已经是最新季度</span>
+        )
+      }
+      <span class="text-xs text-foreground/50"
+        >第 {currentQuarterIndex + 1} / {quarterKeys.length} 季</span
+      >
+      {
+        olderQuarter ? (
+          <a
+            href={withBase(`/diary/${olderQuarter}`)}
+            class="rounded-md px-2 py-1 text-accent hover:bg-accent/8"
+          >
+            {quarterLabel(olderQuarter)} →
+          </a>
+        ) : (
+          <span class="px-2 py-1 text-foreground/35">已经是最早季度</span>
+        )
+      }
+    </nav>
 
     <!-- 主要内容区域 -->
     <div class="py-4 sm:py-6">

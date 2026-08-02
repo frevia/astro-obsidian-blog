@@ -71,7 +71,7 @@ export default {
     searchTitle: "搜索",
     searchDesc: "搜索你想了解的内容...",
     searchTooltip: "Search",
-    searchBrowserTitle: "Search",
+    searchBrowserTitle: "搜索",
     notFoundBrowserTitle: "404 Not Found",
     postsAllTitle: "全部文章",
     postsTagNavTitle: "标签导航",

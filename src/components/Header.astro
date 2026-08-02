@@ -99,6 +99,12 @@ const headerLabels = {
                 <a
                   href={withBase(item.href)}
                   data-astro-prefetch="hover"
+                  aria-current={
+                    isActive(item.href) &&
+                    (item.href !== "/" || currentPath === "/")
+                      ? "page"
+                      : undefined
+                  }
                   class:list={[
                     "rounded-md px-3 py-2 text-base font-medium whitespace-nowrap text-foreground/85 transition-colors duration-200 hover:text-accent",
                     {
@@ -242,6 +248,12 @@ const headerLabels = {
               <a
                 href={withBase(item.href)}
                 data-astro-prefetch="hover"
+                aria-current={
+                  isActive(item.href) &&
+                  (item.href !== "/" || currentPath === "/")
+                    ? "page"
+                    : undefined
+                }
                 class:list={{
                   "active-nav":
                     isActive(item.href) &&
@@ -259,6 +271,7 @@ const headerLabels = {
               <a
                 href={withBase("/archives")}
                 data-astro-prefetch="hover"
+                aria-current={isActive("/archives") ? "page" : undefined}
                 class:list={{ "active-nav": isActive("/archives") }}
               >
                 {headerLabels.archives}
