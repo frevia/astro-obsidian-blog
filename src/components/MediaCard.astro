@@ -101,7 +101,7 @@ const cardUrl = getCardUrl();
   target="_blank"
   rel="noopener noreferrer"
   data-media-type={cardType}
-  class={`media-card ${theme === "dark" ? "dark" : "light"} block w-full max-w-app cursor-pointer rounded-xl border border-border/80 bg-surface no-underline shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-accent/50 hover:shadow-md`}
+  class={`media-card app-card ${theme === "dark" ? "dark" : "light"} block w-full max-w-app cursor-pointer rounded-xl no-underline shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-accent/50 hover:shadow-md`}
 >
   <div class="flex items-start gap-3 p-3 sm:gap-4 sm:p-4">
     {
@@ -112,9 +112,10 @@ const cardUrl = getCardUrl();
             alt={title}
             width={posterWidth}
             height={posterHeight}
+            sizes="(min-width: 640px) 96px, 80px"
             loading="lazy"
             decoding="async"
-            class={`my-0 w-full rounded-md object-cover shadow-sm ${
+            class={`app-card-media my-0 w-full rounded-md object-cover shadow-sm ${
               cardType === "music" ? "aspect-square" : "aspect-[2/3]"
             }`}
           />
@@ -221,7 +222,7 @@ const cardUrl = getCardUrl();
             genres
               .split(/[,，]/)
               .map(genre => (
-                <span class="rounded-full border border-accent/20 bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent transition-colors hover:bg-accent/15 sm:px-2.5 sm:py-1 sm:text-xs">
+                <span class="app-chip border-accent/20 bg-accent/10 font-medium text-accent transition-colors hover:bg-accent/15 sm:px-2.5 sm:py-1 sm:text-xs">
                   {genre.trim()}
                 </span>
               ))

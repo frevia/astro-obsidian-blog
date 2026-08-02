@@ -17,8 +17,11 @@
   --color-accent: var(--accent);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-surface: var(--surface);
   --color-surface-elevated: var(--surface-elevated);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-glass: var(--surface-glass);
   --color-surface-muted: var(--surface-muted);
   --color-interactive-hover: var(--interactive-hover);
   --color-interactive-active: var(--interactive-active);
@@ -655,6 +658,8 @@ video {
   left: 0 !important;
   right: 0 !important;
   z-index: 50 !important;
+  background: var(--surface-glass) !important;
+  box-shadow: 0 8px 30px -24px var(--accent);
 }
 
 /* 足迹地图全国视图：单次渐隐/渐显 */

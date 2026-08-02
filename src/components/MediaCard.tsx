@@ -88,7 +88,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
       target="_blank"
       rel="noopener noreferrer"
       data-media-type={cardType}
-      className={`media-card ${theme === "dark" ? "dark" : "light"} block w-full max-w-app cursor-pointer rounded-xl border border-border/80 bg-surface no-underline shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-accent/50 hover:shadow-md`}
+      className={`media-card app-card ${theme === "dark" ? "dark" : "light"} block w-full max-w-app cursor-pointer rounded-xl no-underline shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-accent/50 hover:shadow-md`}
     >
       <div className="flex items-start gap-3 p-3 sm:gap-4 sm:p-4">
         {/* 海报图片 - 左侧 */}
@@ -99,9 +99,10 @@ const MediaCard: React.FC<MediaCardProps> = ({
               alt={title}
               width={cardType === "music" ? 320 : 267}
               height={cardType === "music" ? 320 : 400}
+              sizes="(min-width: 640px) 96px, 80px"
               loading="lazy"
               decoding="async"
-              className={`my-0 w-full rounded-md object-cover shadow-sm ${
+              className={`app-card-media my-0 w-full rounded-md object-cover shadow-sm ${
                 cardType === "music" ? "aspect-square" : "aspect-[2/3]"
               }`}
             />
@@ -211,7 +212,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
               genres.split(/[,，]/).map((genre, index) => (
                 <span
                   key={index}
-                  className="rounded-full border border-accent/20 bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent transition-colors hover:bg-accent/15 sm:px-2.5 sm:py-1 sm:text-xs"
+                  className="app-chip border-accent/20 bg-accent/10 font-medium text-accent transition-colors hover:bg-accent/15 sm:px-2.5 sm:py-1 sm:text-xs"
                 >
                   {genre.trim()}
                 </span>

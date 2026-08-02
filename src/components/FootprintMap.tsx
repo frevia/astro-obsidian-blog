@@ -439,11 +439,10 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                 aria-label="交互式足迹地图"
               />
               {!mapReady && !mapError ? (
-                <div className="footprint-map-loading" role="status">
-                  <span
-                    className="footprint-map-loading-dot"
-                    aria-hidden="true"
-                  />
+                <div
+                  className="footprint-map-loading app-loading-state"
+                  role="status"
+                >
                   正在准备地图图层…
                 </div>
               ) : null}
