@@ -296,7 +296,7 @@ h6 {
   @apply text-green-600 dark:text-green-300;
 }
 
-/* rehype-autolink-headings：标题旁 # 用伪元素显示，不写入 DOM，避免 tocbot 侧边栏多出 # */
+/* rehype-autolink-headings：标题旁 # 用伪元素显示，不写入目录 */
 .icon-link::before {
   @apply ml-1 inline-block text-accent opacity-0 transition-opacity duration-200;
   content: "#";
@@ -310,7 +310,7 @@ h6:hover .icon-link::before {
   @apply opacity-100;
 }
 
-/* tocbot styles */
+/* Shared table-of-contents styles */
 .toc-title {
   @apply text-base font-semibold text-foreground/85;
 }
@@ -343,7 +343,7 @@ h6:hover .icon-link::before {
   content: "";
 }
 
-/* heading level alignment for tocbot output */
+/* heading level alignment for static TOC output */
 .toc-link.node-name--H2 {
   padding-left: 0;
 }
@@ -363,7 +363,7 @@ h6:hover .icon-link::before {
 }
 
 @layer utilities {
-  /* basic sidebar container used for tocbot */
+  /* legacy sidebar container used by other layouts */
   #sidebar {
     @apply fixed z-40 transform overflow-y-auto bg-background text-sm;
   }

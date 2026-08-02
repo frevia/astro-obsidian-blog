@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const source = () => readFileSync("src/layouts/PostDetails.astro", "utf-8");
+const railSource = () =>
+  readFileSync("src/components/article/article-reading-rail.ts", "utf-8");
 
 describe("post reading mode", () => {
   it("renders the article hero, accent variables, and reading rail as SSR markup", () => {
@@ -35,8 +37,9 @@ describe("post reading mode", () => {
 
   it("keeps existing server TOC and code-toolbar hooks in the lifecycle", () => {
     const content = source();
+    const rail = railSource();
 
-    expect(content).toContain('"#sidebar [data-toc-link]"');
+    expect(rail).toContain('"#sidebar [data-toc-link]"');
     expect(content).toContain("main.querySelectorAll<HTMLButtonElement>(");
     expect(content).toContain("window.__postDetailsCleanup?.()");
   });

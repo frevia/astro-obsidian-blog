@@ -179,10 +179,262 @@
     transition: transform 160ms ease;
   }
 
-  .article-reading-rail-mobile-nav {
+  /* Keep the desktop rail aligned with the article header while the date
+     chime remains an intentionally higher visual layer. */
+  .article-reading-rail-shell {
+    display: contents;
+  }
+
+  #sidebar.article-reading-rail {
+    display: none;
+    position: fixed;
+    top: calc(var(--site-header-height, 4rem) + 5rem);
+    left: calc(50% + 26.5rem);
+    z-index: 35;
+    width: 12rem;
+    height: min(42rem, calc(100vh - var(--site-header-height, 4rem) - 13.5rem));
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .article-reading-rail-card {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid color-mix(in oklab, var(--page-accent) 24%, var(--border));
+    border-radius: 1rem;
+    background: color-mix(in oklab, var(--surface) 91%, transparent);
+    box-shadow: 0 1rem 2.5rem -2rem
+      color-mix(in oklab, var(--page-accent) 38%, transparent);
+    backdrop-filter: blur(14px);
+  }
+
+  .article-reading-rail-header {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 0.7rem;
+    padding: 0.85rem 0.8rem 0.7rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--border) 68%, transparent);
+  }
+
+  .article-reading-rail-kicker,
+  .article-reading-rail-mobile-kicker {
+    color: var(--page-accent);
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .article-reading-rail .toc-title {
+    margin-top: 0.35rem;
+    color: var(--foreground);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .article-reading-rail-count {
+    display: inline-grid;
+    min-width: 1.75rem;
+    height: 1.75rem;
+    flex: none;
+    place-items: center;
+    border-radius: 9999px;
+    color: var(--page-accent);
+    background: var(--page-accent-soft);
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+  }
+
+  .article-reading-rail-progress-wrap {
+    padding: 0.7rem 0.8rem 0.65rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--border) 58%, transparent);
+  }
+
+  .article-reading-rail-progress-label {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    color: var(--foreground-muted);
+    font-size: 0.62rem;
+    line-height: 1.4;
+  }
+
+  .article-reading-rail-progress-label > :first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .article-reading-rail-progress {
+    flex: none;
+    color: var(--page-accent);
+    font-size: 0.65rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+
+  .article-reading-rail-progress-track {
+    height: 0.18rem;
+    margin-top: 0.5rem;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: color-mix(in oklab, var(--page-accent) 12%, var(--border));
+  }
+
+  .article-reading-rail-progress-track > span {
+    display: block;
+    width: var(--toc-progress, 0%);
+    height: 100%;
+    border-radius: inherit;
+    background: var(--page-accent);
+    transition: width 220ms ease;
+  }
+
+  .article-reading-rail-current {
+    margin-top: 0.45rem;
+    overflow: hidden;
+    color: color-mix(in oklab, var(--foreground) 76%, transparent);
+    font-size: 0.68rem;
+    line-height: 1.45;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .article-reading-rail-nav {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.4rem 0.45rem 0.65rem;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--page-accent) 35%, transparent)
+      transparent;
+  }
+
+  .article-reading-rail .toc-list,
+  .article-reading-rail-mobile .toc-list {
+    margin: 0;
+    padding: 0;
+  }
+
+  .article-reading-rail .toc-list-item,
+  .article-reading-rail-mobile .toc-list-item {
+    margin: 0;
+    padding: 0.08rem 0;
+  }
+
+  .article-reading-rail .toc-link,
+  .article-reading-rail-mobile .toc-link {
+    display: block;
+    overflow-wrap: anywhere;
+    border: 0;
+    border-radius: 0.55rem;
+    padding: 0.42rem 0.55rem;
+    color: color-mix(in oklab, var(--foreground) 67%, transparent);
+    font-size: 0.72rem;
+    line-height: 1.45;
+    text-decoration: none;
+    transition:
+      color 160ms ease,
+      background-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .article-reading-rail .toc-link.node-name--H3,
+  .article-reading-rail-mobile .toc-link.node-name--H3 {
+    padding-inline-start: 1.05rem;
+  }
+
+  .article-reading-rail .toc-link.node-name--H4,
+  .article-reading-rail-mobile .toc-link.node-name--H4 {
+    padding-inline-start: 1.55rem;
+    color: color-mix(in oklab, var(--foreground) 54%, transparent);
+    font-size: 0.68rem;
+  }
+
+  .article-page .article-reading-rail .toc-link:hover,
+  .article-page .article-reading-rail .toc-link:focus-visible,
+  .article-page .article-reading-rail-mobile .toc-link:hover,
+  .article-page .article-reading-rail-mobile .toc-link:focus-visible {
+    color: var(--page-accent);
+    background: var(--page-accent-soft);
+    outline: none;
+  }
+
+  .article-page .article-reading-rail .toc-link.is-active-link,
+  .article-page .article-reading-rail-mobile .toc-link.is-active-link {
+    border: 0;
+    color: var(--page-accent);
+    background: var(--page-accent-soft);
+    box-shadow: inset 2px 0 var(--page-accent);
+    font-weight: 700;
+  }
+
+  .article-reading-rail-mobile {
+    display: block;
+    border-color: color-mix(in oklab, var(--page-accent) 30%, var(--border));
+    background: color-mix(
+      in oklab,
+      var(--page-accent-soft) 62%,
+      var(--surface)
+    );
+    backdrop-filter: blur(14px);
+  }
+
+  .article-reading-rail-mobile-toggle {
+    min-height: 3rem;
+    gap: 0.7rem;
+    padding: 0.65rem 0.8rem;
+  }
+
+  .article-reading-rail-mobile-label {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .article-reading-rail-mobile-title {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--foreground);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .article-reading-rail-mobile-panel {
+    padding: 0.65rem 0.8rem 0.8rem;
     border-top: 1px solid
-      color-mix(in oklab, var(--page-accent) 18%, var(--border));
-    padding: 0.35rem 0.85rem 0.7rem;
+      color-mix(in oklab, var(--page-accent) 20%, var(--border));
+  }
+
+  .article-reading-rail-mobile-current {
+    min-width: 0;
+    overflow: hidden;
+    color: color-mix(in oklab, var(--foreground) 76%, transparent);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .article-reading-rail-mobile-nav {
+    margin-top: 0.65rem;
+    padding: 0;
   }
 
   .article-reading-body {
@@ -409,7 +661,11 @@
   }
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 1299px) {
+  #sidebar.article-reading-rail {
+    display: none;
+  }
+
   .article-reading-rail-mobile {
     position: fixed;
     right: 1rem;
@@ -432,6 +688,16 @@
   }
 }
 
+@media (min-width: 1300px) {
+  #sidebar.article-reading-rail {
+    display: block;
+  }
+
+  .article-reading-rail-mobile {
+    display: none;
+  }
+}
+
 @media (min-width: 1024px) {
   .article-reading-body {
     max-width: 44rem;
@@ -442,5 +708,14 @@
 @media (prefers-reduced-motion: reduce) {
   .article-reading-rail-mobile-icon {
     transition: none;
+  }
+}
+
+/* This unlayered override wins over the legacy #sidebar utility rules that
+ * are shared with favorites. */
+@media (min-width: 1300px) {
+  #sidebar.article-reading-rail {
+    top: calc(var(--site-header-height, 4rem) + 5rem);
+    z-index: 35;
   }
 }

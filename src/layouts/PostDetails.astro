@@ -309,79 +309,6 @@ const backlinks = wikilinkGraph.backlinks.get(post.id) ?? [];
       onScroll();
     }
 
-    /** 为服务端目录补充当前章节反馈 */
-    function setupTableOfContents() {
-      const desktopLinks = Array.from(
-        document.querySelectorAll<HTMLAnchorElement>("#sidebar [data-toc-link]")
-      );
-      const mobileLinks = Array.from(
-        document.querySelectorAll<HTMLAnchorElement>(
-          "#mobile-sidebar [data-toc-link]"
-        )
-      );
-      const links = [...desktopLinks, ...mobileLinks];
-      const entries = links.flatMap(link => {
-        const href = link.getAttribute("href");
-        if (!href?.startsWith("#")) return [];
-
-        let id = href.slice(1);
-        try {
-          id = decodeURIComponent(id);
-        } catch {
-          // Keep the literal id when the fragment is not URI encoded.
-        }
-
-        const heading = document.getElementById(id);
-        return heading instanceof HTMLElement ? [{ heading, link }] : [];
-      });
-      if (!entries.length) return;
-      const headings = Array.from(
-        new Map(
-          entries.map(entry => [entry.heading.id, entry.heading])
-        ).values()
-      );
-      const progressLabels = Array.from(
-        document.querySelectorAll<HTMLElement>("[data-toc-progress]")
-      );
-
-      const updateActiveLink = () => {
-        const header = document.getElementById("site-header");
-        const offset =
-          (header instanceof HTMLElement ? header.offsetHeight : 0) + 8;
-        let activeHeading = entries[0].heading;
-
-        for (const heading of headings) {
-          if (heading.getBoundingClientRect().top > offset) break;
-          activeHeading = heading;
-        }
-
-        const activeIndex = Math.max(0, headings.indexOf(activeHeading));
-        progressLabels.forEach(label => {
-          label.textContent = `${activeIndex + 1} / ${headings.length}`;
-        });
-
-        links.forEach(link => {
-          const isActive = entries.some(
-            entry => entry.link === link && entry.heading === activeHeading
-          );
-          link.classList.toggle("is-active-link", isActive);
-          if (isActive) {
-            link.setAttribute("aria-current", "location");
-          } else {
-            link.removeAttribute("aria-current");
-          }
-        });
-      };
-
-      document.addEventListener("scroll", updateActiveLink, { passive: true });
-      window.addEventListener("resize", updateActiveLink, { passive: true });
-      cleanupCallbacks.push(() => {
-        document.removeEventListener("scroll", updateActiveLink);
-        window.removeEventListener("resize", updateActiveLink);
-      });
-      updateActiveLink();
-    }
-
     /** 激活构建阶段生成的代码复制按钮 */
     function setupCopyButtons() {
       const main = document.getElementById("main-content");
@@ -433,7 +360,6 @@ const backlinks = wikilinkGraph.backlinks.get(post.id) ?? [];
 
     createProgressBar();
     updateScrollProgress();
-    setupTableOfContents();
     setupCopyButtons();
 
     window.__postDetailsCleanup = () => {
