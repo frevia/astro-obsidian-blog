@@ -52,6 +52,10 @@ describe("calendar and footprint visual integration", () => {
     expect(source).toContain("aria-pressed={selectedKey === item.key}");
     expect(source).toContain("onClick={() => selectPlace(item.key)}");
     expect(source).toContain("marker.openPopup()");
+    expect(source).toContain("footprint-marker-pin-base");
+    expect(source).toContain("footprint-marker-pin-hole");
+    expect(source).toContain("footprint-popup-post-image");
+    expect(source).toContain("footprint-post-thumbnail");
     expect(source).toContain('data-astro-prefetch="tap"');
     expect(source).toContain('link.dataset.astroPrefetch = "tap"');
     expect(source).toContain('tileLayer.on("tileerror"');

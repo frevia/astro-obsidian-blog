@@ -6,10 +6,14 @@ export interface Props {
   category: string;
   description: string;
   summary?: string;
+  author?: string;
   published: Date;
   timezone?: string;
   readingMinutes: number;
   cover?: string;
+  showMedia?: boolean;
+  tags?: string[];
+  source?: string;
   titleTransitionName: string;
   coverTransitionName: string;
 }
@@ -19,21 +23,33 @@ const {
   category,
   description,
   summary,
+  author,
   published,
   timezone,
   readingMinutes,
   cover,
+  showMedia = true,
+  tags = [],
+  source,
   titleTransitionName,
   coverTransitionName,
 } = Astro.props;
 
 const excerpt = summary?.trim() || description;
+const visibleTags = tags.filter(tag => tag.trim()).slice(0, 6);
 ---
 
-<header class="article-hero" data-article-hero>
+<header
+  class:list={["article-hero", { "article-hero--text-only": !showMedia }]}
+  data-article-hero
+>
   <div class="article-hero-copy">
     <p class="article-hero-category">{category}</p>
-    <h1 transition:name={titleTransitionName} class="article-hero-title">
+    <h1
+      transition:name={titleTransitionName}
+      class="article-hero-title"
+      data-pagefind-meta="title"
+    >
       {title}
     </h1>
     <p class="article-hero-summary">{excerpt}</p>
@@ -49,30 +65,70 @@ const excerpt = summary?.trim() || description;
       <span class="article-hero-reading-time">
         阅读约 {readingMinutes} 分钟
       </span>
+      {
+        author && (
+          <>
+            <span aria-hidden="true" class="article-hero-meta-separator">
+              ·
+            </span>
+            <span class="article-hero-author">{author}</span>
+          </>
+        )
+      }
     </div>
-  </div>
 
-  <div class="article-hero-media">
     {
-      cover ? (
-        <img
-          transition:name={coverTransitionName}
-          class="article-hero-cover"
-          src={cover}
-          alt={title}
-          width="1280"
-          height="720"
-          sizes="(min-width: 768px) 42vw, 100vw"
-          loading="eager"
-          decoding="async"
-          fetchpriority="high"
-        />
-      ) : (
-        <div
-          class="article-hero-cover article-hero-cover-placeholder"
-          aria-hidden="true"
-        />
+      visibleTags.length > 0 && (
+        <div class="article-hero-tags" aria-label="文章标签">
+          {visibleTags.map(tag => (
+            <span class="article-hero-tag">{tag}</span>
+          ))}
+        </div>
+      )
+    }
+
+    {
+      source && (
+        <a
+          class="article-hero-source"
+          href={source}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={source}
+        >
+          <span class="article-hero-source-label">原文来源</span>
+          <span class="article-hero-source-url">{source}</span>
+          <span aria-hidden="true" class="article-hero-source-arrow">
+            ↗
+          </span>
+        </a>
       )
     }
   </div>
+
+  {
+    showMedia && (
+      <div class="article-hero-media">
+        {cover ? (
+          <img
+            transition:name={coverTransitionName}
+            class="article-hero-cover"
+            src={cover}
+            alt={title}
+            width="1280"
+            height="720"
+            sizes="(min-width: 768px) 42vw, 100vw"
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+          />
+        ) : (
+          <div
+            class="article-hero-cover article-hero-cover-placeholder"
+            aria-hidden="true"
+          />
+        )}
+      </div>
+    )
+  }
 </header>

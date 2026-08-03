@@ -25,6 +25,8 @@ html[data-theme="light"] {
   --interactive-hover: color-mix(in oklab, var(--accent) 7%, var(--surface));
   --interactive-active: color-mix(in oklab, var(--accent) 12%, var(--surface));
   --progress: #b7791f;
+  --year-progress-start: #38bdf8;
+  --year-progress-end: #2563eb;
   --success: #2f855a;
   --danger: #c05640;
   --warning: #b7791f;
@@ -68,6 +70,8 @@ html[data-theme="dark"] {
   --interactive-hover: color-mix(in oklab, var(--accent) 12%, var(--surface));
   --interactive-active: color-mix(in oklab, var(--accent) 18%, var(--surface));
   --progress: #d6a24a;
+  --year-progress-start: #67e8f9;
+  --year-progress-end: #60a5fa;
   --success: #68b684;
   --danger: #ef9583;
   --warning: #d6a24a;
