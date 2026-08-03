@@ -119,7 +119,6 @@ export async function initFeeds(
   const errorContainer = document.getElementById("feeds-error");
   const noContentContainer = document.getElementById("feeds-no-content");
   const countElement = document.getElementById("feeds-count");
-  const sourceCountElement = document.getElementById("feeds-source-count");
   const updatedElement = document.getElementById("feeds-updated");
 
   if (
@@ -137,12 +136,7 @@ export async function initFeeds(
   let observer;
 
   const updateFeedSummary = data => {
-    const sourceCount = new Set(
-      allFeeds.map(item => item.blog_name?.trim()).filter(Boolean)
-    ).size;
-
     if (countElement) countElement.textContent = `${allFeeds.length} 条订阅`;
-    if (sourceCountElement) sourceCountElement.textContent = sourceCount;
     if (updatedElement) {
       updatedElement.textContent = data.updated
         ? `更新于 ${data.updated}`

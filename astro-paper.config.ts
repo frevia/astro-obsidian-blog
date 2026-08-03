@@ -4,7 +4,7 @@ export default defineAstroPaperConfig({
   site: {
     url: "https://frevia.site/",
     title: "Frevia's Blog!",
-    description: "一个时间长河中的个人档案馆。",
+    description: "记录日常、技术、阅读和路上的见闻。",
     author: "Frevia",
     profile: "https://frevia.site/",
     ogImage: "og.png",

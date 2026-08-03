@@ -26,7 +26,7 @@ const fallbackHref = withBase("/");
 }
 
 <script>
-  document.addEventListener("astro:page-load", function () {
+  const initBackButton = () => {
     const backButton = document.getElementById("back-button");
     if (!(backButton instanceof HTMLButtonElement)) return;
     const fallbackHref = backButton.dataset.fallbackHref || "/";
@@ -46,8 +46,8 @@ const fallbackHref = withBase("/");
 
     const currentBase = () => location.pathname + location.search;
 
-    // 监听返回按钮点击事件
-    backButton.addEventListener("click", function () {
+    // 使用 onclick 保证 native 初始加载与 ClientRouter 重绑都保持幂等。
+    backButton.onclick = () => {
       const stack = readStack();
       const cur = currentBase();
 
@@ -70,6 +70,9 @@ const fallbackHref = withBase("/");
         // 兜底：没有历史 → 首页
         location.assign(fallbackHref);
       }
-    });
-  });
+    };
+  };
+
+  document.addEventListener("astro:page-load", initBackButton);
+  initBackButton();
 </script>

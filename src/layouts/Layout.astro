@@ -223,7 +223,7 @@ const structuredData = {
         </CalendarModal>
       )
     }
-    <SearchDialog />
+    {SITE.search === "pagefind" && <SearchDialog />}
     <script>
       import { setupMermaidEnhancer } from "@/scripts/mermaid-enhancer";
 

@@ -46,7 +46,6 @@ describe("neighbor and about page presentation", () => {
     const feeds = readFileSync("src/pages/feeds/index.astro", "utf-8");
     const feedsClient = readFileSync("public/feeds.js", "utf-8");
 
-    expect(feeds).toContain("feeds-masthead");
     expect(feeds).toContain("feeds-stage-status");
     expect(feeds).toContain("document.readyState");
     expect(feeds).toContain("DOMContentLoaded");

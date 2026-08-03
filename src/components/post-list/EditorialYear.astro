@@ -11,18 +11,18 @@ const { year, posts } = Astro.props;
 ---
 
 <section
-  class="mb-14 grid gap-5 md:grid-cols-[7rem_minmax(0,1fr)] md:gap-7"
+  class="mx-0 mb-12 grid max-w-none gap-5 px-0 md:grid-cols-[3.25rem_minmax(0,1fr)] md:gap-3"
   aria-labelledby={`year-${year}`}
 >
   <header class="relative">
     <h2
       id={`year-${year}`}
-      class="text-5xl leading-none font-semibold tracking-[-0.06em] text-foreground/12 tabular-nums md:sticky md:top-[calc(var(--site-header-height,4rem)+1.25rem)] md:text-6xl md:[writing-mode:vertical-rl]"
+      class="text-4xl leading-none font-semibold tracking-[-0.06em] text-foreground/18 tabular-nums md:sticky md:top-[calc(var(--site-header-height,4rem)+1.25rem)] md:[writing-mode:vertical-rl]"
     >
       {year}
     </h2>
   </header>
-  <ol class="min-w-0 space-y-5" aria-label={`${year} 年文章`}>
+  <ol class="flex min-w-0 flex-col gap-6" aria-label={`${year} 年文章`}>
     {
       posts.map((post, index) => (
         <Card

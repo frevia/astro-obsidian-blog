@@ -88,7 +88,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
       target="_blank"
       rel="noopener noreferrer"
       data-media-type={cardType}
-      className={`media-card app-card ${theme === "dark" ? "dark" : "light"} block w-full max-w-app cursor-pointer rounded-xl no-underline shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-accent/50 hover:shadow-md`}
+      className={`media-card app-card ${theme === "dark" ? "dark" : "light"} block w-full max-w-app cursor-pointer rounded-[var(--radius-card)] no-underline shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-accent/50 hover:shadow-md`}
     >
       <div className="flex items-start gap-3 p-3 sm:gap-4 sm:p-4">
         {/* 海报图片 - 左侧 */}

@@ -237,11 +237,17 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
           attributionControl: false,
         });
 
-        L.tileLayer(TILE_URL, {
+        const tileLayer = L.tileLayer(TILE_URL, {
           maxZoom: 19,
           attribution: TILE_ATTRIBUTION,
           crossOrigin: true,
-        }).addTo(map);
+        });
+        tileLayer.on("tileerror", () => {
+          if (!cancelled) {
+            setMapError("地图图层暂时不可用，但仍可从下方地点列表查看足迹。");
+          }
+        });
+        tileLayer.addTo(map);
         L.control.zoom({ position: "topright" }).addTo(map);
         L.control.scale({ imperial: false, position: "bottomleft" }).addTo(map);
         const attributionControl = L.control.attribution({ prefix: false });
@@ -342,15 +348,15 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
     >
       <header className="footprint-overview">
         <div className="footprint-overview-copy">
-          <p className="footprint-eyebrow">地点地图</p>
+          <p className="footprint-eyebrow">去过的地方</p>
           <h2
             id="footprint-explorer-title"
             className="footprint-overview-title"
           >
-            把文章里的地点，放回地图。
+            把去过的地方标出来。
           </h2>
           <p className="footprint-overview-desc">
-            从一枚地点标记出发，回到那篇文章、那段路和当时的视线。
+            点开标记，可以回到相关文章。
           </p>
         </div>
         <dl className="footprint-stats">
@@ -375,12 +381,9 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
           aria-labelledby="footprint-empty-title"
           data-footprint-empty-state
         >
-          <p className="footprint-eyebrow">第一枚标记</p>
-          <h2 id="footprint-empty-title">下一段旅程会从第一枚地点标记开始</h2>
-          <p>
-            在文章 frontmatter
-            添加地点后，这里会自动生成地图标记，并关联对应文章。
-          </p>
+          <p className="footprint-eyebrow">还没有记录</p>
+          <h2 id="footprint-empty-title">这里还没有地点</h2>
+          <p>在文章里加上地点，这里就会显示相应标记。</p>
         </section>
       ) : null}
 
@@ -390,8 +393,8 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
       >
         <header className="footprint-map-panel-head">
           <div>
-            <p className="footprint-eyebrow">交互地图</p>
-            <h2 id="footprint-map-title">足迹总览</h2>
+            <p className="footprint-eyebrow">地图</p>
+            <h2 id="footprint-map-title">去过的地方</h2>
           </div>
           <div className="footprint-map-actions">
             <span
@@ -424,9 +427,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
             />
             当前选中
           </span>
-          <span className="footprint-map-legend-note">
-            点击地点可查看关联文章
-          </span>
+          <span className="footprint-map-legend-note">点标记查看文章</span>
         </div>
 
         <div className="footprint-map-layout">
@@ -453,7 +454,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
               ) : null}
             </div>
             <p className="footprint-map-help">
-              拖动地图浏览，点击标记查看地点；也可以直接从右侧地点索引开始。
+              拖动地图查看，点标记看文章；也可以从右侧列表选择。
             </p>
           </div>
 
@@ -464,8 +465,8 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
           >
             <div className="footprint-place-rail-head">
               <div>
-                <p className="footprint-eyebrow">地点索引</p>
-                <h3>地点档案</h3>
+                <p className="footprint-eyebrow">地点</p>
+                <h3>关联文章</h3>
               </div>
               <span className="footprint-place-count">{placeItems.length}</span>
             </div>
@@ -478,7 +479,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
               >
                 <div className="footprint-place-detail-head">
                   <div>
-                    <p className="footprint-place-detail-kicker">当前地点</p>
+                    <p className="footprint-place-detail-kicker">地点</p>
                     <h4>{selectedItem.name}</h4>
                   </div>
                   <button
@@ -513,7 +514,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
               </div>
             ) : (
               <p className="footprint-place-prompt">
-                选择一个地点，查看它关联的文章和坐标。
+                选一个地点，看看相关的文章。
               </p>
             )}
 

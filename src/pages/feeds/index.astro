@@ -68,23 +68,9 @@ const hasTwikooEnv =
   <Header />
   <Main
     pageTitle="邻居"
-    pageDesc="把网络上正在认真写作的人，收进一张可以慢慢浏览的阅读地图。"
+    pageDesc="这里放着一些我常去看的博客。"
     pageDescClass="max-w-2xl"
   >
-    <section slot="header-extra" class="feeds-masthead" data-pagefind-ignore>
-      <div class="feeds-masthead-copy">
-        <span class="feeds-eyebrow">订阅网络</span>
-        <p>
-          这里保存着一些值得反复访问的站点。它们不必同频，却都在认真留下自己的
-          注脚。
-        </p>
-      </div>
-      <div class="feeds-masthead-note" aria-label="订阅来源">
-        <strong id="feeds-source-count">—</strong>
-        <span>精选来源</span>
-      </div>
-    </section>
-
     <section id="feeds-list-section" class="feeds-page-stage">
       <header class="feeds-stage-head">
         <div>
@@ -130,8 +116,8 @@ const hasTwikooEnv =
       <!-- 无内容提示 -->
       <div id="feeds-no-content" class="feeds-state empty-state-card hidden">
         <div class="feeds-state-icon" aria-hidden="true">∅</div>
-        <p class="feeds-state-title">暂时没有新的信号</p>
-        <p class="feeds-state-copy">当前没有可显示的博客订阅内容。</p>
+        <p class="feeds-state-title">还没有订阅内容</p>
+        <p class="feeds-state-copy">这里暂时没有可显示的博客更新。</p>
       </div>
       <!-- Feeds 列表容器 -->
       <ul id="feeds-list" class="feeds-list"></ul>
@@ -147,7 +133,7 @@ const hasTwikooEnv =
       <!-- 已加载全部内容提示 -->
       <div id="all-loaded-indicator" class="feeds-all-loaded hidden">
         <span aria-hidden="true">✦</span>
-        <span>已抵达这张阅读地图的边缘</span>
+        <span>已经看到这里了</span>
       </div>
     </section>
 
@@ -158,7 +144,7 @@ const hasTwikooEnv =
           <div class="feeds-comments-head">
             <span class="feeds-eyebrow">开放讨论</span>
             <h2>留言</h2>
-            <p>欢迎分享您对博客订阅内容的看法和建议</p>
+            <p>如果有想推荐的站点，也可以在这里留言。</p>
           </div>
 
           {commentsEnabled && hasTwikooEnv && <Twikoo />}
@@ -255,16 +241,6 @@ const hasTwikooEnv =
 </script>
 
 <style is:global>
-  .feeds-masthead {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 1rem;
-    align-items: end;
-    margin-top: 1.25rem;
-    padding: 1rem 0 1.1rem;
-    border-block: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
-  }
-
   .feeds-eyebrow {
     color: var(--accent);
     font-size: 0.64rem;
@@ -272,35 +248,6 @@ const hasTwikooEnv =
     letter-spacing: 0.16em;
     line-height: 1.2;
     text-transform: uppercase;
-  }
-
-  .feeds-masthead-copy p {
-    max-width: 38rem;
-    margin: 0.55rem 0 0;
-    color: color-mix(in oklab, var(--foreground) 68%, transparent);
-    font-size: 0.82rem;
-    line-height: 1.8;
-  }
-
-  .feeds-masthead-note {
-    display: grid;
-    min-width: 7.5rem;
-    justify-items: end;
-    gap: 0.15rem;
-    color: var(--foreground-muted);
-    font-size: 0.6rem;
-    letter-spacing: 0.12em;
-    line-height: 1.3;
-    text-transform: uppercase;
-  }
-
-  .feeds-masthead-note strong {
-    color: var(--accent);
-    font-size: 2rem;
-    font-variant-numeric: tabular-nums;
-    font-weight: 650;
-    letter-spacing: -0.06em;
-    line-height: 1;
   }
 
   .feeds-page-stage {
@@ -341,7 +288,7 @@ const hasTwikooEnv =
   .feeds-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.85rem;
+    gap: 1rem;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -351,11 +298,10 @@ const hasTwikooEnv =
     position: relative;
     min-width: 0;
     overflow: hidden;
-    border: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
-    border-radius: 0.95rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
     background: var(--surface);
-    box-shadow: 0 0.8rem 2rem -1.7rem
-      color-mix(in oklab, var(--accent) 60%, transparent);
+    box-shadow: var(--shadow-sm);
     transition:
       border-color 180ms ease,
       background-color 180ms ease,
@@ -363,27 +309,12 @@ const hasTwikooEnv =
       transform 180ms ease;
   }
 
-  .feeds-card::before {
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 2px;
-    background: var(--accent);
-    content: "";
-    opacity: 0.32;
-    transition: opacity 180ms ease;
-  }
-
   .feeds-card:hover,
   .feeds-card:focus-within {
     border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
     background: color-mix(in oklab, var(--accent) 3%, var(--surface));
-    box-shadow: 0 1.2rem 2.5rem -1.8rem var(--accent);
+    box-shadow: var(--shadow-md);
     transform: translateY(-2px);
-  }
-
-  .feeds-card:hover::before,
-  .feeds-card:focus-within::before {
-    opacity: 1;
   }
 
   .feeds-card-link {
@@ -403,8 +334,8 @@ const hasTwikooEnv =
     flex: none;
     place-items: center;
     overflow: hidden;
-    border: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border));
-    border-radius: 0.75rem;
+    border: 1px solid color-mix(in oklab, var(--accent) 24%, var(--border));
+    border-radius: var(--radius-control);
     color: var(--accent);
     background: var(--accent-softer);
     font-size: 1rem;
@@ -497,8 +428,8 @@ const hasTwikooEnv =
     min-height: 7.4rem;
     align-items: flex-start;
     gap: 0.85rem;
-    border: 1px solid color-mix(in oklab, var(--border) 68%, transparent);
-    border-radius: 0.95rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
     padding: 1rem;
     background: var(--surface-muted);
   }
@@ -554,7 +485,7 @@ const hasTwikooEnv =
     gap: 0.45rem;
     margin: 2rem 0 3rem;
     border: 1px dashed color-mix(in oklab, var(--border) 80%, transparent);
-    border-radius: 1rem;
+    border-radius: var(--radius-card);
     padding: 3rem 1.25rem;
     color: var(--foreground-muted);
     text-align: center;
@@ -678,14 +609,6 @@ const hasTwikooEnv =
   }
 
   @media (max-width: 700px) {
-    .feeds-masthead {
-      grid-template-columns: minmax(0, 1fr) auto;
-    }
-
-    .feeds-masthead-note {
-      min-width: 5rem;
-    }
-
     .feeds-list {
       grid-template-columns: 1fr;
     }

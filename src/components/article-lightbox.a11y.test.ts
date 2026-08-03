@@ -153,6 +153,7 @@ describe("ArticleLightbox component wiring", () => {
     expect(source).toContain(
       'document.addEventListener("astro:page-load", onPageLoad)'
     );
+    expect(source).toContain("onPageLoad();");
     expect(source).toContain(
       'document.addEventListener("astro:before-swap", onBeforeSwap)'
     );

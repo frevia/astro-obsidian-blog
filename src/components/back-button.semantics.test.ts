@@ -16,5 +16,6 @@ describe("BackButton semantic action control", () => {
     expect(source).toContain("const stack = readStack();");
     expect(source).toContain('const fallbackHref = withBase("/")');
     expect(source).toContain("location.assign(fallbackHref)");
+    expect(source).toContain("initBackButton();");
   });
 });
