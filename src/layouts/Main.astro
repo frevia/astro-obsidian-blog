@@ -1,15 +1,16 @@
 ---
-interface StringTitleProp {
-  pageTitle: string;
+interface PageOptions {
   pageDesc?: string;
   pageDescClass?: string;
 }
 
-interface ArrayTitleProp {
+interface StringTitleProp extends PageOptions {
+  pageTitle: string;
+}
+
+interface ArrayTitleProp extends PageOptions {
   pageTitle: [string, string];
   titleTransition: string;
-  pageDesc?: string;
-  pageDescClass?: string;
 }
 
 export type Props = StringTitleProp | ArrayTitleProp;

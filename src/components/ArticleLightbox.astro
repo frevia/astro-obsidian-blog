@@ -119,4 +119,8 @@ const labels = useTranslations(SITE.lang).lightbox;
   window.__articleLightboxBeforeSwapHandler = onBeforeSwap;
   document.addEventListener("astro:page-load", onPageLoad);
   document.addEventListener("astro:before-swap", onBeforeSwap);
+
+  // Native cross-document transitions do not install Astro's client router.
+  // Initialize the current document immediately as well as after router loads.
+  onPageLoad();
 </script>

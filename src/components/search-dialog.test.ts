@@ -14,6 +14,10 @@ const loaderSource = readFileSync(
   resolve(import.meta.dirname, "../scripts/pagefind-loader.ts"),
   "utf-8"
 );
+const layoutSource = readFileSync(
+  resolve(import.meta.dirname, "../layouts/Layout.astro"),
+  "utf-8"
+);
 
 describe("global search dialog", () => {
   it("keeps the Pagefind engine behind an interaction-triggered import", () => {
@@ -34,5 +38,11 @@ describe("global search dialog", () => {
     expect(componentSource).toContain('aria-controls="global-search-results"');
     expect(componentSource).toContain("data-no-results={labels.noResults}");
     expect(componentSource).toContain("data-search-dialog-close");
+  });
+
+  it("does not mount the global dialog when search is disabled", () => {
+    expect(layoutSource).toContain(
+      'SITE.search === "pagefind" && <SearchDialog />'
+    );
   });
 });

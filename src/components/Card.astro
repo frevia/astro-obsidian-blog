@@ -35,6 +35,7 @@ const {
 const { title, description, published, timezone } = data;
 const isStandard = presentation === "standard";
 const isFeatured = presentation === "featured";
+const isEditorial = presentation === "editorial";
 const inferredKind = inferPostContentKind({ data, body });
 const contentKind: ContentKind = isFeatured ? "featured" : inferredKind;
 const contentKindLabel: Record<ContentKind, string> = {
@@ -77,8 +78,10 @@ const titleClass = isStandard
     class:list={[
       "app-card group relative isolate block overflow-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
       isStandard
-        ? "rounded-xl px-4 py-4 hover:border-accent/55 hover:bg-accent/5"
-        : "rounded-2xl px-4 py-4 shadow-sm hover:-translate-y-0.5 hover:border-accent/55 hover:shadow-md sm:px-5 sm:py-5",
+        ? "rounded-[var(--radius-card)] px-4 py-4 hover:border-accent/55"
+        : isEditorial
+          ? "post-card-editorial rounded-[var(--radius-card-emphasis)] px-5 py-5 sm:px-6 sm:py-6"
+          : "rounded-[var(--radius-card-emphasis)] px-4 py-4 shadow-sm hover:-translate-y-0.5 hover:border-accent/55 hover:shadow-md sm:px-5 sm:py-5",
     ]}
   >
     {
@@ -216,3 +219,18 @@ const titleClass = isStandard
     </div>
   </a>
 </li>
+
+<style>
+  .post-card-editorial {
+    border-color: color-mix(in oklab, var(--content-accent) 24%, var(--border));
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .post-card-editorial:hover {
+    border-color: color-mix(in oklab, var(--content-accent) 52%, var(--border));
+    background: var(--interactive-hover);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+</style>

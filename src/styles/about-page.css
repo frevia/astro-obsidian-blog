@@ -13,7 +13,7 @@
     padding: clamp(1.25rem, 3.5vw, 2.25rem);
     border: 1px solid
       color-mix(in oklab, var(--about-accent) 22%, var(--border));
-    border-radius: 1.25rem;
+    border-radius: var(--radius-card-emphasis);
     background:
       radial-gradient(
         circle at 100% 0%,
@@ -21,7 +21,7 @@
         transparent 56%
       ),
       var(--surface);
-    box-shadow: 0 1.25rem 3.5rem -2.5rem var(--about-accent);
+    box-shadow: var(--shadow-md);
   }
 
   .about-hero-copy {
@@ -139,7 +139,7 @@
   .about-stat {
     min-width: 0;
     border: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
-    border-radius: 0.85rem;
+    border-radius: var(--radius-card);
     padding: 0.9rem 0.95rem;
     background: var(--surface-muted);
     transition:
@@ -213,9 +213,9 @@
     overflow: hidden;
     border: 1px solid
       color-mix(in oklab, var(--about-accent) 18%, var(--border));
-    border-radius: 1.1rem;
+    border-radius: var(--radius-card-emphasis);
     background: var(--surface-muted);
-    box-shadow: 0 1.5rem 3rem -2rem var(--about-accent);
+    box-shadow: var(--shadow-md);
   }
 
   .about-portrait > div {

@@ -83,8 +83,6 @@ export async function optimizeImage<T extends boolean = false>(
     return attachmentRelativePath(key).toLowerCase() === fileName.toLowerCase();
   });
 
-  console.log("imageKey", imageKey);
-
   if (!imageKey) {
     return {
       thumbnail: imagePath,

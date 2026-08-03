@@ -38,13 +38,22 @@ jobs:
           cache: "pnpm"
 
       - name: "📦 Install dependencies"
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: "🔎 Lint code"
         run: pnpm run lint
 
       - name: "📝 Checking code format"
         run: pnpm run format:check
+
+      - name: "🧪 Run tests"
+        run: pnpm run test
+
+      - name: "🎨 Verify theme tokens"
+        run: pnpm run verify:theme
+
+      - name: "🗺️ Verify footprint theme"
+        run: pnpm run verify:footprint
 
       - name: "🚀 Build the project"
         run: pnpm run build

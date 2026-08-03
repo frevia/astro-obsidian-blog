@@ -28,6 +28,8 @@ describe("CollapsibleTagList integration and accessibility contract", () => {
     expect(source).toContain(
       'toggle.textContent = isExpanded ? "收起" : "展开"'
     );
+    expect(source).toContain("root.dataset.collapsibleTagListInitialized");
+    expect(source).toContain("initCollapsibleTagLists();");
   });
 
   it("removes tags block from post details page", () => {

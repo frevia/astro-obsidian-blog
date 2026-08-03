@@ -35,5 +35,6 @@ describe("editorial home and post list contracts", () => {
     expect(card).toContain("data-transition-cover={coverTransitionName}");
     expect(card).toContain("transition:name={titleTransitionName}");
     expect(card).toContain("transition:name={coverTransitionName}");
+    expect(card).toContain("post-card-editorial");
   });
 });

@@ -1,23 +1,23 @@
 /**
  * worktree 专用配色 · 方案 C+「冷白」
- * 近白底 + 低对比分隔，阅读更轻松
+ * 纯白底 + 克制分隔，阅读更轻松
  */
 
 :root,
 html[data-theme="light"] {
   --background: #ffffff;
-  --foreground: #1f2937;
-  --foreground-muted: #5b6573;
-  --foreground-subtle: #6b7280;
+  --foreground: #25313d;
+  --foreground-muted: #566574;
+  --foreground-subtle: #687785;
   --accent: #3d6b7f;
   --accent-strong: #2f596c;
-  --border: #e8edf2;
-  --border-strong: #d8e1e8;
+  --border: #dfe7ed;
+  --border-strong: #c8d5de;
   --surface: #ffffff;
   --surface-elevated: #ffffff;
-  --surface-raised: #ffffff;
+  --surface-raised: #fcfdfe;
   --surface-glass: color-mix(in srgb, #ffffff 86%, transparent);
-  --surface-muted: #fafbfc;
+  --surface-muted: #f6f9fb;
   --space-reading-block: 1.25rem;
   --accent-soft: color-mix(in oklab, var(--accent) 12%, transparent);
   --accent-softer: color-mix(in oklab, var(--accent) 6%, var(--background));
@@ -31,13 +31,14 @@ html[data-theme="light"] {
   --rating: #c58a22;
   --focus-ring: color-mix(in oklab, var(--accent) 78%, transparent);
   --overlay: color-mix(in srgb, #0f172a 24%, transparent);
-  --radius-card: 0.75rem;
-  --radius-card-emphasis: 1rem;
+  --radius-control: 0.625rem;
+  --radius-card: 0.875rem;
+  --radius-card-emphasis: 1.125rem;
   --motion-fast: 140ms;
   --motion-standard: 200ms;
   --motion-slow: 320ms;
-  --shadow-sm: 0 1px 2px color-mix(in oklab, #1f2937 5%, transparent);
-  --shadow-md: 0 4px 12px color-mix(in oklab, #1f2937 7%, transparent);
+  --shadow-sm: 0 1px 3px color-mix(in oklab, #1f2937 8%, transparent);
+  --shadow-md: 0 6px 16px color-mix(in oklab, #1f2937 10%, transparent);
   --shadow-lg: 0 18px 45px -30px color-mix(in oklab, #1f2937 35%, transparent);
   --shadow-accent: 0 18px 42px -28px
     color-mix(in oklab, var(--accent) 42%, transparent);
@@ -49,17 +50,17 @@ html[data-theme="light"] {
 html[data-theme="dark"] {
   --background: #111827;
   --foreground: #f1f5f9;
-  --foreground-muted: #94a3b8;
-  --foreground-subtle: #7c8a9e;
+  --foreground-muted: #a4b3c2;
+  --foreground-subtle: #8d9caf;
   --accent: #7ba3b8;
   --accent-strong: #a6c7d6;
-  --border: #2d3748;
-  --border-strong: #455468;
+  --border: #354255;
+  --border-strong: #53637a;
   --surface: #1a2230;
   --surface-elevated: #1f2937;
-  --surface-raised: #263244;
+  --surface-raised: #2b384c;
   --surface-glass: color-mix(in srgb, #1f2937 82%, transparent);
-  --surface-muted: #243044;
+  --surface-muted: #222e41;
   --space-reading-block: 1.25rem;
   --accent-soft: color-mix(in oklab, var(--accent) 20%, transparent);
   --accent-softer: color-mix(in oklab, var(--accent) 10%, var(--background));
@@ -73,8 +74,9 @@ html[data-theme="dark"] {
   --rating: #e0b45e;
   --focus-ring: color-mix(in oklab, var(--accent) 86%, transparent);
   --overlay: color-mix(in srgb, #020617 50%, transparent);
-  --radius-card: 0.75rem;
-  --radius-card-emphasis: 1rem;
+  --radius-control: 0.625rem;
+  --radius-card: 0.875rem;
+  --radius-card-emphasis: 1.125rem;
   --motion-fast: 140ms;
   --motion-standard: 200ms;
   --motion-slow: 320ms;
@@ -152,13 +154,9 @@ html[data-theme="dark"] {
   }
 
   .app-card {
-    border: 1px solid color-mix(in oklab, var(--border) 90%, transparent);
+    border: 1px solid var(--border);
     border-radius: var(--radius-card);
-    background: linear-gradient(
-      135deg,
-      color-mix(in oklab, var(--surface-raised) 96%, var(--accent) 4%),
-      var(--surface)
-    );
+    background: var(--surface);
     box-shadow: var(--shadow-sm);
     transition:
       border-color var(--motion-standard) ease,
@@ -168,15 +166,16 @@ html[data-theme="dark"] {
   }
 
   .app-card:hover {
-    border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+    border-color: color-mix(in oklab, var(--accent) 42%, var(--border));
+    background: var(--interactive-hover);
     box-shadow: var(--shadow-md);
     transform: translateY(-1px);
   }
 
   .app-panel {
-    border: 1px solid var(--line-soft);
+    border: 1px solid var(--border);
     border-radius: var(--radius-card);
-    background: color-mix(in oklab, var(--surface-muted) 92%, var(--accent) 8%);
+    background: color-mix(in oklab, var(--surface-muted) 96%, var(--accent) 4%);
     box-shadow: var(--shadow-sm);
   }
 
@@ -185,11 +184,11 @@ html[data-theme="dark"] {
     min-height: 1.7rem;
     align-items: center;
     gap: 0.3rem;
-    border: 1px solid color-mix(in oklab, var(--border-strong) 72%, transparent);
+    border: 1px solid color-mix(in oklab, var(--border-strong) 86%, transparent);
     border-radius: 9999px;
     padding: 0.25rem 0.6rem;
     color: var(--foreground-muted);
-    background: color-mix(in oklab, var(--surface) 82%, var(--accent) 18%);
+    background: color-mix(in oklab, var(--surface) 92%, var(--accent) 8%);
     font-size: 0.72rem;
     line-height: 1;
     white-space: nowrap;
@@ -244,7 +243,7 @@ html[data-theme="dark"] {
 
   .app-code {
     border: 1px solid var(--line-soft);
-    border-radius: 0.25rem;
+    border-radius: var(--radius-control);
     background: var(--surface-muted);
     padding: 0.125rem 0.375rem;
     font-size: 0.75rem;

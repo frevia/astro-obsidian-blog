@@ -128,7 +128,7 @@
 }
 
 .empty-state-card {
-  @apply rounded-lg border border-border/70 bg-surface-muted px-4 py-6 text-center text-foreground-muted;
+  @apply rounded-[var(--radius-card)] border border-border bg-surface-muted px-4 py-6 text-center text-foreground-muted;
 }
 
 /* Source: https://piccalil.li/blog/a-more-modern-css-reset/ */

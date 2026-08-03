@@ -34,7 +34,7 @@ describe("calendar and footprint visual integration", () => {
     );
 
     expect(source).toContain("data-footprint-empty-state");
-    expect(source).toContain("下一段旅程会从第一枚地点标记开始");
+    expect(source).toContain("这里还没有地点");
     expect(source).toContain("正在准备地图图层");
     expect(source).toContain("交互式足迹地图");
     expect(source).toContain("data-footprint-place-rail");
@@ -54,5 +54,7 @@ describe("calendar and footprint visual integration", () => {
     expect(source).toContain("marker.openPopup()");
     expect(source).toContain('data-astro-prefetch="tap"');
     expect(source).toContain('link.dataset.astroPrefetch = "tap"');
+    expect(source).toContain('tileLayer.on("tileerror"');
+    expect(source).toContain("地图暂时无法加载");
   });
 });
