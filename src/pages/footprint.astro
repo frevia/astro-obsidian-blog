@@ -6,8 +6,11 @@ import Main from "@/layouts/Main.astro";
 import FootprintMap from "@/components/FootprintMap.tsx";
 import { SITE } from "@/config";
 import { getCollection } from "astro:content";
+import { getImage } from "astro:assets";
 import postFilter from "@/utils/postFilter";
 import { getPath } from "@/utils/getPath";
+import { optimizeImage } from "@/utils/optimizeImages";
+import { firstContentImage } from "@/utils/footprintImage";
 
 const blogPosts = await getCollection("blog");
 const publishedPosts = blogPosts.filter(postFilter);
@@ -43,7 +46,11 @@ function toPlaceRecords(post: (typeof publishedPosts)[number]): PlaceRecord[] {
     .filter(Boolean) as PlaceRecord[];
 }
 
-const placesFromPosts = publishedPosts
+const footprintPosts = publishedPosts.filter(
+  post => toPlaceRecords(post).length > 0
+);
+
+const placesFromPosts = footprintPosts
   .flatMap(post => toPlaceRecords(post))
   .filter((loc): loc is PlaceRecord => Boolean(loc));
 
@@ -54,9 +61,63 @@ type PostLocationRecord = {
   lng: number;
   lat: number;
   date: string;
+  thumbnail?: {
+    src: string;
+    alt: string;
+  };
 };
 
-const postLocationRecords = publishedPosts.flatMap(post =>
+async function getPostThumbnail(
+  post: (typeof publishedPosts)[number]
+): Promise<PostLocationRecord["thumbnail"]> {
+  const contentImage = firstContentImage(post.body);
+  if (contentImage) {
+    const optimized = await optimizeImage(contentImage, {
+      thumbnailSize: 360,
+      quality: 78,
+    });
+    return {
+      src: optimized.thumbnail,
+      alt: `${post.data.title}的文章配图`,
+    };
+  }
+
+  const cover = post.data.cover;
+  if (!cover) return undefined;
+
+  if (typeof cover === "string") {
+    const optimized = await optimizeImage(cover, {
+      thumbnailSize: 360,
+      quality: 78,
+    });
+    return {
+      src: optimized.thumbnail,
+      alt: `${post.data.title}的封面`,
+    };
+  }
+
+  const optimized = await getImage({
+    src: cover,
+    width: 360,
+    height: 225,
+    fit: "cover",
+    format: "webp",
+    quality: 78,
+  });
+  return {
+    src: optimized.src,
+    alt: `${post.data.title}的封面`,
+  };
+}
+
+const thumbnailEntries = await Promise.all(
+  footprintPosts.map(
+    async post => [post.id, await getPostThumbnail(post)] as const
+  )
+);
+const thumbnailsByPost = new Map(thumbnailEntries);
+
+const postLocationRecords = footprintPosts.flatMap(post =>
   toPlaceRecords(post).map(
     loc =>
       ({
@@ -66,6 +127,7 @@ const postLocationRecords = publishedPosts.flatMap(post =>
         lng: loc.lng,
         lat: loc.lat,
         date: post.data.published.toISOString(),
+        thumbnail: thumbnailsByPost.get(post.id),
       }) satisfies PostLocationRecord
   )
 );

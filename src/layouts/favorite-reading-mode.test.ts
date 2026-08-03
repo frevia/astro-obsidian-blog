@@ -9,6 +9,11 @@ describe("favorite reading mode", () => {
     const content = source();
 
     expect(content).toContain(
+      'import ArticleHero from "@/components/article/ArticleHero.astro"'
+    );
+    expect(content).toContain("<ArticleHero");
+    expect(content).toContain("showMedia={false}");
+    expect(content).toContain(
       'import ArticleReadingRail from "@/components/article/ArticleReadingRail.astro"'
     );
     expect(content).toContain('import "@/styles/article-reading.css"');

@@ -20,6 +20,10 @@ export interface FootprintRecord {
   lng: number;
   lat: number;
   date?: string;
+  thumbnail?: {
+    src: string;
+    alt: string;
+  };
 }
 
 export interface FootprintMapProps {
@@ -33,6 +37,32 @@ type PlaceItem = FootprintPlace & {
   key: string;
   posts: FootprintRecord[];
 };
+
+const MAP_PIN_PATH =
+  "M16 2C9.373 2 4 7.373 4 14c0 8.68 9.65 18.4 11.35 20.03a.92.92 0 0 0 1.3 0C18.35 32.4 28 22.68 28 14 28 7.373 22.627 2 16 2Z";
+
+function MapPinGlyph({ selected = false }: { selected?: boolean }) {
+  return (
+    <svg
+      className={["footprint-map-legend-pin", selected ? "is-selected" : null]
+        .filter(Boolean)
+        .join(" ")}
+      viewBox="0 0 32 42"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <ellipse
+        className="footprint-marker-pin-base"
+        cx="16"
+        cy="37"
+        rx="9"
+        ry="2.8"
+      />
+      <path className="footprint-marker-pin-body" d={MAP_PIN_PATH} />
+      <circle className="footprint-marker-pin-hole" cx="16" cy="14" r="4.1" />
+    </svg>
+  );
+}
 
 const DEFAULT_CENTER: [number, number] = [25, 105];
 const DEFAULT_ZOOM = 3;
@@ -87,10 +117,10 @@ function formatCoordinate(value: number): string {
 function createMarkerIcon(L: LeafletApi, selected: boolean) {
   return L.divIcon({
     className: "footprint-marker-icon-wrap",
-    html: `<span class="footprint-marker-icon${selected ? " is-selected" : ""}" aria-hidden="true"></span>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-    popupAnchor: [0, -14],
+    html: `<span class="footprint-marker-icon${selected ? " is-selected" : ""}" aria-hidden="true"><svg viewBox="0 0 32 42" focusable="false"><ellipse class="footprint-marker-pin-base" cx="16" cy="37" rx="9" ry="2.8"></ellipse><path class="footprint-marker-pin-body" d="${MAP_PIN_PATH}"></path><circle class="footprint-marker-pin-hole" cx="16" cy="14" r="4.1"></circle></svg></span>`,
+    iconSize: [38, 44],
+    iconAnchor: [19, 42],
+    popupAnchor: [0, -40],
   });
 }
 
@@ -121,7 +151,34 @@ function createPopupContent(item: PlaceItem): HTMLElement {
       const link = document.createElement("a");
       link.href = post.url;
       link.dataset.astroPrefetch = "tap";
-      link.textContent = post.title;
+
+      if (post.thumbnail) {
+        const image = document.createElement("img");
+        image.className = "footprint-popup-post-image";
+        image.src = post.thumbnail.src;
+        image.alt = post.thumbnail.alt;
+        image.width = 112;
+        image.height = 70;
+        image.loading = "lazy";
+        image.decoding = "async";
+        link.append(image);
+      }
+
+      const copy = document.createElement("span");
+      copy.className = "footprint-popup-post-copy";
+
+      const postTitle = document.createElement("span");
+      postTitle.className = "footprint-popup-post-title";
+      postTitle.textContent = post.title;
+      copy.append(postTitle);
+
+      const postDate = document.createElement("time");
+      postDate.className = "footprint-popup-post-date";
+      postDate.textContent = formatDate(post.date);
+      if (post.date) postDate.dateTime = post.date;
+      copy.append(postDate);
+
+      link.append(copy);
       listItem.append(link);
       list.append(listItem);
     });
@@ -417,14 +474,11 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
 
         <div className="footprint-map-legend" aria-label="地图图例">
           <span className="footprint-map-legend-item">
-            <span className="footprint-map-legend-dot" aria-hidden="true" />
+            <MapPinGlyph />
             已记录地点
           </span>
           <span className="footprint-map-legend-item">
-            <span
-              className="footprint-map-legend-dot footprint-map-legend-dot--selected"
-              aria-hidden="true"
-            />
+            <MapPinGlyph selected />
             当前选中
           </span>
           <span className="footprint-map-legend-note">点标记查看文章</span>
@@ -503,10 +557,23 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                         data-astro-prefetch="tap"
                         title={post.title}
                       >
-                        <span>{post.title}</span>
-                        <time dateTime={post.date}>
-                          {formatDate(post.date)}
-                        </time>
+                        {post.thumbnail ? (
+                          <img
+                            className="footprint-post-thumbnail"
+                            src={post.thumbnail.src}
+                            alt={post.thumbnail.alt}
+                            width="112"
+                            height="70"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        ) : null}
+                        <span className="footprint-post-copy">
+                          <span>{post.title}</span>
+                          <time dateTime={post.date}>
+                            {formatDate(post.date)}
+                          </time>
+                        </span>
                       </a>
                     </li>
                   ))}

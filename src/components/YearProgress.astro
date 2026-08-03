@@ -10,12 +10,13 @@ const siteTimezone = SITE.timezone;
   data-ready="0"
   role="progressbar"
   aria-label="年度进度"
+  aria-valuetext="正在计算年度进度"
   aria-valuemin="0"
   aria-valuemax="100"
   aria-valuenow="0"
   style="--year-progress: 0%"
 >
-  <div class="year-progress-bar" style="width: 0%">
+  <div class="year-progress-bar" data-active="0" style="width: 0%">
     <div class="year-progress-tooltip end">0%</div>
   </div>
 </div>
@@ -77,7 +78,11 @@ const siteTimezone = SITE.timezone;
 
   let animationId = null;
   let animating = false;
+  let tooltipHideTimer = null;
   const GLOBAL_FLAG = "__yearProgressDidInitialAnimation";
+  const PAGE_LOAD_HANDLER = "__yearProgressPageLoadHandler";
+  const DOM_READY_HANDLER = "__yearProgressDomReadyHandler";
+  const INTERVAL_FLAG = "__yearProgressIntervalId";
 
   function getElements() {
     const root = document.querySelector(".year-progress");
@@ -99,6 +104,7 @@ const siteTimezone = SITE.timezone;
     const start = performance.now();
     animating = true;
     tooltip.classList.add("visible");
+    if (tooltipHideTimer) window.clearTimeout(tooltipHideTimer);
     if (animationId) cancelAnimationFrame(animationId);
 
     function frame(now) {
@@ -107,10 +113,13 @@ const siteTimezone = SITE.timezone;
       const current = from + (to - from) * eased;
 
       bar.style.width = current + "%";
+      bar.dataset.active = current > 0.05 ? "1" : "0";
       root.style.setProperty("--year-progress", current + "%");
       root.setAttribute("aria-valuenow", current.toFixed(1));
       const year = getCurrentYear();
-      tooltip.textContent = `${year}年已走完 ${current.toFixed(1)}%`;
+      const label = `${year}年已走完 ${current.toFixed(1)}%`;
+      root.setAttribute("aria-valuetext", label);
+      tooltip.textContent = label;
 
       tooltip.classList.remove("end", "center");
       tooltip.classList.add(current > 90 ? "center" : "end");
@@ -120,9 +129,10 @@ const siteTimezone = SITE.timezone;
       } else {
         animating = false;
         animationId = null;
-        setTimeout(() => {
+        tooltipHideTimer = window.setTimeout(() => {
           tooltip.classList.remove("visible");
-        }, 3500);
+          tooltipHideTimer = null;
+        }, 2400);
       }
     }
 
@@ -137,10 +147,13 @@ const siteTimezone = SITE.timezone;
       if (!els) return;
       const { root, bar, tooltip } = els;
       bar.style.width = progress + "%";
+      bar.dataset.active = progress > 0.05 ? "1" : "0";
       root.style.setProperty("--year-progress", progress + "%");
       root.setAttribute("aria-valuenow", progress.toFixed(1));
       const year = getCurrentYear();
-      tooltip.textContent = `${year}年已走完 ${progress.toFixed(1)}%`;
+      const label = `${year}年已走完 ${progress.toFixed(1)}%`;
+      root.setAttribute("aria-valuetext", label);
+      tooltip.textContent = label;
       tooltip.classList.remove("end", "center");
       tooltip.classList.add(progress > 90 ? "center" : "end");
     }
@@ -176,17 +189,34 @@ const siteTimezone = SITE.timezone;
     updateToCurrent(false);
   }
 
-  // 初次加载 + Astro ClientRouter（视图切换）都会触发
+  // 初次加载 + Astro ClientRouter（视图切换）都会触发；重复执行脚本时先移除旧监听，避免累计处理器。
+  const previousPageLoadHandler = window[PAGE_LOAD_HANDLER];
+  if (previousPageLoadHandler) {
+    document.removeEventListener("astro:page-load", previousPageLoadHandler);
+  }
+  window[PAGE_LOAD_HANDLER] = initYearProgress;
   document.addEventListener("astro:page-load", initYearProgress);
-  // 兜底：如果未启用 ClientRouter，也能正常初始化
-  document.addEventListener("DOMContentLoaded", initYearProgress, {
-    once: true,
-  });
 
-  // 每分钟检查并平滑更新（如果用户长时间打开页面）
-  setInterval(() => {
-    if (!animating) updateToCurrent(true);
-  }, 60 * 1000);
+  // 兜底：如果未启用 ClientRouter，也能正常初始化。
+  const previousDomReadyHandler = window[DOM_READY_HANDLER];
+  if (previousDomReadyHandler) {
+    document.removeEventListener("DOMContentLoaded", previousDomReadyHandler);
+  }
+  if (document.readyState === "loading") {
+    window[DOM_READY_HANDLER] = initYearProgress;
+    document.addEventListener("DOMContentLoaded", initYearProgress, {
+      once: true,
+    });
+  } else {
+    initYearProgress();
+  }
+
+  // 每分钟静默校准一次；年度变化幅度很小，不再重复播放提示动画。
+  if (!window[INTERVAL_FLAG]) {
+    window[INTERVAL_FLAG] = window.setInterval(() => {
+      if (!animating) updateToCurrent(false);
+    }, 60 * 1000);
+  }
 </script>
 
 <style>
@@ -194,25 +224,18 @@ const siteTimezone = SITE.timezone;
     position: absolute;
     left: 0;
     right: 0;
-    /* 4px 更抗亚像素舍入；bottom: -1px 盖住 header 的 sm:border-b，避免 PC 端出现“上细下粗/偏上” */
+    /* 细轨道与 header 边界融为一体，避免抢过导航内容的视觉重量。 */
     bottom: -1px;
-    height: 4px;
-    /* 单层渐变：已走/未走同属一个 background */
-    background: linear-gradient(
-      to right,
-      var(--progress) 0%,
-      var(--progress) var(--year-progress, 0%),
-      var(--border) var(--year-progress, 0%),
-      var(--border) 100%
-    );
+    height: 3px;
+    background: color-mix(in oklab, var(--border) 62%, var(--surface));
     background-origin: border-box;
     background-clip: border-box;
     overflow: visible;
     cursor: pointer;
     opacity: 0;
-    transition: opacity 120ms ease;
+    transition: opacity 180ms ease;
     box-sizing: border-box;
-    /* 独立层 + 不参与 flex 拉伸，减少 PC 端渲染差异 */
+    /* 独立层 + 不参与 flex 拉伸，减少 PC 端渲染差异。 */
     transform: translateZ(0);
     flex-shrink: 0;
   }
@@ -227,21 +250,56 @@ const siteTimezone = SITE.timezone;
     bottom: 0;
     left: 0;
     width: 0%;
-    background: none;
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--year-progress-start) 82%, var(--accent)),
+      var(--year-progress-end)
+    );
+    border-radius: 0 9999px 9999px 0;
+    box-shadow: 0 0 0.4rem
+      color-mix(in oklab, var(--year-progress-end) 36%, transparent);
     box-sizing: border-box;
     display: block;
     pointer-events: none;
   }
 
-  .year-progress-tooltip {
+  .year-progress-bar::after {
     position: absolute;
     top: 50%;
-    background-color: transparent;
-    color: var(--foreground);
-    padding: 0.25rem 0.5rem;
-    border: none;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
+    right: -0.22rem;
+    width: 0.44rem;
+    height: 0.44rem;
+    border: 2px solid var(--surface);
+    border-radius: 9999px;
+    background: var(--year-progress-end);
+    box-shadow: 0 0 0 1px
+      color-mix(in oklab, var(--year-progress-end) 48%, transparent);
+    content: "";
+    opacity: 0;
+    transform: translateY(-50%);
+    transition: opacity 160ms ease;
+  }
+
+  .year-progress-bar[data-active="1"]::after {
+    opacity: 1;
+  }
+
+  .year-progress-tooltip {
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    background: color-mix(
+      in oklab,
+      var(--surface) 94%,
+      var(--year-progress-end) 6%
+    );
+    color: var(--foreground-muted);
+    padding: 0.2rem 0.55rem;
+    border: 1px solid
+      color-mix(in oklab, var(--year-progress-end) 24%, var(--border));
+    border-radius: 9999px;
+    box-shadow: var(--shadow-sm);
+    font-size: 0.68rem;
+    line-height: 1.35;
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
@@ -261,17 +319,35 @@ const siteTimezone = SITE.timezone;
   /* 显示在进度条末尾 */
   .year-progress-tooltip.end {
     left: 100%;
-    transform: translateY(-50%);
+    transform: none;
   }
 
   /* 显示在进度条中间 */
   .year-progress-tooltip.center {
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
   }
 
   .year-progress:hover .year-progress-tooltip {
     opacity: 1;
     visibility: visible;
+  }
+
+  @media (max-width: 639px) {
+    .year-progress {
+      height: 2px;
+    }
+
+    .year-progress-tooltip {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .year-progress,
+    .year-progress-bar::after,
+    .year-progress-tooltip {
+      transition: none;
+    }
   }
 </style>

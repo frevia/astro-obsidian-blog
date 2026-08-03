@@ -5,7 +5,12 @@
   --footprint-accent: var(--accent);
   --footprint-accent-soft: color-mix(in oklab, var(--accent) 12%, transparent);
   --footprint-panel: color-mix(in oklab, var(--surface) 88%, var(--background));
+  --footprint-pin: #3498ed;
   margin-top: 2rem;
+}
+
+html[data-theme="dark"] .footprint-explorer {
+  --footprint-pin: #60a5fa;
 }
 
 .footprint-eyebrow {
@@ -157,22 +162,24 @@
   white-space: nowrap;
 }
 
-.footprint-map-legend-dot {
-  display: inline-block;
-  width: 0.55rem;
-  height: 0.55rem;
-  border: 2px solid var(--background);
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 30%, transparent);
+.footprint-map-legend-pin {
+  display: block;
+  width: 0.68rem;
+  height: 0.88rem;
+  overflow: visible;
+  color: var(--footprint-pin);
+  opacity: 0.78;
+  filter: drop-shadow(0 1px 1px rgb(15 23 42 / 18%));
 }
 
-.footprint-map-legend-dot--selected {
-  width: 0.7rem;
-  height: 0.7rem;
-  background: var(--footprint-accent);
-  box-shadow: 0 0 0 2px
-    color-mix(in oklab, var(--footprint-accent) 35%, transparent);
+.footprint-map-legend-pin.is-selected {
+  width: 0.76rem;
+  height: 0.98rem;
+  color: var(--footprint-pin);
+  opacity: 1;
+  filter: drop-shadow(
+    0 0 3px color-mix(in oklab, currentColor 42%, transparent)
+  );
 }
 
 .footprint-map-legend-note {
@@ -415,24 +422,51 @@ html[data-theme="dark"] .footprint-leaflet-map .leaflet-tile-pane {
 }
 
 .footprint-post-list a {
-  display: grid;
-  gap: 0.12rem;
-  border-radius: 0.45rem;
-  padding: 0.35rem 0.45rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  border-radius: 0.65rem;
+  padding: 0.35rem;
   color: color-mix(in oklab, var(--foreground) 78%, transparent);
   font-size: 0.8rem;
   line-height: 1.45;
   text-decoration: none;
   transition:
     color 160ms ease,
-    background-color 160ms ease;
+    background-color 160ms ease,
+    border-color 160ms ease;
 }
 
 .footprint-post-list a:hover,
 .footprint-post-list a:focus-visible {
   color: var(--footprint-accent);
   background: var(--footprint-accent-soft);
+  border-color: color-mix(in oklab, var(--footprint-accent) 38%, var(--border));
   outline: none;
+}
+
+.footprint-post-thumbnail {
+  width: 4.4rem;
+  height: 3rem;
+  flex: 0 0 auto;
+  border-radius: 0.45rem;
+  object-fit: cover;
+  background: var(--surface-muted);
+}
+
+.footprint-post-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.12rem;
+}
+
+.footprint-post-copy > span {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .footprint-post-list time {
@@ -532,35 +566,62 @@ html[data-theme="dark"] .footprint-leaflet-map .leaflet-tile-pane {
 }
 
 .footprint-marker-icon-wrap {
-  display: grid;
-  place-items: center;
+  display: block;
   border: 0;
   background: transparent;
 }
 
 .footprint-marker-icon {
   display: block;
-  width: 1rem;
-  height: 1rem;
-  border: 3px solid var(--background);
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow:
-    0 0 0 2px color-mix(in oklab, var(--accent) 65%, transparent),
-    0 0.35rem 0.9rem -0.2rem rgb(15 23 42 / 55%);
+  width: 2rem;
+  height: 2.625rem;
+  color: var(--footprint-pin);
+  opacity: 0.86;
+  filter: drop-shadow(0 0.32rem 0.28rem rgb(15 23 42 / 32%));
+  transform-origin: 50% 100%;
   transition:
-    width 160ms ease,
-    height 160ms ease,
-    background-color 160ms ease;
+    color 160ms ease,
+    filter 160ms ease,
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.footprint-marker-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.footprint-marker-pin-body {
+  fill: currentColor;
+  stroke: color-mix(in oklab, var(--surface) 88%, transparent);
+  stroke-width: 1.15;
+  vector-effect: non-scaling-stroke;
+}
+
+.footprint-marker-pin-base {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  vector-effect: non-scaling-stroke;
+}
+
+.footprint-marker-pin-hole {
+  fill: var(--surface);
+}
+
+.footprint-marker-icon-wrap:hover .footprint-marker-icon:not(.is-selected) {
+  transform: translateY(-1px) scale(1.04);
 }
 
 .footprint-marker-icon.is-selected {
-  width: 1.35rem;
-  height: 1.35rem;
-  background: var(--footprint-accent);
-  box-shadow:
-    0 0 0 3px color-mix(in oklab, var(--footprint-accent) 35%, transparent),
-    0 0.35rem 0.9rem -0.2rem rgb(15 23 42 / 55%);
+  color: var(--footprint-pin);
+  opacity: 1;
+  filter: drop-shadow(
+      0 0 0.3rem color-mix(in oklab, currentColor 45%, transparent)
+    )
+    drop-shadow(0 0.4rem 0.32rem rgb(15 23 42 / 36%));
+  transform: translateY(-2px) scale(1.1);
 }
 
 .footprint-leaflet-popup .leaflet-popup-content-wrapper,
@@ -609,6 +670,13 @@ html[data-theme="dark"] .footprint-leaflet-map .leaflet-tile-pane {
 }
 
 .footprint-popup-posts a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  border-radius: 0.55rem;
+  padding: 0.3rem;
   color: var(--accent);
   font-size: 0.75rem;
   line-height: 1.45;
@@ -616,8 +684,35 @@ html[data-theme="dark"] .footprint-leaflet-map .leaflet-tile-pane {
 }
 
 .footprint-popup-posts a:hover {
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
+  border-color: color-mix(in oklab, var(--accent) 42%, var(--border));
+  background: var(--footprint-accent-soft);
+}
+
+.footprint-popup-post-image {
+  width: 4.2rem;
+  height: 2.7rem;
+  flex: 0 0 auto;
+  border-radius: 0.38rem;
+  object-fit: cover;
+  background: var(--surface-muted);
+}
+
+.footprint-popup-post-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.14rem;
+}
+
+.footprint-popup-post-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.footprint-popup-post-date {
+  color: color-mix(in oklab, var(--foreground) 45%, transparent);
+  font-size: 0.625rem;
 }
 
 @media (min-width: 640px) {

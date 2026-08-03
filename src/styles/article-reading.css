@@ -29,6 +29,10 @@
     min-width: 0;
   }
 
+  .article-hero--text-only {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .article-hero-category {
     margin: 0 0 0.75rem;
     color: var(--page-accent);
@@ -78,6 +82,92 @@
   .article-hero-reading-time {
     color: color-mix(in oklab, var(--page-accent) 82%, var(--foreground));
     font-weight: 600;
+  }
+
+  .article-hero-author {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--foreground-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .article-hero-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 1rem;
+  }
+
+  .article-hero-tag {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    padding: 0.25rem 0.65rem;
+    border: 1px solid color-mix(in oklab, var(--page-accent) 22%, var(--border));
+    border-radius: 9999px;
+    background: color-mix(
+      in oklab,
+      var(--page-accent-soft) 72%,
+      var(--surface)
+    );
+    color: color-mix(in oklab, var(--page-accent) 78%, var(--foreground));
+    font-size: 0.72rem;
+    line-height: 1.2;
+  }
+
+  .article-hero-source {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.55rem;
+    max-width: 48rem;
+    margin-top: 1rem;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid color-mix(in oklab, var(--page-accent) 18%, var(--border));
+    border-radius: 0.7rem;
+    background: color-mix(
+      in oklab,
+      var(--page-accent-soft) 48%,
+      var(--surface)
+    );
+    color: var(--foreground-muted);
+    font-size: 0.78rem;
+    text-decoration: none;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .article-hero-source:hover,
+  .article-hero-source:focus-visible {
+    border-color: color-mix(in oklab, var(--page-accent) 48%, var(--border));
+    background: color-mix(
+      in oklab,
+      var(--page-accent-soft) 72%,
+      var(--surface)
+    );
+    color: var(--page-accent);
+    outline: none;
+  }
+
+  .article-hero-source-label {
+    flex: none;
+    color: var(--page-accent);
+    font-weight: 700;
+  }
+
+  .article-hero-source-url {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .article-hero-source-arrow {
+    flex: none;
+    font-size: 1rem;
   }
 
   .article-hero-media {
@@ -658,6 +748,10 @@
   .article-hero {
     grid-template-columns: minmax(0, 1.15fr) minmax(15rem, 0.85fr);
     align-items: center;
+  }
+
+  .article-hero.article-hero--text-only {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

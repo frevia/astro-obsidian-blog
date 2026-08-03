@@ -25,6 +25,12 @@ describe("footprint Leaflet theme", () => {
     const selectedMarkerRule = stylesheet.match(
       /\.footprint-marker-icon\.is-selected\s*\{([\s\S]*?)\}/
     )?.[1];
-    expect(selectedMarkerRule).toContain("background: var(--footprint-accent)");
+    expect(selectedMarkerRule).toContain(
+      "transform: translateY(-2px) scale(1.1)"
+    );
+    expect(stylesheet).toContain(".footprint-marker-pin-body");
+    expect(stylesheet).toContain(".footprint-marker-pin-base");
+    expect(stylesheet).toContain(".footprint-marker-pin-hole");
+    expect(stylesheet).toContain(".footprint-popup-post-image");
   });
 });

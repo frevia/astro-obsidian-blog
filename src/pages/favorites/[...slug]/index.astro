@@ -5,7 +5,6 @@ import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import BackButton from "@/components/BackButton.astro";
 import BackToTopButton from "@/components/BackToTopButton.astro";
-import Datetime from "@/components/Datetime.astro";
 import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
 import IconChevronRight from "@/assets/icons/IconChevronRight.svg";
 import { SITE } from "@/config";
@@ -16,7 +15,13 @@ import { getYearMonthInTimeZone } from "@/utils/calendarDate";
 import AiSummaryCard from "@/components/AiSummaryCard.astro";
 import { withBase } from "@/utils/withBase";
 import ArticleLightbox from "@/components/ArticleLightbox.astro";
+import ArticleHero from "@/components/article/ArticleHero.astro";
 import ArticleReadingRail from "@/components/article/ArticleReadingRail.astro";
+import {
+  getArticleAccent,
+  getArticleAccentStyle,
+} from "@/components/article/pageAccent";
+import { estimateReadingMinutes } from "@/components/article/readingTime";
 import "@/styles/article-reading.css";
 
 export interface Props {
@@ -41,8 +46,32 @@ const { post } = Astro.props;
 const { Content, headings } = await render(post);
 const tocHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 4);
 
-const { title, description, published, timezone, source, summary, tags } =
-  post.data;
+const {
+  title,
+  author,
+  description,
+  published,
+  timezone,
+  source,
+  summary,
+  tags,
+} = post.data;
+
+const titleTransitionName = toTransitionName(title);
+const coverTransitionName = `${titleTransitionName}-cover`;
+const favoriteCategory =
+  tags.find(tag => tag.trim().toLowerCase() !== "clippings") ?? "收藏";
+const favoriteTags = tags
+  .filter(tag => tag.trim().toLowerCase() !== "clippings")
+  .slice(0, 6);
+const articleAccentInput = {
+  contentType: "clip",
+  tags,
+  body: post.body ?? "",
+};
+const articleAccent = getArticleAccent(articleAccentInput);
+const articleAccentStyle = getArticleAccentStyle(articleAccentInput);
+const readingMinutes = estimateReadingMinutes(post.body ?? "");
 
 const layoutProps = {
   title: `${title} | ${SITE.title}`,
@@ -114,24 +143,30 @@ const nextPost =
   <main
     id="main-content"
     class:list={[
-      "article-page mx-auto mt-6 w-full max-w-app px-4 pb-12",
+      "article-page page-shell mx-auto mt-4 w-full max-w-app px-4 pb-12",
       { "mt-8": !SITE.showBackButton },
     ]}
+    style={articleAccentStyle}
+    data-content-kind={articleAccent.key}
     data-pagefind-body
     data-pagefind-weight="5"
   >
-    <h1
-      transition:name={toTransitionName(title)}
-      class="inline-block text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
-      data-pagefind-meta="title"
-    >
+    <ArticleHero
       {title}
-    </h1>
-    <div
-      class="mt-4 mb-7 flex items-center gap-2 rounded-lg border border-border/70 bg-surface-muted px-3 py-2 text-sm text-foreground/75"
-    >
-      <Datetime published={published} timezone={timezone} size="lg" />
-    </div>
+      category={favoriteCategory}
+      {description}
+      {summary}
+      {author}
+      {published}
+      {timezone}
+      readingMinutes={readingMinutes}
+      showMedia={false}
+      tags={favoriteTags}
+      {source}
+      {titleTransitionName}
+      {coverTransitionName}
+    />
+
     {
       tags.length > 0 && (
         <div class="sr-only" data-pagefind-meta="tag">
@@ -139,37 +174,6 @@ const nextPost =
         </div>
       )
     }
-
-    <!-- 转载说明放在文章内容之前 -->
-    <div
-      class="mb-6 rounded-xl border-l-4 border-accent/60 bg-accent/5 px-4 py-3 text-sm text-foreground/80"
-    >
-      <div class="flex items-start gap-2">
-        <span class="mt-0.5 text-accent/80">📚</span>
-        <div class="min-w-0 flex-1">
-          <p class="font-medium text-foreground/90">转载说明</p>
-          <p class="mt-1">
-            本文转载或收集自互联网，仅作学习与整理使用。若内容涉及侵权，请联系删除。
-          </p>
-          {
-            source ? (
-              <p class="mt-2 flex min-w-0 items-center gap-1">
-                <span class="shrink-0">原文链接：</span>
-                <a
-                  href={source}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="block min-w-0 flex-1 truncate font-medium text-accent underline-offset-4 hover:underline"
-                  title={source}
-                >
-                  {source}
-                </a>
-              </p>
-            ) : null
-          }
-        </div>
-      </div>
-    </div>
 
     {summary && <AiSummaryCard {summary} />}
 
@@ -181,12 +185,19 @@ const nextPost =
 
     <article
       id="article"
-      class="article-reading-body js-toc-content app-prose relative mx-auto mt-9 max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
+      class="article-reading-body js-toc-content app-prose relative mx-auto mt-8 max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
     >
       <Content />
     </article>
     <ArticleLightbox />
     <BackToTopButton />
+
+    <div data-pagefind-ignore class="favorite-context app-panel" role="note">
+      <span class="favorite-context-icon" aria-hidden="true">📚</span>
+      <p>
+        本文转载或收集自互联网，仅作学习与整理使用。若内容涉及侵权，请联系删除。
+      </p>
+    </div>
 
     <div data-pagefind-ignore class="grid grid-cols-1 gap-6 sm:grid-cols-2">
       {
@@ -221,3 +232,26 @@ const nextPost =
   </main>
   <Footer />
 </Layout>
+
+<style>
+  .favorite-context {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    margin: 1.25rem 0 1.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--foreground-muted);
+    font-size: 0.8rem;
+    line-height: 1.65;
+  }
+
+  .favorite-context p {
+    margin: 0;
+  }
+
+  .favorite-context-icon {
+    flex: none;
+    color: var(--page-accent);
+    filter: saturate(0.85);
+  }
+</style>
