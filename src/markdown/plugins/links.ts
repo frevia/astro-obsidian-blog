@@ -44,10 +44,7 @@ export function createLinkProcessorPlugin({
       if (shouldSkipLink(node.url)) return;
 
       const [pathname, hash] = splitHash(node.url);
-      const targetPathname = /\.[^/]+$/.test(pathname)
-        ? pathname
-        : `${pathname}.md`;
-      const target = hash ? `${targetPathname}#${hash}` : targetPathname;
+      const target = hash ? `${pathname}#${hash}` : pathname;
       const processedUrl = processLink(target, currentFilePath(ctx.fileURL));
       const resolvedUrl =
         processedUrl === node.url || processedUrl === target

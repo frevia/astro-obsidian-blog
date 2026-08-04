@@ -89,7 +89,9 @@ describe("base path integration", () => {
 
   it("adds base only at the final page markdown link output boundary", () => {
     const linkProcessor = source("src/utils/linkProcessor.ts");
-    expect(linkProcessor).toContain("return finalSlug ? `/posts/${finalSlug}");
+    expect(linkProcessor).toContain(
+      "return finalSlug ? `/posts/${finalSlug}${hashSuffix}` : href"
+    );
     expect(linkProcessor).not.toContain("withBase(");
 
     const satteriLinks = source("src/markdown/plugins/links.ts");
