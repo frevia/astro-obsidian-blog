@@ -44,6 +44,9 @@ describe("editorial home and post list contracts", () => {
     );
     expect(card).toContain('"aspect-video w-full rounded-xl sm:w-[52%]"');
     expect(card).toContain('"aspect-video w-full rounded-xl sm:w-64"');
+    expect(card).toContain("sm:flex-row sm:items-center sm:gap-6");
+    expect(card).toContain("sm:flex-row-reverse sm:items-center sm:gap-6");
+    expect(card).not.toContain("sm:items-stretch");
     expect(card).toContain("object-cover");
     expect(card).not.toContain("aspect-[16/10]");
   });

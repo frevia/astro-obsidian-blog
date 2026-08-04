@@ -98,9 +98,9 @@ const titleClass = isStandard
         "flex min-w-0 flex-col gap-4",
         {
           "sm:flex-row sm:items-start sm:gap-4": isStandard,
-          "sm:flex-row sm:items-stretch sm:gap-6":
+          "sm:flex-row sm:items-center sm:gap-6":
             !isStandard && mediaAlign === "start",
-          "sm:flex-row-reverse sm:items-stretch sm:gap-6":
+          "sm:flex-row-reverse sm:items-center sm:gap-6":
             !isStandard && mediaAlign === "end",
         },
       ]}
