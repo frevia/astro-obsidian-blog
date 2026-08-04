@@ -13,6 +13,7 @@ interface Props {
   decorative?: boolean;
   ariaHidden?: boolean;
   preserveAspect?: boolean;
+  fit?: "fill" | "contain" | "cover" | "none" | "scale-down";
 }
 
 const {
@@ -26,6 +27,7 @@ const {
   decorative = false,
   ariaHidden = false,
   preserveAspect = false,
+  fit,
 } = Astro.props;
 const imageAlt = decorative ? "" : alt;
 const hiddenFromAccessibilityTree = decorative || ariaHidden;
@@ -39,6 +41,7 @@ const hiddenFromAccessibilityTree = decorative || ariaHidden;
       alt={imageAlt}
       sizes={sizes}
       loading={loading}
+      fit={fit}
       aria-hidden={hiddenFromAccessibilityTree ? "true" : undefined}
       class={className}
     />
@@ -50,6 +53,7 @@ const hiddenFromAccessibilityTree = decorative || ariaHidden;
       height={height}
       sizes={sizes}
       loading={loading}
+      fit={fit}
       aria-hidden={hiddenFromAccessibilityTree ? "true" : undefined}
       class={className}
     />
@@ -62,6 +66,7 @@ const hiddenFromAccessibilityTree = decorative || ariaHidden;
       format="webp"
       quality={82}
       loading={loading}
+      fit={fit}
       aria-hidden={hiddenFromAccessibilityTree ? "true" : undefined}
       class={className}
     />
@@ -75,6 +80,7 @@ const hiddenFromAccessibilityTree = decorative || ariaHidden;
       format="webp"
       quality={82}
       loading={loading}
+      fit={fit}
       aria-hidden={hiddenFromAccessibilityTree ? "true" : undefined}
       class={className}
     />
