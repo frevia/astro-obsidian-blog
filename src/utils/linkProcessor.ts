@@ -3,21 +3,17 @@ import path from "path";
 import { BLOG_PATH } from "../config";
 
 /**
- * 从markdown文件中提取slug字段
+ * 从 markdown 文件中提取作为文章路由的 slug 字段
  * @param filePath 文件路径
- * @returns slug值或undefined
+ * @returns slug 值或 undefined
  */
 function extractSlugFromFile(filePath: string): string | undefined {
   try {
     const content = fs.readFileSync(filePath, "utf-8");
-
-    // 匹配frontmatter中的slug字段
     const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
     if (!frontmatterMatch) return undefined;
 
-    const frontmatter = frontmatterMatch[1];
-    const slugMatch = frontmatter.match(/^slug:[ \t]*([^\r\n]*)$/m);
-
+    const slugMatch = frontmatterMatch[1].match(/^slug:[ \t]*([^\r\n]*)$/m);
     return slugMatch ? slugMatch[1].trim() : undefined;
   } catch {
     return undefined;
@@ -58,12 +54,9 @@ function resolveMarkdownFilePath(
     : projectRoot;
   const decodedSource = decodeURIComponent(sourcePath);
   const hasMdExt = /\.(md|mdx)$/i.test(decodedSource);
-  const ext = path.extname(decodedSource);
   const candidates = hasMdExt
     ? [decodedSource]
-    : ext
-      ? []
-      : [`${decodedSource}.md`, `${decodedSource}.mdx`];
+    : [`${decodedSource}.md`, `${decodedSource}.mdx`];
 
   for (const candidate of candidates) {
     const resolved = resolveRelativePath(candidate, currentDir).replace(
@@ -107,12 +100,6 @@ export function processLink(href: string, currentFilePath?: string): string {
   }
 
   const [rawPath, rawHash] = href.split("#", 2);
-  const isMarkdownLink =
-    /\.(md|mdx)$/i.test(rawPath) || path.extname(rawPath.trim()) === "";
-
-  if (!isMarkdownLink) {
-    return href;
-  }
 
   try {
     const targetFilePath = resolveMarkdownFilePath(rawPath, currentFilePath);
@@ -120,11 +107,9 @@ export function processLink(href: string, currentFilePath?: string): string {
       return href;
     }
 
-    // 提取slug
-    const slug = extractSlugFromFile(targetFilePath);
     const hashSuffix = rawHash ? `#${normalizeHeadingHash(rawHash)}` : "";
+    const slug = extractSlugFromFile(targetFilePath);
     if (slug) {
-      // 无论 slug 是否包含分类路径，最终 URL 只保留最后一级 slug
       const finalSlug = slug
         .split("/")
         .filter(Boolean)
@@ -134,11 +119,11 @@ export function processLink(href: string, currentFilePath?: string): string {
       return finalSlug ? `/posts/${finalSlug}${hashSuffix}` : href;
     }
 
-    // 如果没有slug，使用文件名作为最终 slug（忽略目录）
-    const fileSlug = path
-      .basename(targetFilePath, path.extname(targetFilePath))
-      .replace(/\s/g, "-")
-      .toLowerCase();
+    // 没有 frontmatter slug 时，回退到集合默认使用的文件名。
+    const fileSlug = path.basename(
+      targetFilePath,
+      path.extname(targetFilePath)
+    );
 
     return `/posts/${fileSlug}${hashSuffix}`;
   } catch {

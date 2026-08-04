@@ -21,6 +21,10 @@ const fixtureUrl = new URL(
   "./fixtures/legacy-characterization/current.md",
   import.meta.url
 );
+const postFixtureUrl = new URL(
+  "./fixtures/legacy-characterization/posts/中文页面.md",
+  import.meta.url
+);
 
 describe("processor contract", () => {
   it("renders RSS callouts with preserved type, title, and body", async () => {
@@ -31,7 +35,7 @@ describe("processor contract", () => {
     expect(html).toContain("callout");
   });
 
-  it("resolves wikilinks and attachment images from Chinese paths in RSS rendering", async () => {
+  it("resolves wikilinks to the frontmatter route slug", async () => {
     const html = await renderRssMarkdown(
       "链接 [[posts/中文页面|中文标题]]，附件 ![[assets/图像.png]]",
       { fileURL: fixtureUrl }
@@ -41,6 +45,28 @@ describe("processor contract", () => {
     expect(html).toContain("中文标题");
     expect(html).toContain('src="assets/%E5%9B%BE%E5%83%8F.png"');
     expect(html).toContain('alt="图像"');
+  });
+
+  it("resolves extensionless PKI MDX wikilinks whose titles contain dots", async () => {
+    const targets = [
+      {
+        name: "理解PKI（二）：从 ASN.1 到 DER，数字证书为什么是一串字节",
+        slug: "be9b536935064a2c9c8d3f59d7c67677",
+      },
+      {
+        name: "理解PKI（三）：拆开 X.509 v3——读懂证书的核心字段与扩展",
+        slug: "29ee87252fdf4fc8896d98db8e9dafff",
+      },
+    ];
+
+    for (const target of targets) {
+      const html = await renderRssMarkdown(`[[${target.name}|下一篇]]`, {
+        fileURL: postFixtureUrl,
+      });
+
+      expect(html).toContain(`href="/posts/${target.slug}"`);
+      expect(html).toContain("下一篇");
+    }
   });
 
   it("prefixes ordinary root-relative page links with base while RSS keeps them root-relative", async () => {
