@@ -64,6 +64,7 @@ describe("editorial home and post list contracts", () => {
     expect(card).toContain("preserveAspect={hasAuthoredCover}");
     expect(card).toContain('fit="contain"');
     expect(card.match(/fit="cover"/g)).toHaveLength(2);
+    expect(card.match(/style="height: 100%;"/g)).toHaveLength(3);
     expect(card).toContain("blur-md");
     expect(card).toContain("object-contain p-2");
     expect(card).toContain("cardCover && (");
@@ -88,6 +89,8 @@ describe("editorial home and post list contracts", () => {
     expect(coverImage).toContain("quality={82}");
     expect(coverImage).toContain('fit?: "fill" | "contain" | "cover"');
     expect(coverImage.match(/fit=\{fit\}/g)).toHaveLength(4);
+    expect(coverImage).toContain("style?: string");
+    expect(coverImage.match(/style=\{style\}/g)).toHaveLength(4);
     expect(coverImage).toContain(
       'aria-hidden={hiddenFromAccessibilityTree ? "true" : undefined}'
     );
