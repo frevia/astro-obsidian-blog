@@ -55,8 +55,8 @@ const defaultCover = SITE.cover
   : getAssetPath("/og.png");
 const cardCover = data.cover ?? fallbackCover ?? defaultCover;
 
-const coverWidth = isFeatured ? 720 : isStandard ? 88 : 420;
-const coverHeight = isFeatured ? 450 : isStandard ? 88 : 280;
+const coverWidth = isFeatured ? 720 : isStandard ? 88 : 432;
+const coverHeight = isFeatured ? 405 : isStandard ? 88 : 243;
 const titleClass = isStandard
   ? "text-lg font-semibold leading-7"
   : isFeatured
@@ -112,8 +112,8 @@ const titleClass = isStandard
           isStandard
             ? "block h-14 w-14 rounded-lg sm:h-[88px] sm:w-[88px]"
             : isFeatured
-              ? "aspect-[16/10] w-full rounded-xl sm:min-h-64 sm:w-[52%]"
-              : "aspect-[16/10] w-full rounded-xl sm:h-40 sm:w-48",
+              ? "aspect-video w-full rounded-xl sm:w-[52%]"
+              : "aspect-video w-full rounded-xl sm:w-64",
         ]}
       >
         {

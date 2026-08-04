@@ -36,5 +36,15 @@ describe("editorial home and post list contracts", () => {
     expect(card).toContain("transition:name={titleTransitionName}");
     expect(card).toContain("transition:name={coverTransitionName}");
     expect(card).toContain("post-card-editorial");
+    expect(card).toContain(
+      "const coverWidth = isFeatured ? 720 : isStandard ? 88 : 432;"
+    );
+    expect(card).toContain(
+      "const coverHeight = isFeatured ? 405 : isStandard ? 88 : 243;"
+    );
+    expect(card).toContain('"aspect-video w-full rounded-xl sm:w-[52%]"');
+    expect(card).toContain('"aspect-video w-full rounded-xl sm:w-64"');
+    expect(card).toContain("object-cover");
+    expect(card).not.toContain("aspect-[16/10]");
   });
 });
