@@ -42,7 +42,11 @@
     .rehype-figure img {
       margin-top: 0 !important;
       margin-bottom: 0 !important;
-      @apply max-h-[60vh] object-cover!;
+      width: auto;
+      max-width: 100%;
+      height: auto;
+      max-height: min(75vh, 48rem);
+      @apply object-contain!;
     }
 
     .rehype-figure figcaption {

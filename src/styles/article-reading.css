@@ -171,8 +171,12 @@
   }
 
   .article-hero-media {
+    display: flex;
     min-width: 0;
+    min-height: 0;
     overflow: hidden;
+    align-items: center;
+    justify-content: center;
     border: 1px solid color-mix(in oklab, var(--page-accent) 18%, var(--border));
     border-radius: 0.9rem;
     background: var(--page-accent-soft);
@@ -180,13 +184,19 @@
 
   .article-hero-cover {
     display: block;
-    width: 100%;
+    width: auto;
     height: auto;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
+    max-width: 100%;
+    max-height: min(65vh, 36rem);
+    object-fit: contain;
   }
 
   .article-hero-cover-placeholder {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: none;
+    aspect-ratio: 16 / 9;
     background:
       linear-gradient(
         135deg,
@@ -537,10 +547,18 @@
 
   .article-reading-body img {
     display: block;
-    width: 100%;
     max-width: 100%;
     height: auto;
     border-radius: 0.75rem;
+  }
+
+  .article-reading-body .rehype-figure img,
+  .article-reading-body .rehype-figure-container img,
+  .article-reading-body > :where(p, figure) > img {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: min(75vh, 48rem);
     object-fit: contain;
   }
 
@@ -616,8 +634,12 @@
   }
 
   .article-reading-body .content-block--gallery img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: none;
     aspect-ratio: 4 / 3;
-    object-fit: cover;
+    object-fit: cover !important;
   }
 
   .article-reading-body .content-block--timeline {

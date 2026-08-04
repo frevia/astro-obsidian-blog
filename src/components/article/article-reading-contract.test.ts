@@ -52,6 +52,21 @@ describe("article reading presentation contracts", () => {
     expect(css).toContain("@media (min-width: 1300px)");
     expect(css).toContain("position: fixed");
     expect(css).toContain(".article-reading-body img");
+    expect(css).toMatch(
+      /\.article-hero-media\s*\{[\s\S]*?display:\s*flex;[\s\S]*?align-items:\s*center;[\s\S]*?justify-content:\s*center;/
+    );
+    expect(css).toMatch(
+      /\.article-hero-cover\s*\{[\s\S]*?width:\s*auto;[\s\S]*?height:\s*auto;[\s\S]*?max-width:\s*100%;[\s\S]*?max-height:\s*min\(65vh,\s*36rem\);[\s\S]*?object-fit:\s*contain;/
+    );
+    expect(css).toMatch(
+      /\.article-hero-cover-placeholder\s*\{[\s\S]*?width:\s*100%;[\s\S]*?aspect-ratio:\s*16 \/ 9;/
+    );
+    expect(css).toMatch(
+      /\.article-reading-body \.rehype-figure img,[\s\S]*?width:\s*auto;[\s\S]*?max-width:\s*100%;[\s\S]*?max-height:\s*min\(75vh,\s*48rem\);/
+    );
+    expect(css).toMatch(
+      /\.article-reading-body \.content-block--gallery img\s*\{[\s\S]*?width:\s*100%;[\s\S]*?aspect-ratio:\s*4 \/ 3;[\s\S]*?object-fit:\s*cover\s*!important;/
+    );
     for (const component of [
       "content-block--pullquote",
       "content-block--gallery",
