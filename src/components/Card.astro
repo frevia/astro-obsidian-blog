@@ -4,8 +4,8 @@ import type { CollectionEntry } from "astro:content";
 import { getPath } from "@/utils/getPath";
 import { SITE } from "@/config";
 import Datetime from "./Datetime.astro";
-import { Image } from "astro:assets";
 import { getAssetPath } from "@/utils/withBase";
+import CardCoverImage from "./CardCoverImage.astro";
 import {
   contentKindStyle,
   inferPostContentKind,
@@ -53,10 +53,18 @@ const fallbackCover = SITE.dynamicOgImage
 const defaultCover = SITE.cover
   ? getAssetPath(`/${SITE.cover}`)
   : getAssetPath("/og.png");
-const cardCover = data.cover ?? fallbackCover ?? defaultCover;
+const hasAuthoredCover = Boolean(data.cover);
+const cardCover = isStandard
+  ? (data.cover ?? fallbackCover ?? defaultCover)
+  : (data.cover ?? fallbackCover);
 
-const coverWidth = isFeatured ? 720 : isStandard ? 88 : 432;
-const coverHeight = isFeatured ? 405 : isStandard ? 88 : 243;
+const coverWidth = isFeatured ? 720 : isStandard ? 88 : 480;
+const coverHeight = isFeatured ? 405 : isStandard ? 88 : 270;
+const coverSizes = isStandard
+  ? "(min-width: 640px) 88px, 56px"
+  : isFeatured
+    ? "(min-width: 640px) 52vw, 100vw"
+    : "(min-width: 640px) 240px, 100vw";
 const titleClass = isStandard
   ? "text-lg font-semibold leading-7"
   : isFeatured
@@ -99,62 +107,64 @@ const titleClass = isStandard
         {
           "sm:flex-row sm:items-start sm:gap-4": isStandard,
           "sm:flex-row sm:items-center sm:gap-6":
-            !isStandard && mediaAlign === "start",
+            !isStandard && Boolean(cardCover) && mediaAlign === "start",
           "sm:flex-row-reverse sm:items-center sm:gap-6":
-            !isStandard && mediaAlign === "end",
+            !isStandard && Boolean(cardCover) && mediaAlign === "end",
         },
       ]}
     >
-      <div
-        transition:name={coverTransitionName}
-        class:list={[
-          "shrink-0 overflow-hidden border border-border/60 bg-muted/15",
-          isStandard
-            ? "block h-14 w-14 rounded-lg sm:h-[88px] sm:w-[88px]"
-            : isFeatured
-              ? "aspect-video w-full rounded-xl sm:w-[52%]"
-              : "aspect-video w-full rounded-xl sm:w-64",
-        ]}
-      >
-        {
-          cardCover &&
-            (typeof cardCover === "string" ? (
-              <Image
-                src={cardCover}
-                alt={title}
-                width={coverWidth}
-                height={coverHeight}
-                sizes={
-                  isStandard
-                    ? "(min-width: 640px) 88px, 56px"
-                    : isFeatured
-                      ? "(min-width: 640px) 52vw, 100vw"
-                      : "(min-width: 640px) 192px, 100vw"
-                }
-                loading={isFeatured ? "eager" : "lazy"}
-                class="app-card-media h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
-              />
+      {
+        cardCover && (
+          <div
+            transition:name={coverTransitionName}
+            class:list={[
+              "relative shrink-0 overflow-hidden border border-border/60 bg-muted/15",
+              isStandard
+                ? "block h-14 w-14 rounded-lg sm:h-[88px] sm:w-[88px]"
+                : isFeatured
+                  ? "aspect-video w-full rounded-xl sm:w-[52%]"
+                  : "aspect-[3/2] w-full rounded-xl sm:aspect-[4/3] sm:w-60",
+            ]}
+          >
+            {!isStandard ? (
+              <>
+                <CardCoverImage
+                  src={cardCover}
+                  alt=""
+                  width={coverWidth}
+                  height={coverHeight}
+                  sizes={coverSizes}
+                  loading={isFeatured ? "eager" : "lazy"}
+                  decorative
+                  ariaHidden
+                  preserveAspect={hasAuthoredCover}
+                  class="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-md"
+                />
+                <CardCoverImage
+                  src={cardCover}
+                  alt={title}
+                  width={coverWidth}
+                  height={coverHeight}
+                  sizes={coverSizes}
+                  loading={isFeatured ? "eager" : "lazy"}
+                  preserveAspect={hasAuthoredCover}
+                  class="app-card-media relative z-10 block h-full w-full object-contain p-2 transition duration-500 group-hover:scale-[1.025]"
+                />
+              </>
             ) : (
-              <Image
+              <CardCoverImage
                 src={cardCover}
                 alt={title}
                 width={coverWidth}
                 height={coverHeight}
-                sizes={
-                  isStandard
-                    ? "(min-width: 640px) 88px, 56px"
-                    : isFeatured
-                      ? "(min-width: 640px) 52vw, 100vw"
-                      : "(min-width: 640px) 192px, 100vw"
-                }
-                format="webp"
-                quality={82}
+                sizes={coverSizes}
                 loading={isFeatured ? "eager" : "lazy"}
                 class="app-card-media h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
               />
-            ))
-        }
-      </div>
+            )}
+          </div>
+        )
+      }
 
       <div
         class:list={[

@@ -1,0 +1,82 @@
+---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+interface Props {
+  src: string | ImageMetadata;
+  alt: string;
+  width: number;
+  height: number;
+  sizes?: string;
+  loading?: "eager" | "lazy";
+  class?: string;
+  decorative?: boolean;
+  ariaHidden?: boolean;
+  preserveAspect?: boolean;
+}
+
+const {
+  src,
+  alt,
+  width,
+  height,
+  sizes,
+  loading,
+  class: className,
+  decorative = false,
+  ariaHidden = false,
+  preserveAspect = false,
+} = Astro.props;
+const imageAlt = decorative ? "" : alt;
+const hiddenFromAccessibilityTree = decorative || ariaHidden;
+---
+
+{
+  typeof src === "string" && preserveAspect ? (
+    <Image
+      src={src}
+      inferSize
+      alt={imageAlt}
+      sizes={sizes}
+      loading={loading}
+      aria-hidden={hiddenFromAccessibilityTree ? "true" : undefined}
+      class={className}
+    />
+  ) : typeof src === "string" ? (
+    <Image
+      src={src}
+      alt={imageAlt}
+      width={width}
+      height={height}
+      sizes={sizes}
+      loading={loading}
+      aria-hidden={hiddenFromAccessibilityTree ? "true" : undefined}
+      class={className}
+    />
+  ) : preserveAspect ? (
+    <Image
+      src={src}
+      alt={imageAlt}
+      width={width}
+      sizes={sizes}
+      format="webp"
+      quality={82}
+      loading={loading}
+      aria-hidden={hiddenFromAccessibilityTree ? "true" : undefined}
+      class={className}
+    />
+  ) : (
+    <Image
+      src={src}
+      alt={imageAlt}
+      width={width}
+      height={height}
+      sizes={sizes}
+      format="webp"
+      quality={82}
+      loading={loading}
+      aria-hidden={hiddenFromAccessibilityTree ? "true" : undefined}
+      class={className}
+    />
+  )
+}
