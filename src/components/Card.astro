@@ -139,6 +139,7 @@ const titleClass = isStandard
                   ariaHidden
                   preserveAspect={hasAuthoredCover}
                   fit="cover"
+                  style="height: 100%;"
                   class="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-md"
                 />
                 <CardCoverImage
@@ -150,6 +151,7 @@ const titleClass = isStandard
                   loading={isFeatured ? "eager" : "lazy"}
                   preserveAspect={hasAuthoredCover}
                   fit="contain"
+                  style="height: 100%;"
                   class="app-card-media relative z-10 block h-full w-full object-contain p-2 transition duration-500 group-hover:scale-[1.025]"
                 />
               </>
@@ -162,6 +164,7 @@ const titleClass = isStandard
                 sizes={coverSizes}
                 loading={isFeatured ? "eager" : "lazy"}
                 fit="cover"
+                style="height: 100%;"
                 class="app-card-media h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
               />
             )}
