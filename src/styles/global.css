@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./design-tokens.css";
 @import "./content-theme.css";
+@import "./media-card.css";
 @import "./typography.css";
 @import "tw-animate-css";
 @import "katex/dist/katex.min.css";

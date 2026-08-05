@@ -266,9 +266,39 @@ describe("processor contract", () => {
     expect(html).not.toContain('href="#');
   });
 
-  it("renders page MDX media cards as component calls", async () => {
+  it("keeps all RSS media card types as readable ordinary links", async () => {
+    for (const cardType of ["movie", "tv", "book", "music"] as const) {
+      const html = await renderRssMarkdown(
+        [
+          `\`\`\`card-${cardType}`,
+          "id: 987",
+          `title: ${cardType} 标题`,
+          "source: douban",
+          "```",
+        ].join("\n")
+      );
+
+      expect(html).toContain(`${cardType} 标题`);
+      expect(html).toContain('target="_blank"');
+      expect(html).not.toContain("MediaCard");
+      expect(html).not.toContain("data-media-type");
+      expect(html).not.toContain("<img");
+    }
+  });
+
+  it("renders page MDX media cards as static intrinsic elements", async () => {
     const result = await mdxToJs(
-      "```card-book\nid: 987\ntitle: 测试书籍\nsource: douban\n```",
+      [
+        "```card-book",
+        "id: 987",
+        "title: 测试书籍",
+        "source: douban",
+        "author: 作者",
+        "rating: 8.7",
+        "genres: 历史, 传记",
+        "overview: 一段简介",
+        "```",
+      ].join("\n"),
       {
         features: markdownFeatures,
         mdastPlugins: pageMdastPlugins,
@@ -277,9 +307,12 @@ describe("processor contract", () => {
       }
     );
 
-    expect(result.code).toContain("MediaCard");
-    expect(result.code).toContain('cardType="book"');
-    expect(result.code).toContain('"title":"测试书籍"');
+    expect(result.code).toContain("article");
+    expect(result.code).toContain('data-media-type="book"');
+    expect(result.code).toContain("测试书籍");
+    expect(result.code).toContain("作者");
+    expect(result.code).toContain("一段简介");
+    expect(result.code).not.toContain("MediaCard");
   });
 
   it("parses media cards with field-specific types", () => {
@@ -314,6 +347,161 @@ describe("processor contract", () => {
 
   it("rejects media card content without a title", () => {
     expect(parseCardContent("id: 123\nrating: 8.2")).toBeNull();
+  });
+
+  it("renders all page Markdown media card types as static cards", async () => {
+    const renderer = await createSatteriMarkdownProcessor({
+      features: markdownFeatures,
+      mdastPlugins: pageMdastPlugins,
+      hastPlugins: pageHastPlugins,
+    });
+    const cardTypes = ["movie", "tv", "book", "music"] as const;
+
+    for (const cardType of cardTypes) {
+      const result = await renderer.render(
+        [
+          `\`\`\`card-${cardType}`,
+          "id: 987",
+          `title: ${cardType} 标题`,
+          "source: douban",
+          "poster: https://images.example/poster.jpg",
+          "release_date: 2024-01-02",
+          "rating: 8.7",
+          "genres: 类型一, 类型二",
+          "overview: 主要简介",
+          "```",
+        ].join("\n"),
+        { fileURL: fixtureUrl }
+      );
+      const $ = load(result.code);
+      const card = $(`[data-media-type="${cardType}"]`);
+
+      expect(card).toHaveLength(1);
+      expect(card.find(".media-card__title").text()).toContain(
+        `${cardType} 标题`
+      );
+      expect(card.find(".media-card__rating").text()).toContain("8.7");
+      expect(card.find(".media-card__genre")).toHaveLength(2);
+      expect(card.find(".media-card__overview").text()).toContain("主要简介");
+      expect(result.code).not.toContain("MediaCard");
+    }
+  });
+
+  it("keeps malformed cards as code and rejects dangerous card links", async () => {
+    const renderer = await createSatteriMarkdownProcessor({
+      features: markdownFeatures,
+      mdastPlugins: pageMdastPlugins,
+      hastPlugins: pageHastPlugins,
+    });
+    const result = await renderer.render(
+      [
+        "```card-book",
+        "id: 987",
+        "rating: 8.7",
+        "```",
+        "",
+        "```card-movie",
+        "id: 123",
+        "title: 危险链接",
+        "external_url: javascript:alert(1)",
+        "```",
+      ].join("\n"),
+      { fileURL: fixtureUrl }
+    );
+    const $ = load(result.code);
+
+    expect($("pre code").text()).toContain("rating: 8.7");
+    expect($("[data-media-type=movie]")).toHaveLength(1);
+    expect($("[data-media-type=movie] a")).toHaveLength(0);
+    expect(result.code).not.toMatch(/href=["']javascript:/i);
+  });
+
+  it("marks cards without a usable poster as single-column content", async () => {
+    const renderer = await createSatteriMarkdownProcessor({
+      features: markdownFeatures,
+      mdastPlugins: pageMdastPlugins,
+      hastPlugins: pageHastPlugins,
+    });
+    const result = await renderer.render(
+      [
+        "```card-book",
+        "id: 987",
+        "title: 无海报卡片",
+        "poster: javascript:alert(1)",
+        "overview: 正文应该占满卡片宽度",
+        "```",
+      ].join("\n"),
+      { fileURL: fixtureUrl }
+    );
+    const $ = load(result.code);
+    const body = $("[data-media-type=book] .media-card__body");
+
+    expect(body).toHaveLength(1);
+    expect(body.hasClass("media-card__body--no-poster")).toBe(true);
+    expect(body.attr("data-has-poster")).toBe("false");
+    expect(body.find("img")).toHaveLength(0);
+    expect(body.find(".media-card__title").text()).toContain("无海报卡片");
+    expect(body.find(".media-card__overview").text()).toContain(
+      "正文应该占满卡片宽度"
+    );
+  });
+
+  it("resolves shorthand attachment posters relative to blog and snippet files", async () => {
+    const renderer = await createSatteriMarkdownProcessor({
+      features: markdownFeatures,
+      mdastPlugins: pageMdastPlugins,
+      hastPlugins: pageHastPlugins,
+    });
+    const source = [
+      "```card-book",
+      "id: 987",
+      "title: 路径测试",
+      "poster: attachments/poster.jpg",
+      "```",
+    ].join("\n");
+    const blog = await renderer.render(source, {
+      fileURL: new URL("file:///vault/src/data/blog/阅读/文章.mdx"),
+    });
+    const snippet = await renderer.render(source, {
+      fileURL: new URL("file:///vault/src/data/snippets/2026/08/今天.md"),
+    });
+    const fixture = await renderer.render(source, {
+      fileURL: postFixtureUrl,
+    });
+
+    expect(blog.metadata.localImagePaths).toEqual([
+      "../../attachments/poster.jpg",
+    ]);
+    expect(snippet.metadata.localImagePaths).toEqual([
+      "../../../attachments/poster.jpg",
+    ]);
+    expect(blog.code).toContain("../../attachments/poster.jpg");
+    expect(snippet.code).toContain("../../../attachments/poster.jpg");
+    expect(fixture.metadata.localImagePaths).toEqual([
+      "../attachments/poster.jpg",
+    ]);
+    expect(fixture.code).toContain("../attachments/poster.jpg");
+  });
+
+  it("keeps shorthand posters authored when the source URL is not a file URL", async () => {
+    const renderer = await createSatteriMarkdownProcessor({
+      features: markdownFeatures,
+      mdastPlugins: pageMdastPlugins,
+      hastPlugins: pageHastPlugins,
+    });
+    const result = await renderer.render(
+      [
+        "```card-book",
+        "id: 987",
+        "title: 非文件 URL",
+        "poster: attachments/poster.jpg",
+        "```",
+      ].join("\n"),
+      { fileURL: new URL("https://example.test/posts/article.md") }
+    );
+
+    expect(result.metadata.localImagePaths).toEqual(["attachments/poster.jpg"]);
+    expect(result.code).toContain("attachments/poster.jpg");
   });
 
   it("exposes non-empty plugin groups", () => {
@@ -361,7 +549,9 @@ describe("processor contract", () => {
 
     expect(result.code).toContain('id="重复标题"');
     expect(result.code).toContain('href="#重复标题"');
-    expect(result.code).toContain("MediaCard");
+    expect(result.code).toContain('data-media-type="book"');
+    expect(result.code).toContain("测试书籍");
+    expect(result.code).not.toContain("MediaCard");
   });
 
   it("renders Sätteri content containers as semantic server HTML", async () => {
