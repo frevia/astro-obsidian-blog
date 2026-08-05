@@ -8,7 +8,7 @@ import type {
 import { calloutHastPlugin, calloutMdastPlugin } from "./plugins/callouts";
 import { contentComponentsPlugin } from "./plugins/contentComponents";
 import { linkProcessorPlugin, rssLinkProcessorPlugin } from "./plugins/links";
-import { mediaCardPlugin } from "./plugins/mediaCards";
+import { createMediaCardPlugin } from "./plugins/mediaCards";
 import {
   codeToolbarPlugin,
   figurePlugin,
@@ -33,7 +33,7 @@ export const pageMdastPlugins: MdastPluginDefinition[] = [
   contentComponentsPlugin,
   calloutMdastPlugin,
   linkProcessorPlugin,
-  mediaCardPlugin,
+  createMediaCardPlugin({ output: "card" }),
 ];
 
 export const pageHastPlugins: HastPluginDefinition[] = [
@@ -49,7 +49,7 @@ export const rssMdastPlugins: MdastPluginDefinition[] = [
   contentComponentsPlugin,
   calloutMdastPlugin,
   rssLinkProcessorPlugin,
-  mediaCardPlugin,
+  createMediaCardPlugin({ output: "link" }),
 ];
 
 export const rssHastPlugins: HastPluginDefinition[] = [
