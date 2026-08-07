@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { BLOG_PATH } from "../config";
+import { BLOG_PATH, CLIP_PATH } from "../config";
 
 /**
  * 从 markdown 文件中提取作为文章路由的 slug 字段
@@ -44,6 +44,21 @@ function normalizeHeadingHash(hash: string): string {
     .replace(/^-|-$/g, "");
 }
 
+function isPathWithin(filePath: string, directoryPath: string): boolean {
+  const relativePath = path.relative(directoryPath, filePath);
+  return (
+    relativePath === "" ||
+    (!relativePath.startsWith("..") && !path.isAbsolute(relativePath))
+  );
+}
+
+function contentRoutePrefix(targetFilePath: string): "/favorites" | "/posts" {
+  const projectRoot = process.cwd();
+  const clipDir = path.resolve(projectRoot, CLIP_PATH);
+
+  return isPathWithin(targetFilePath, clipDir) ? "/favorites" : "/posts";
+}
+
 function resolveMarkdownFilePath(
   sourcePath: string,
   currentFilePath?: string
@@ -79,7 +94,7 @@ function resolveMarkdownFilePath(
 }
 
 /**
- * 处理链接，将相对路径的blog文件链接转换为/posts/[slug]格式
+ * 处理链接，将内容文件链接转换为对应集合的公开路由
  * @param href 原始链接
  * @param currentFilePath 当前文件路径（用于解析相对路径）
  * @returns 处理后的链接
@@ -108,6 +123,7 @@ export function processLink(href: string, currentFilePath?: string): string {
     }
 
     const hashSuffix = rawHash ? `#${normalizeHeadingHash(rawHash)}` : "";
+    const routePrefix = contentRoutePrefix(targetFilePath);
     const slug = extractSlugFromFile(targetFilePath);
     if (slug) {
       const finalSlug = slug
@@ -116,7 +132,7 @@ export function processLink(href: string, currentFilePath?: string): string {
         .pop()
         ?.replace(/\s/g, "-")
         .toLowerCase();
-      return finalSlug ? `/posts/${finalSlug}${hashSuffix}` : href;
+      return finalSlug ? `${routePrefix}/${finalSlug}${hashSuffix}` : href;
     }
 
     // 没有 frontmatter slug 时，回退到集合默认使用的文件名。
@@ -125,7 +141,7 @@ export function processLink(href: string, currentFilePath?: string): string {
       path.extname(targetFilePath)
     );
 
-    return `/posts/${fileSlug}${hashSuffix}`;
+    return `${routePrefix}/${fileSlug}${hashSuffix}`;
   } catch {
     // 出错时返回原链接
     return href;

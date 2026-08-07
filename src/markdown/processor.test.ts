@@ -1,4 +1,9 @@
-import { describe, expect, it } from "vitest";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+
+import { describe, expect, it, vi } from "vitest";
 import { createSatteriMarkdownProcessor } from "@astrojs/markdown-satteri";
 import { load } from "cheerio";
 import { markdownToHtml, mdxToJs } from "satteri";
@@ -66,6 +71,39 @@ describe("processor contract", () => {
 
       expect(html).toContain(`href="/posts/${target.slug}"`);
       expect(html).toContain("下一篇");
+    }
+  });
+
+  it("resolves clip wikilinks to the favorites route", async () => {
+    const projectRoot = fs.mkdtempSync(
+      path.join(os.tmpdir(), "clip-wikilink-")
+    );
+    const clipDir = path.join(projectRoot, "src/data/clip");
+    fs.mkdirSync(clipDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(clipDir, "电影学英文——100LS为何有效.md"),
+      [
+        "---",
+        "title: 电影学英文——100LS为何有效",
+        "slug: aa4d9c495e82493fab7df1baa02e6399",
+        "---",
+      ].join("\n")
+    );
+    const cwd = vi.spyOn(process, "cwd").mockReturnValue(projectRoot);
+
+    try {
+      const html = await renderRssMarkdown(
+        "[[电影学英文——100LS为何有效|100LS 方法]]",
+        { fileURL: pathToFileURL(path.join(clipDir, "来源.md")) }
+      );
+
+      expect(html).toContain(
+        'href="/favorites/aa4d9c495e82493fab7df1baa02e6399"'
+      );
+      expect(html).toContain("100LS 方法");
+    } finally {
+      cwd.mockRestore();
+      fs.rmSync(projectRoot, { recursive: true, force: true });
     }
   });
 
