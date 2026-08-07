@@ -117,7 +117,13 @@ export default defineConfig({
   integrations: [
     mdx({ extendMarkdownConfig: true }),
     sitemap({
-      filter: page => SITE.showArchives || !page.endsWith("/archives"),
+      filter: page => {
+        const pathname = new URL(page).pathname.replace(/\/+$/, "");
+        if (pathname === "/wiki" || pathname.startsWith("/wiki/")) {
+          return false;
+        }
+        return SITE.showArchives || !pathname.endsWith("/archives");
+      },
     }),
     react(),
     ...(SITE.search === "pagefind" ? [pagefind()] : []),

@@ -2,12 +2,12 @@ export interface UIStrings {
   nav: {
     home: string;
     posts: string;
+    wiki: string;
     tags: string;
     about: string;
     archives: string;
     search: string;
     fragments: string;
-    favorites: string;
     footprint: string;
     feeds: string;
     mainLabel: string;

@@ -1,6 +1,6 @@
 # Frevia's Blog!
 
-一个基于 [Astro](https://astro.build/)、[Astro Paper](https://github.com/satnaing/astro-paper) 和 Obsidian 内容工作流构建的个人网站，用来记录文章、碎片、收藏、足迹与订阅。
+一个基于 [Astro](https://astro.build/)、[Astro Paper](https://github.com/satnaing/astro-paper) 和 Obsidian 内容工作流构建的个人网站，用来记录文章、碎片、知识、足迹与订阅。
 
 线上站点：[frevia.site](https://frevia.site/)
 
@@ -16,7 +16,7 @@
 
 ### 内容与阅读体验
 
-- Markdown / MDX 文章、日常碎片、收藏剪辑和 Obsidian wikilink
+- Markdown / MDX 文章、日常碎片、公开知识页和 Obsidian wikilink
 - 双向链接面板：展示当前页面链接到的内容，以及引用当前页面的反向链接
 - 服务端生成的文章目录、阅读进度定位和代码工具栏
 - Sätteri + Shiki 代码高亮，支持语言标识、复制按钮、文件名、差异和行高亮
@@ -30,7 +30,7 @@
 - 足迹地图使用 `client:visible`，Leaflet 地图不可用时自动退回地点列表
 - `Cmd/Ctrl + K` 打开原生搜索面板，Pagefind 引擎在首次搜索时按需加载
 - 响应式布局、键盘导航、语义化控件、明暗主题和 reduced-motion 支持
-- 收藏页主题筛选、标签折叠、年份索引和阅读目录体验
+- 知识库领域筛选、全文过滤、双向链接和专属阅读界面
 - Leaflet 足迹地图、地点索引、文章关联和明亮地图配色
 - Twikoo 评论、RSS 邻居订阅和 Vercel Cron 定时抓取
 
@@ -47,7 +47,7 @@
 │   ├── data/                   # 独立 blog-data Git 子模块
 │   │   ├── blog/               # 博客文章
 │   │   ├── snippets/           # 日常碎片时间线
-│   │   ├── clip/               # 收藏剪辑
+│   │   ├── wiki/               # 白名单生成的公开知识页
 │   │   └── attachments/        # 内容附件
 │   ├── components/             # Astro、React 和 Preact 组件
 │   ├── layouts/                # 页面与文章布局
@@ -228,7 +228,7 @@ export default defineAstroPaperConfig({
     content: {
       blogPath: "src/data/blog",
       diaryPath: "src/data/snippets",
-      clipPath: "src/data/clip",
+      wikiPath: "src/data/wiki",
     },
     showCalendar: true,
     comments: { enabled: true },
@@ -259,7 +259,8 @@ cp .env.example .env
 
 - `/`：首页、最新文章和碎片时间线
 - `/posts/`：文章索引与分页
-- `/favorites/`：收藏剪辑、主题筛选与年份索引
+- `/wiki/`：经过白名单审核的持续更新知识页；初期 `noindex`，不进入 RSS
+- `/favorites/*`：历史地址，永久跳转到 `/wiki`
 - `/footprint/`：地点地图、足迹列表和关联文章
 - `/feeds/`：邻居 RSS 订阅
 - `/about/`：关于页面与评论
@@ -292,7 +293,7 @@ canonicalURL: "https://example.com/original" # 可选
 
 ### 碎片
 
-碎片放在 `src/data/snippets/`，按年份和月份组织，例如 `2026/04/2026-04-13.md`。收藏剪辑放在 `src/data/clip/`，使用 `title`、`published`、`tags`、`description` 等 frontmatter 字段。
+碎片放在 `src/data/snippets/`，按年份和月份组织，例如 `2026/04/2026-04-13.md`。原始收藏保留在私有 Obsidian Vault 的 `site/clip/`，不作为网站内容集合发布；整理后的公开知识进入 `src/data/wiki/`。
 
 媒体卡片使用 Obsidian 风格的 fenced block：
 
@@ -310,6 +311,10 @@ title: 电影标题
 
 目前支持 `card-movie`、`card-tv`、`card-book` 和 `card-music`。媒体信息通常由 Obsidian 工作流或现有抓取脚本写入。
 
+### 知识库
+
+`src/data/wiki/` 是生成数据，不是知识源。完整 Wiki 与原始 Clip 保存在私有 Obsidian Vault；发布脚本只复制显式白名单中的概念页，把可公开的来源引用转换为原文或博客链接，并移除内部来源路径、将未公开 Wikilink 降级为普通文字。新增公开知识页应先更新 Vault 白名单并审查导出结果，不能直接编辑子模块副本。
+
 ### Wikilink
 
 ```markdown
@@ -317,7 +322,7 @@ title: 电影标题
 [[另一篇文章#某个标题|自定义显示文字]]
 ```
 
-文章详情页会根据这些链接生成“链接到”和“引用本文”两个方向的关系面板。
+文章和公开知识页会根据这些链接生成“链接到”和“引用本文”两个方向的关系面板。Wiki 关系图只包含公开白名单节点。
 
 ## 🎨 自定义样式
 

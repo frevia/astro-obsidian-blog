@@ -4,12 +4,12 @@ export default {
   nav: {
     home: "Home",
     posts: "Posts",
+    wiki: "Knowledge",
     tags: "Tags",
     about: "About",
     archives: "Archives",
     search: "Search",
     fragments: "Fragments",
-    favorites: "Favorites",
     footprint: "Footprint",
     feeds: "Neighbors",
     mainLabel: "Main navigation",

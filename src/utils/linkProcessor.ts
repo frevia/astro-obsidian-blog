@@ -1,6 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { BLOG_PATH, CLIP_PATH } from "../config";
+import { slug as slugSegment } from "github-slugger";
+import { BLOG_PATH, WIKI_PATH } from "../config";
+
+export type ContentRoutePrefix = "/posts" | "/wiki";
 
 /**
  * 从 markdown 文件中提取作为文章路由的 slug 字段
@@ -52,11 +55,25 @@ function isPathWithin(filePath: string, directoryPath: string): boolean {
   );
 }
 
-function contentRoutePrefix(targetFilePath: string): "/favorites" | "/posts" {
+function contentRoutePrefix(
+  targetFilePath: string
+): ContentRoutePrefix | undefined {
   const projectRoot = process.cwd();
-  const clipDir = path.resolve(projectRoot, CLIP_PATH);
+  const wikiDir = path.resolve(projectRoot, WIKI_PATH);
+  const blogDir = path.resolve(projectRoot, BLOG_PATH);
 
-  return isPathWithin(targetFilePath, clipDir) ? "/favorites" : "/posts";
+  if (isPathWithin(targetFilePath, wikiDir)) return "/wiki";
+  if (isPathWithin(targetFilePath, blogDir)) return "/posts";
+
+  // The markdown processor has characterization fixtures under src/markdown;
+  // retain their historic article semantics without treating arbitrary files
+  // elsewhere in the project as public posts.
+  const fixturesDir = path.resolve(projectRoot, "src/markdown/fixtures");
+  if (isPathWithin(targetFilePath, fixturesDir)) return "/posts";
+
+  // Fail closed: files from private/unknown directories must not become a
+  // public article route merely because they happen to contain frontmatter.
+  return undefined;
 }
 
 function resolveMarkdownFilePath(
@@ -82,11 +99,18 @@ function resolveMarkdownFilePath(
       return resolved;
     }
 
-    const blogDir = path.resolve(projectRoot, BLOG_PATH);
-    const relativePath = path.relative(projectRoot, resolved);
-    const blogFilePath = path.join(blogDir, relativePath);
-    if (fs.existsSync(blogFilePath)) {
-      return blogFilePath.replace(/\\/g, "/");
+    // Bare and qualified wikilinks are resolved from each public collection's
+    // root as a convenience (for example `concepts/数字证书` from a wiki page).
+    // The route classifier below still decides whether the resolved file may be
+    // exposed; merely finding a file is never enough to publish it.
+    for (const collectionDir of [
+      path.resolve(projectRoot, BLOG_PATH),
+      path.resolve(projectRoot, WIKI_PATH),
+    ]) {
+      const collectionFilePath = path.join(collectionDir, decodedSource);
+      if (fs.existsSync(collectionFilePath)) {
+        return collectionFilePath.replace(/\\/g, "/");
+      }
     }
   }
 
@@ -124,6 +148,29 @@ export function processLink(href: string, currentFilePath?: string): string {
 
     const hashSuffix = rawHash ? `#${normalizeHeadingHash(rawHash)}` : "";
     const routePrefix = contentRoutePrefix(targetFilePath);
+    if (!routePrefix) return href;
+
+    if (routePrefix === "/wiki") {
+      const wikiDir = path.resolve(process.cwd(), WIKI_PATH);
+      const wikiRelativePath = path.relative(wikiDir, targetFilePath);
+      if (
+        !wikiRelativePath ||
+        wikiRelativePath.startsWith("..") ||
+        path.isAbsolute(wikiRelativePath)
+      ) {
+        return href;
+      }
+
+      const routeId = wikiRelativePath
+        .replace(/\\/g, "/")
+        .replace(/\.(?:md|mdx)$/i, "")
+        .split("/")
+        .filter(Boolean)
+        .map(segment => slugSegment(segment))
+        .join("/");
+      return routeId ? `/wiki/${routeId}${hashSuffix}` : href;
+    }
+
     const slug = extractSlugFromFile(targetFilePath);
     if (slug) {
       const finalSlug = slug

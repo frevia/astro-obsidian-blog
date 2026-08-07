@@ -18,17 +18,12 @@ describe("WikilinkPanel", () => {
     );
   });
 
-  it("applies BASE_URL only after accepting a safe site-relative href", () => {
+  it("reuses the shared safe site-relative href preparation", () => {
     expect(componentSource).toContain(
-      'import { withBase } from "@/utils/withBase"'
+      'import { prepareWikilinkReferences } from "@/utils/wikilinkReferences"'
     );
-    expect(componentSource).toContain('!path.startsWith("/")');
-    expect(componentSource).toContain('path.startsWith("//")');
-    expect(componentSource).toContain('path.includes("\\\\")');
-    expect(componentSource).toContain("return withBase(path);");
-    expect(componentSource).toContain(
-      "const href = safeSiteHref(reference.href)"
-    );
+    expect(componentSource).toContain("prepareWikilinkReferences(outgoing)");
+    expect(componentSource).toContain("prepareWikilinkReferences(backlinks)");
     expect(componentSource).not.toContain("href={reference.href}");
     expect(componentSource).toContain('data-astro-prefetch="tap"');
   });

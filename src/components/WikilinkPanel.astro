@@ -1,6 +1,6 @@
 ---
 import type { WikilinkReference } from "@/utils/wikilinkGraph";
-import { withBase } from "@/utils/withBase";
+import { prepareWikilinkReferences } from "@/utils/wikilinkReferences";
 
 interface Props {
   outgoing?: readonly WikilinkReference[];
@@ -18,34 +18,8 @@ const {
   backlinksLabel,
 } = Astro.props;
 
-function safeSiteHref(href: string): string | undefined {
-  const path = href.trim();
-  const hasControlCharacter = [...path].some(character => {
-    const code = character.charCodeAt(0);
-    return code <= 31 || code === 127;
-  });
-
-  if (
-    !path.startsWith("/") ||
-    path.startsWith("//") ||
-    path.includes("\\") ||
-    hasControlCharacter
-  ) {
-    return undefined;
-  }
-
-  return withBase(path);
-}
-
-function prepareReferences(references: readonly WikilinkReference[]) {
-  return references.flatMap(reference => {
-    const href = safeSiteHref(reference.href);
-    return href ? [{ reference, href }] : [];
-  });
-}
-
-const outgoingLinks = prepareReferences(outgoing);
-const backlinkLinks = prepareReferences(backlinks);
+const outgoingLinks = prepareWikilinkReferences(outgoing);
+const backlinkLinks = prepareWikilinkReferences(backlinks);
 const hasLinks = outgoingLinks.length > 0 || backlinkLinks.length > 0;
 ---
 

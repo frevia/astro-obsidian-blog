@@ -55,7 +55,7 @@ describe("AstroPaper config", () => {
         content: {
           blogPath: "src/content/posts",
           diaryPath: "src/content/diary",
-          clipPath: "src/content/clip",
+          wikiPath: "src/data/wiki",
         },
         showCalendar: false,
         createdAt: "1970-01-01",
@@ -183,7 +183,7 @@ describe("AstroPaper config", () => {
       content: {
         blogPath: "src/data/blog",
         diaryPath: "src/data/snippets",
-        clipPath: "src/data/clip",
+        wikiPath: "src/data/wiki",
       },
       showCalendar: true,
       createdAt: "2025-03-17",
@@ -233,9 +233,9 @@ describe("AstroPaper config", () => {
   });
 
   it("exports legacy content path constants from local.content", () => {
-    const { BLOG_PATH, CLIP_PATH, config, DIARY_PATH } = moduleExports;
+    const { BLOG_PATH, config, DIARY_PATH, WIKI_PATH } = moduleExports;
     expect(BLOG_PATH).toBe(config.local.content.blogPath);
     expect(DIARY_PATH).toBe(config.local.content.diaryPath);
-    expect(CLIP_PATH).toBe(config.local.content.clipPath);
+    expect(WIKI_PATH).toBe(config.local.content.wikiPath);
   });
 });

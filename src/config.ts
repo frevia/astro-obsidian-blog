@@ -62,7 +62,7 @@ export function resolveAstroPaperConfig(
       content: {
         blogPath: input.local?.content?.blogPath ?? "src/content/posts",
         diaryPath: input.local?.content?.diaryPath ?? "src/content/diary",
-        clipPath: input.local?.content?.clipPath ?? "src/content/clip",
+        wikiPath: input.local?.content?.wikiPath ?? "src/data/wiki",
       },
       showCalendar: input.local?.showCalendar ?? false,
       createdAt: input.local?.createdAt ?? "1970-01-01",
@@ -99,7 +99,7 @@ export default config;
 
 export const BLOG_PATH = config.local.content.blogPath;
 export const DIARY_PATH = config.local.content.diaryPath;
-export const CLIP_PATH = config.local.content.clipPath;
+export const WIKI_PATH = config.local.content.wikiPath;
 
 export const SITE = {
   website: config.site.url,

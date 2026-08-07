@@ -1,8 +1,21 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
       "path": "/api/fetch-rss",
       "schedule": "0 8 * * *"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/favorites",
+      "destination": "/wiki",
+      "permanent": true
+    },
+    {
+      "source": "/favorites/:path*",
+      "destination": "/wiki",
+      "permanent": true
     }
   ]
 }

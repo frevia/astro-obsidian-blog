@@ -1,0 +1,818 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import {
+  getWikiDescription,
+  getWikiPath,
+  getWikiTitle,
+} from "@/utils/wikiPath";
+import { buildWikilinkGraph } from "@/utils/wikilinkGraph";
+import { getWikiDomain, WIKI_DOMAINS } from "@/utils/wikiCatalog";
+import { SITE } from "@/config";
+import { withBase } from "@/utils/withBase";
+
+const entries = (await getCollection("wiki")).sort((a, b) =>
+  getWikiTitle(a).localeCompare(getWikiTitle(b), "zh-Hans")
+);
+const graphEntries = entries.map(entry => ({
+  id: entry.id,
+  filePath: entry.filePath,
+  body: entry.body,
+  data: { title: getWikiTitle(entry), slug: entry.data.title },
+  routePrefix: "/wiki" as const,
+}));
+const graph = buildWikilinkGraph(graphEntries);
+const catalog = entries.map(entry => {
+  const title = getWikiTitle(entry);
+  const outgoing = graph.outgoing.get(entry.id)?.length ?? 0;
+  const backlinks = graph.backlinks.get(entry.id)?.length ?? 0;
+  return {
+    entry,
+    title,
+    description: getWikiDescription(entry),
+    domain: getWikiDomain(title),
+    relations: outgoing + backlinks,
+  };
+});
+const relationCount = catalog.reduce(
+  (total, item) => total + item.relations,
+  0
+);
+const layoutProps = {
+  title: `知识库 | ${SITE.title}`,
+  description: "把收藏、文章和实践沉淀成持续更新的知识网络。",
+  canonicalURL: new URL(withBase("/wiki"), Astro.url.origin).href,
+  noindex: true,
+  includeRss: false,
+  includeStructuredData: false,
+  contentType: "wiki" as const,
+};
+---
+
+<Layout {...layoutProps}>
+  <Header />
+  <main
+    id="main-content"
+    class="wiki-library page-shell mx-auto mt-4 w-full max-w-app px-4 pb-16"
+    data-content-kind="wiki"
+    data-pagefind-body
+    data-pagefind-weight="4"
+  >
+    <span class="sr-only" data-pagefind-meta="type">wiki</span>
+
+    <header class="wiki-hero">
+      <div class="wiki-hero-copy">
+        <p class="wiki-kicker">Knowledge Garden · 知识花园</p>
+        <h1 data-pagefind-meta="title">
+          把收藏变成<br /><em>可复用的知识</em>
+        </h1>
+        <p class="wiki-intro">
+          这里不陈列未经消化的输入。每个页面都从文章、书籍、视频和实践中反复提炼，连接成一张仍在生长的知识网络。
+        </p>
+      </div>
+
+      <div class="wiki-hero-map" aria-hidden="true">
+        <span class="wiki-orbit wiki-orbit-one"></span>
+        <span class="wiki-orbit wiki-orbit-two"></span>
+        <span class="wiki-node wiki-node-core">W</span>
+        <span class="wiki-node wiki-node-a">信任</span>
+        <span class="wiki-node wiki-node-b">行动</span>
+        <span class="wiki-node wiki-node-c">觉察</span>
+        <span class="wiki-node wiki-node-d">创造</span>
+      </div>
+
+      <dl class="wiki-metrics" data-pagefind-ignore>
+        <div><dt>公开概念</dt><dd>{entries.length}</dd></div>
+        <div><dt>主题领域</dt><dd>{WIKI_DOMAINS.length}</dd></div>
+        <div><dt>知识连接</dt><dd>{relationCount}</dd></div>
+        <div>
+          <dt>维护状态</dt><dd class="wiki-live"><span></span>持续更新</dd>
+        </div>
+      </dl>
+    </header>
+
+    <section
+      class="wiki-process"
+      aria-labelledby="wiki-process-title"
+      data-pagefind-ignore
+    >
+      <div>
+        <p class="wiki-section-number">00 / PROCESS</p>
+        <h2 id="wiki-process-title">从输入到理解</h2>
+      </div>
+      <ol>
+        <li>
+          <span>01</span><strong>收藏</strong><small
+            >保留值得追问的原始材料</small
+          >
+        </li>
+        <li>
+          <span>02</span><strong>提炼</strong><small
+            >区分论点、证据与适用边界</small
+          >
+        </li>
+        <li>
+          <span>03</span><strong>连接</strong><small
+            >让新认知进入已有概念网络</small
+          >
+        </li>
+        <li>
+          <span>04</span><strong>更新</strong><small
+            >用新来源和实践持续校订</small
+          >
+        </li>
+      </ol>
+    </section>
+
+    <section class="wiki-explorer" aria-labelledby="wiki-explorer-title">
+      <div class="wiki-explorer-head">
+        <div>
+          <p class="wiki-section-number">01 / EXPLORE</p>
+          <h2 id="wiki-explorer-title">浏览知识领域</h2>
+        </div>
+        <label class="wiki-search">
+          <span class="sr-only">搜索知识页</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"
+            ><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"
+            ></path></svg
+          >
+          <input
+            id="wiki-search-input"
+            type="search"
+            placeholder="搜索概念或描述…"
+            autocomplete="off"
+          />
+          <kbd>⌘ K</kbd>
+        </label>
+      </div>
+
+      <div
+        class="wiki-domain-tabs"
+        role="group"
+        aria-label="知识领域筛选"
+        data-pagefind-ignore
+      >
+        <button
+          type="button"
+          class="is-active"
+          data-wiki-filter="all"
+          aria-pressed="true">全部 <span>{catalog.length}</span></button
+        >
+        {
+          WIKI_DOMAINS.map(domain => (
+            <button
+              type="button"
+              data-wiki-filter={domain.key}
+              aria-pressed="false"
+            >
+              {domain.label}{" "}
+              <span>
+                {catalog.filter(item => item.domain.key === domain.key).length}
+              </span>
+            </button>
+          ))
+        }
+      </div>
+
+      <p
+        id="wiki-filter-status"
+        class="sr-only"
+        role="status"
+        aria-live="polite"
+      >
+        共 {catalog.length} 个知识页
+      </p>
+
+      <div class="wiki-domain-list">
+        {
+          WIKI_DOMAINS.map(domain => {
+            const items = catalog.filter(
+              item => item.domain.key === domain.key
+            );
+            return (
+              <section
+                class="wiki-domain"
+                data-wiki-domain-section={domain.key}
+              >
+                <header class="wiki-domain-head">
+                  <div class="wiki-domain-index">{domain.index}</div>
+                  <div>
+                    <p>{domain.eyebrow}</p>
+                    <h3>{domain.label}</h3>
+                  </div>
+                  <p class="wiki-domain-description">{domain.description}</p>
+                </header>
+                <ul class="wiki-card-grid">
+                  {items.map((item, index) => (
+                    <li
+                      class="wiki-card"
+                      data-wiki-entry
+                      data-wiki-domain={domain.key}
+                      data-wiki-search={`${item.title} ${item.description}`.toLowerCase()}
+                    >
+                      <a
+                        href={getWikiPath(item.entry.id)}
+                        data-astro-prefetch="hover"
+                      >
+                        <div class="wiki-card-top">
+                          <span>
+                            {domain.index}.{String(index + 1).padStart(2, "0")}
+                          </span>
+                          <span class="wiki-card-arrow" aria-hidden="true">
+                            ↗
+                          </span>
+                        </div>
+                        <h4>{item.title}</h4>
+                        <p>{item.description}</p>
+                        <div class="wiki-card-meta">
+                          <span>{domain.label}</span>
+                          <span>{item.relations} 个连接</span>
+                        </div>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+          })
+        }
+      </div>
+
+      <div id="wiki-empty" class="wiki-empty" hidden data-pagefind-ignore>
+        <span>⌁</span>
+        <h3>没有找到对应概念</h3>
+        <p>换一个关键词，或者浏览全部知识领域。</p>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .wiki-library {
+    --wiki-ink: color-mix(in oklab, var(--foreground) 92%, #102a43);
+  }
+  .wiki-hero {
+    position: relative;
+    overflow: hidden;
+    border-block: 1px solid var(--border);
+    padding: clamp(2.5rem, 7vw, 5.5rem) 0 0;
+  }
+  .wiki-hero::before {
+    position: absolute;
+    inset: 0;
+    opacity: 0.3;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 3rem 3rem;
+    mask-image: linear-gradient(
+      to right,
+      transparent 12%,
+      #000 65%,
+      transparent
+    );
+    content: "";
+    pointer-events: none;
+  }
+  .wiki-hero-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 44rem;
+    padding-inline-start: 0.9rem;
+  }
+  .wiki-hero-copy::before {
+    position: absolute;
+    inset-block: 0.2rem 0.15rem;
+    inset-inline-start: 0;
+    width: 2px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to bottom,
+      var(--accent),
+      color-mix(in oklab, var(--accent) 18%, transparent)
+    );
+    content: "";
+  }
+  .wiki-kicker,
+  .wiki-section-number {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .wiki-hero h1 {
+    margin-top: 1rem;
+    color: var(--wiki-ink);
+    font-family: var(--font-serif);
+    font-size: clamp(2.75rem, 8vw, 5.9rem);
+    font-weight: 650;
+    letter-spacing: -0.065em;
+    line-height: 0.98;
+  }
+  .wiki-hero h1 em {
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .wiki-intro {
+    max-width: 39rem;
+    margin-top: 1.5rem;
+    color: var(--foreground-muted);
+    font-size: clamp(0.95rem, 2vw, 1.08rem);
+    line-height: 1.9;
+  }
+  .wiki-hero-map {
+    position: absolute;
+    top: 1.5rem;
+    right: -2rem;
+    width: min(35vw, 23rem);
+    aspect-ratio: 1;
+    opacity: 0.78;
+  }
+  .wiki-orbit {
+    position: absolute;
+    border: 1px solid color-mix(in oklab, var(--accent) 32%, transparent);
+    border-radius: 50%;
+  }
+  .wiki-orbit-one {
+    inset: 14%;
+  }
+  .wiki-orbit-two {
+    inset: 1%;
+    border-style: dashed;
+  }
+  .wiki-node {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    min-width: 2.8rem;
+    height: 2.8rem;
+    border: 1px solid color-mix(in oklab, var(--accent) 45%, var(--border));
+    border-radius: 50%;
+    padding: 0.45rem;
+    color: var(--foreground);
+    background: var(--background);
+    font-size: 0.65rem;
+    box-shadow: 0 0 0 0.45rem
+      color-mix(in oklab, var(--background) 75%, transparent);
+  }
+  .wiki-node-core {
+    inset: 50% auto auto 50%;
+    width: 4rem;
+    height: 4rem;
+    translate: -50% -50%;
+    color: white;
+    background: var(--accent);
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+  }
+  .wiki-node-a {
+    top: 2%;
+    left: 42%;
+  }
+  .wiki-node-b {
+    top: 43%;
+    right: -2%;
+  }
+  .wiki-node-c {
+    bottom: 2%;
+    left: 44%;
+  }
+  .wiki-node-d {
+    top: 42%;
+    left: -3%;
+  }
+  .wiki-metrics {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: clamp(2.5rem, 6vw, 5rem);
+    border-top: 1px solid var(--border);
+  }
+  .wiki-metrics div {
+    min-width: 0;
+    padding: 1.1rem 1rem 1.15rem 0;
+    border-right: 1px solid var(--border);
+  }
+  .wiki-metrics div + div {
+    padding-left: 1rem;
+  }
+  .wiki-metrics div:last-child {
+    border-right: 0;
+  }
+  .wiki-metrics dt {
+    color: var(--foreground-muted);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+  }
+  .wiki-metrics dd {
+    margin-top: 0.35rem;
+    color: var(--wiki-ink);
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 650;
+  }
+  .wiki-metrics .wiki-live {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+  }
+  .wiki-live span {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: #16a34a;
+    box-shadow: 0 0 0 0.25rem color-mix(in oklab, #16a34a 15%, transparent);
+  }
+  .wiki-process {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.55fr) 1.45fr;
+    gap: 2rem;
+    padding: clamp(2.5rem, 6vw, 4.5rem) 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .wiki-process h2,
+  .wiki-explorer-head h2 {
+    margin-top: 0.4rem;
+    color: var(--wiki-ink);
+    font-family: var(--font-serif);
+    font-size: clamp(1.8rem, 4vw, 2.7rem);
+    font-weight: 650;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+
+  .wiki-process h2 {
+    font-size: clamp(1.75rem, 3vw, 2.15rem);
+    white-space: nowrap;
+  }
+  .wiki-process ol {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+  }
+  .wiki-process li {
+    display: flex;
+    min-height: 9.5rem;
+    flex-direction: column;
+    padding: 1rem;
+    background: var(--background);
+  }
+  .wiki-process li span {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+  }
+  .wiki-process li strong {
+    margin-top: auto;
+    font-size: 1rem;
+  }
+  .wiki-process li small {
+    margin-top: 0.35rem;
+    color: var(--foreground-muted);
+    font-size: 0.72rem;
+    line-height: 1.6;
+  }
+  .wiki-explorer {
+    padding-top: clamp(2.5rem, 6vw, 4.5rem);
+  }
+  .wiki-explorer-head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+  .wiki-search {
+    display: flex;
+    width: min(100%, 22rem);
+    align-items: center;
+    gap: 0.65rem;
+    border-bottom: 1px solid var(--foreground);
+    padding: 0.6rem 0;
+  }
+  .wiki-search svg {
+    width: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+  }
+  .wiki-search input {
+    min-width: 0;
+    flex: 1;
+    outline: none;
+    background: transparent;
+    font-size: 0.8rem;
+  }
+  .wiki-search kbd {
+    color: var(--foreground-muted);
+    font-size: 0.65rem;
+  }
+  .wiki-domain-tabs {
+    display: flex;
+    gap: 0.45rem;
+    margin-top: 2rem;
+    overflow-x: auto;
+    padding-bottom: 0.3rem;
+    scrollbar-width: none;
+  }
+  .wiki-domain-tabs button {
+    flex: none;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.5rem 0.75rem;
+    color: var(--foreground-muted);
+    font-size: 0.72rem;
+    transition: 160ms ease;
+  }
+  .wiki-domain-tabs button span {
+    margin-left: 0.25rem;
+    opacity: 0.55;
+  }
+  .wiki-domain-tabs button:hover,
+  .wiki-domain-tabs button.is-active {
+    border-color: var(--accent);
+    color: white;
+    background: var(--accent);
+  }
+  .wiki-domain {
+    padding: clamp(2.5rem, 6vw, 4rem) 0 0;
+  }
+  .wiki-domain[hidden] {
+    display: none;
+  }
+  .wiki-domain-head {
+    display: grid;
+    grid-template-columns: 3.4rem minmax(10rem, 0.8fr) 1.2fr;
+    align-items: end;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .wiki-domain-index {
+    color: color-mix(in oklab, var(--accent) 72%, var(--foreground));
+    font-family: var(--font-serif);
+    font-size: 2.2rem;
+    font-style: italic;
+  }
+  .wiki-domain-head p {
+    color: var(--foreground-muted);
+    font-size: 0.73rem;
+    line-height: 1.7;
+  }
+  .wiki-domain-head > div p {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .wiki-domain-head h3 {
+    margin-top: 0.15rem;
+    color: var(--wiki-ink);
+    font-family: var(--font-serif);
+    font-size: 1.45rem;
+    font-weight: 650;
+  }
+  .wiki-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--border);
+    border-left: 1px solid var(--border);
+  }
+  .wiki-card {
+    min-width: 0;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--background);
+    transition: 180ms ease;
+  }
+  .wiki-card[hidden] {
+    display: none;
+  }
+  .wiki-card:hover {
+    background: color-mix(in oklab, var(--surface-muted) 82%, var(--accent) 3%);
+  }
+  .wiki-card a {
+    display: flex;
+    min-height: 15.5rem;
+    flex-direction: column;
+    padding: 1.15rem 1.2rem;
+    text-decoration: none;
+  }
+  .wiki-card-top,
+  .wiki-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--foreground-muted);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.07em;
+  }
+  .wiki-card-arrow {
+    color: var(--accent);
+    font-size: 1rem;
+    transition: transform 160ms ease;
+  }
+  .wiki-card:hover .wiki-card-arrow {
+    transform: translate(0.2rem, -0.2rem);
+  }
+  .wiki-card h4 {
+    margin-top: 2.2rem;
+    color: var(--wiki-ink);
+    font-family: var(--font-serif);
+    font-size: clamp(1.25rem, 2.7vw, 1.75rem);
+    font-weight: 650;
+    letter-spacing: -0.025em;
+    line-height: 1.25;
+    transition: color 160ms ease;
+  }
+  .wiki-card:hover h4 {
+    color: var(--accent);
+  }
+  .wiki-card > a > p {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    margin-top: 0.7rem;
+    color: var(--foreground-muted);
+    font-size: 0.78rem;
+    line-height: 1.75;
+  }
+  .wiki-card-meta {
+    margin-top: auto;
+    padding-top: 1.4rem;
+    border-top: 1px solid color-mix(in oklab, var(--border) 65%, transparent);
+    letter-spacing: 0;
+  }
+  .wiki-empty {
+    margin-top: 3rem;
+    border: 1px dashed var(--border);
+    padding: 3rem 1rem;
+    text-align: center;
+  }
+  .wiki-empty span {
+    color: var(--accent);
+    font-size: 2rem;
+  }
+  .wiki-empty h3 {
+    margin-top: 0.5rem;
+    font-family: var(--font-serif);
+    font-size: 1.4rem;
+  }
+  .wiki-empty p {
+    margin-top: 0.35rem;
+    color: var(--foreground-muted);
+    font-size: 0.8rem;
+  }
+  @media (max-width: 900px) {
+    .wiki-hero-map {
+      opacity: 0.28;
+      right: -5rem;
+      width: 20rem;
+    }
+    .wiki-process {
+      grid-template-columns: 1fr;
+    }
+    .wiki-domain-head {
+      grid-template-columns: 3rem 1fr;
+    }
+    .wiki-domain-description {
+      grid-column: 2;
+    }
+    .wiki-process ol {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .wiki-hero {
+      padding-top: 2.4rem;
+    }
+    .wiki-hero h1 {
+      font-size: clamp(2.5rem, 14vw, 4rem);
+    }
+    .wiki-hero-map {
+      display: none;
+    }
+    .wiki-metrics {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .wiki-metrics div:nth-child(2) {
+      border-right: 0;
+    }
+    .wiki-metrics div:nth-child(n + 3) {
+      border-top: 1px solid var(--border);
+    }
+    .wiki-explorer-head {
+      align-items: stretch;
+      flex-direction: column;
+      gap: 1.3rem;
+    }
+    .wiki-search {
+      width: 100%;
+    }
+    .wiki-card-grid {
+      grid-template-columns: 1fr;
+    }
+    .wiki-card a {
+      min-height: 14rem;
+    }
+    .wiki-domain-head {
+      align-items: start;
+    }
+    .wiki-domain-description {
+      margin-top: 0.2rem;
+    }
+    .wiki-process ol {
+      grid-template-columns: 1fr 1fr;
+    }
+    .wiki-process li {
+      min-height: 8rem;
+    }
+  }
+</style>
+
+<script>
+  declare global {
+    interface Window {
+      __wikiExplorerCleanup?: () => void;
+    }
+  }
+  function initWikiExplorer() {
+    window.__wikiExplorerCleanup?.();
+    const input =
+      document.querySelector<HTMLInputElement>("#wiki-search-input");
+    const buttons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>("[data-wiki-filter]")
+    );
+    const entries = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-wiki-entry]")
+    );
+    const sections = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-wiki-domain-section]")
+    );
+    const empty = document.querySelector<HTMLElement>("#wiki-empty");
+    const status = document.querySelector<HTMLElement>("#wiki-filter-status");
+    if (!input || !empty || !status) return;
+    let domain = "all";
+    const apply = () => {
+      const query = input.value.trim().toLocaleLowerCase();
+      let visible = 0;
+      entries.forEach(entry => {
+        const matchesDomain =
+          domain === "all" || entry.dataset.wikiDomain === domain;
+        const matchesQuery =
+          !query || entry.dataset.wikiSearch?.includes(query);
+        entry.hidden = !(matchesDomain && matchesQuery);
+        if (!entry.hidden) visible += 1;
+      });
+      sections.forEach(section => {
+        section.hidden = !Array.from(
+          section.querySelectorAll<HTMLElement>("[data-wiki-entry]")
+        ).some(entry => !entry.hidden);
+      });
+      empty.hidden = visible > 0;
+      status.textContent = `找到 ${visible} 个知识页`;
+    };
+    const cleanups: Array<() => void> = [];
+    const onInput = () => apply();
+    input.addEventListener("input", onInput);
+    cleanups.push(() => input.removeEventListener("input", onInput));
+    buttons.forEach(button => {
+      const onClick = () => {
+        domain = button.dataset.wikiFilter ?? "all";
+        buttons.forEach(item => {
+          const active = item === button;
+          item.classList.toggle("is-active", active);
+          item.setAttribute("aria-pressed", String(active));
+        });
+        apply();
+      };
+      button.addEventListener("click", onClick);
+      cleanups.push(() => button.removeEventListener("click", onClick));
+    });
+    const onKeydown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        input.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeydown);
+    cleanups.push(() => document.removeEventListener("keydown", onKeydown));
+    window.__wikiExplorerCleanup = () => cleanups.forEach(cleanup => cleanup());
+    apply();
+  }
+  document.addEventListener("astro:page-load", initWikiExplorer);
+  document.addEventListener("astro:before-swap", () =>
+    window.__wikiExplorerCleanup?.()
+  );
+  initWikiExplorer();
+</script>

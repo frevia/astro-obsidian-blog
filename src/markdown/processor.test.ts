@@ -74,33 +74,35 @@ describe("processor contract", () => {
     }
   });
 
-  it("resolves clip wikilinks to the favorites route", async () => {
+  it("resolves public wiki wikilinks while failing closed for unknown files", async () => {
     const projectRoot = fs.mkdtempSync(
-      path.join(os.tmpdir(), "clip-wikilink-")
+      path.join(os.tmpdir(), "wiki-wikilink-")
     );
-    const clipDir = path.join(projectRoot, "src/data/clip");
-    fs.mkdirSync(clipDir, { recursive: true });
+    const wikiDir = path.join(projectRoot, "src/data/wiki/concepts");
+    const privateDir = path.join(projectRoot, "knowledge/wiki/personal");
+    fs.mkdirSync(wikiDir, { recursive: true });
+    fs.mkdirSync(privateDir, { recursive: true });
     fs.writeFileSync(
-      path.join(clipDir, "电影学英文——100LS为何有效.md"),
-      [
-        "---",
-        "title: 电影学英文——100LS为何有效",
-        "slug: aa4d9c495e82493fab7df1baa02e6399",
-        "---",
-      ].join("\n")
+      path.join(wikiDir, "数字证书.md"),
+      "---\nsources: []\n---\n# 数字证书"
     );
+    fs.writeFileSync(path.join(privateDir, "秘密.md"), "# 私有页面");
+    const sourcePath = path.join(wikiDir, "来源.md");
+    fs.writeFileSync(sourcePath, "# 来源");
     const cwd = vi.spyOn(process, "cwd").mockReturnValue(projectRoot);
 
     try {
       const html = await renderRssMarkdown(
-        "[[电影学英文——100LS为何有效|100LS 方法]]",
-        { fileURL: pathToFileURL(path.join(clipDir, "来源.md")) }
+        "公开 [[数字证书|数字证书]]，私有 [[../../../../knowledge/wiki/personal/秘密|不应路由]]",
+        { fileURL: pathToFileURL(sourcePath) }
       );
 
       expect(html).toContain(
-        'href="/favorites/aa4d9c495e82493fab7df1baa02e6399"'
+        'href="/wiki/concepts/%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6"'
       );
-      expect(html).toContain("100LS 方法");
+      expect(html).not.toContain("/posts/秘密");
+      expect(html).not.toContain("/wiki/personal");
+      expect(html).not.toContain("不应路由");
     } finally {
       cwd.mockRestore();
       fs.rmSync(projectRoot, { recursive: true, force: true });

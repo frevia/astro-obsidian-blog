@@ -1,10 +1,12 @@
 import { fileURLToPath } from "node:url";
+import path from "node:path";
 
 import { defineMdastPlugin } from "satteri";
 import type { Image, Link } from "mdast";
 import type { MdastPluginDefinition } from "satteri";
 
 import { processLink } from "@/utils/linkProcessor";
+import { WIKI_PATH } from "@/config";
 import { withBase } from "@/utils/withBase";
 
 const imageExt = /\.(png|jpe?g|gif|webp|svg|avif)$/i;
@@ -27,6 +29,31 @@ function splitHash(url: string): [string, string] {
   const hashIndex = url.indexOf("#");
   if (hashIndex === -1) return [url, ""];
   return [url.slice(0, hashIndex), url.slice(hashIndex + 1)];
+}
+
+function isWikilinkSource(
+  node: Readonly<Link>,
+  source: string | undefined
+): boolean {
+  const start = node.position?.start.offset;
+  const end = node.position?.end.offset;
+  if (typeof start !== "number" || typeof end !== "number" || !source) {
+    return false;
+  }
+
+  return source.slice(start, end).trimStart().startsWith("[[");
+}
+
+function isWikiSourceFile(fileURL: URL | undefined): boolean {
+  if (!fileURL) return false;
+  const filePath = fileURLToPath(fileURL).replace(/\\/g, "/");
+  const wikiDirectory = path
+    .resolve(process.cwd(), WIKI_PATH)
+    .replace(/\\/g, "/");
+  const relative = path.posix.relative(wikiDirectory, filePath);
+  return (
+    relative === "" || (!relative.startsWith("..") && !relative.startsWith("/"))
+  );
 }
 
 interface LinkProcessorOptions {
@@ -52,7 +79,26 @@ export function createLinkProcessorPlugin({
             ? node.url
             : undefined
           : processedUrl;
-      if (!resolvedUrl) return;
+      if (!resolvedUrl) {
+        // Unknown wikilinks are private/invalid by definition in the public
+        // build. Replace the generated anchor with an empty span so neither a
+        // relative URL nor the private target label becomes discoverable.
+        if (
+          isWikilinkSource(node, ctx.source) ||
+          isWikiSourceFile(ctx.fileURL)
+        ) {
+          ctx.removeNode(node);
+          return;
+        }
+
+        // A relative Markdown link is only public after processLink resolves
+        // it to a known collection. Keep its label, but fail closed instead
+        // of emitting a path that could resolve to an unexported note.
+        if (!node.url.startsWith("/")) {
+          ctx.setProperty(node, "url", "#");
+        }
+        return;
+      }
 
       ctx.setProperty(
         node,
