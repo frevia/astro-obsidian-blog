@@ -1,0 +1,421 @@
+---
+import type { WikilinkReference } from "@/utils/wikilinkGraph";
+import {
+  prepareWikilinkReferences,
+  safeWikilinkHref,
+} from "@/utils/wikilinkReferences";
+import "@/styles/reading-navigation.css";
+
+export interface ReadingHeading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+export interface ReadingNavigationFooterLink {
+  href: string;
+  label: string;
+}
+
+export interface Props {
+  headings?: readonly ReadingHeading[];
+  eyebrow?: string;
+  title?: string;
+  tocTitle?: string;
+  progressLabel?: string;
+  emptyLabel?: string;
+  outgoing?: readonly WikilinkReference[];
+  backlinks?: readonly WikilinkReference[];
+  relationsTitle?: string;
+  outgoingLabel?: string;
+  backlinksLabel?: string;
+  footerLink?: ReadingNavigationFooterLink;
+  scrollActiveIntoView?: boolean;
+}
+
+const {
+  headings = [],
+  eyebrow = "文章阅读",
+  title = "阅读导航",
+  tocTitle = title,
+  progressLabel = "阅读进度",
+  emptyLabel = "暂无章节",
+  outgoing = [],
+  backlinks = [],
+  relationsTitle = "知识连接",
+  outgoingLabel = "指向",
+  backlinksLabel = "引用",
+  footerLink,
+  scrollActiveIntoView = true,
+} = Astro.props;
+
+interface ReadingTocEntry extends ReadingHeading {
+  topLevelSlug: string;
+  branchSlug?: string;
+}
+
+const tocEntries = headings.reduce<ReadingTocEntry[]>((entries, heading) => {
+  const previous = entries.at(-1);
+  const topLevelSlug =
+    heading.depth === 2
+      ? heading.slug
+      : (previous?.topLevelSlug ?? heading.slug);
+  const branchSlug =
+    heading.depth === 3
+      ? heading.slug
+      : heading.depth >= 4
+        ? previous?.branchSlug
+        : undefined;
+
+  entries.push({ ...heading, topLevelSlug, branchSlug });
+  return entries;
+}, []);
+
+const outgoingLinks = prepareWikilinkReferences(outgoing);
+const backlinkLinks = prepareWikilinkReferences(backlinks);
+const hasHeadings = tocEntries.length > 0;
+const hasRelations = outgoingLinks.length > 0 || backlinkLinks.length > 0;
+const navigationItemCount =
+  tocEntries.length + outgoingLinks.length + backlinkLinks.length;
+const safeFooterHref = footerLink
+  ? safeWikilinkHref(footerLink.href)
+  : undefined;
+---
+
+<div
+  class="reading-navigation-shell"
+  data-reading-navigation
+  data-scroll-active-into-view={scrollActiveIntoView ? "true" : "false"}
+>
+  <aside
+    id="sidebar"
+    class="reading-navigation-desktop"
+    data-reading-navigation-desktop
+    data-pagefind-ignore
+  >
+    <div class="reading-navigation-card">
+      <header class="reading-navigation-header">
+        <div class="min-w-0">
+          {eyebrow && <span class="reading-navigation-eyebrow">{eyebrow}</span>}
+          <h2 class="reading-navigation-title">{title}</h2>
+        </div>
+        <span
+          class="reading-navigation-count"
+          aria-label={`${navigationItemCount} 个导航项`}
+        >
+          {navigationItemCount}
+        </span>
+      </header>
+
+      {
+        hasHeadings && (
+          <div class="reading-navigation-progress-wrap">
+            <div class="reading-navigation-progress-label">
+              <span>{progressLabel}</span>
+              <span data-toc-progress aria-live="polite">
+                1 / {tocEntries.length}
+              </span>
+            </div>
+            <div class="reading-navigation-progress-track" aria-hidden="true">
+              <span data-toc-progress-bar />
+            </div>
+          </div>
+        )
+      }
+
+      <div class="reading-navigation-content">
+        {
+          hasHeadings && (
+            <section class="reading-navigation-toc" data-reading-toc>
+              <h3 class="reading-navigation-section-title">{tocTitle}</h3>
+              <nav aria-label={tocTitle} class="reading-navigation-nav">
+                <ol class="reading-navigation-list">
+                  {tocEntries.map((heading, index) => (
+                    <li
+                      class="reading-navigation-list-item"
+                      data-toc-item
+                      data-toc-depth={heading.depth}
+                      data-toc-top-level={heading.topLevelSlug}
+                      data-toc-branch={heading.branchSlug}
+                    >
+                      <a
+                        href={`#${heading.slug}`}
+                        class:list={[
+                          "reading-navigation-link",
+                          `reading-navigation-link--h${heading.depth}`,
+                        ]}
+                        data-toc-link
+                      >
+                        <span
+                          class="reading-navigation-number"
+                          aria-hidden="true"
+                        >
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <span class="reading-navigation-link-text">
+                          {heading.text}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+            </section>
+          )
+        }
+        {
+          hasRelations && (
+            <section
+              class="reading-navigation-relations"
+              data-reading-relations
+            >
+              <h3 class="reading-navigation-section-title">{relationsTitle}</h3>
+              {outgoingLinks.length > 0 && (
+                <div class="reading-navigation-relation-group">
+                  <h4>{outgoingLabel}</h4>
+                  <ul>
+                    {outgoingLinks.map(({ reference, href }) => (
+                      <li>
+                        <a href={href} data-astro-prefetch="tap">
+                          <span aria-hidden="true">↗</span>
+                          <span>{reference.title}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {backlinkLinks.length > 0 && (
+                <div class="reading-navigation-relation-group">
+                  <h4>{backlinksLabel}</h4>
+                  <ul>
+                    {backlinkLinks.map(({ reference, href }) => (
+                      <li>
+                        <a href={href} data-astro-prefetch="tap">
+                          <span aria-hidden="true">↙</span>
+                          <span>{reference.title}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </section>
+          )
+        }
+        {
+          !hasHeadings && !hasRelations && (
+            <p class="reading-navigation-empty">{emptyLabel}</p>
+          )
+        }
+      </div>
+
+      {
+        safeFooterHref && footerLink && (
+          <a
+            class="reading-navigation-footer-link"
+            href={safeFooterHref}
+            data-astro-prefetch="tap"
+          >
+            <span aria-hidden="true">←</span>
+            <span>{footerLink.label}</span>
+          </a>
+        )
+      }
+    </div>
+  </aside>
+
+  <details
+    id="mobile-sidebar"
+    class="reading-navigation-mobile"
+    data-reading-navigation-mobile
+  >
+    <summary class="reading-navigation-mobile-toggle">
+      <span class="reading-navigation-mobile-label">
+        {
+          eyebrow && (
+            <span class="reading-navigation-mobile-eyebrow">{eyebrow}</span>
+          )
+        }
+        <span class="reading-navigation-mobile-title">{title}</span>
+        {
+          hasHeadings && (
+            <span
+              class="reading-navigation-progress"
+              data-toc-progress
+              aria-live="polite"
+            >
+              1 / {tocEntries.length}
+            </span>
+          )
+        }
+      </span>
+      <span class="reading-navigation-mobile-icon" aria-hidden="true">⌄</span>
+    </summary>
+
+    <div
+      class:list={[
+        "reading-navigation-mobile-panel",
+        {
+          "reading-navigation-mobile-panel--split": hasHeadings && hasRelations,
+        },
+      ]}
+    >
+      {
+        hasHeadings && (
+          <div class="reading-navigation-progress-wrap">
+            <div class="reading-navigation-progress-label">
+              <span>{progressLabel}</span>
+              <span data-toc-progress aria-live="polite">
+                1 / {tocEntries.length}
+              </span>
+            </div>
+            <div class="reading-navigation-progress-track" aria-hidden="true">
+              <span data-toc-progress-bar />
+            </div>
+          </div>
+        )
+      }
+      <div class="reading-navigation-content">
+        {
+          hasHeadings && (
+            <section class="reading-navigation-toc" data-reading-toc>
+              <h3 class="reading-navigation-section-title">{tocTitle}</h3>
+              <nav aria-label={tocTitle} class="reading-navigation-nav">
+                <ol class="reading-navigation-list">
+                  {tocEntries.map((heading, index) => (
+                    <li
+                      class="reading-navigation-list-item"
+                      data-toc-item
+                      data-toc-depth={heading.depth}
+                      data-toc-top-level={heading.topLevelSlug}
+                      data-toc-branch={heading.branchSlug}
+                    >
+                      <a
+                        href={`#${heading.slug}`}
+                        class:list={[
+                          "reading-navigation-link",
+                          `reading-navigation-link--h${heading.depth}`,
+                        ]}
+                        data-toc-link
+                      >
+                        <span
+                          class="reading-navigation-number"
+                          aria-hidden="true"
+                        >
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <span class="reading-navigation-link-text">
+                          {heading.text}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+            </section>
+          )
+        }
+        {
+          hasRelations && (
+            <section
+              class="reading-navigation-relations"
+              data-reading-relations
+            >
+              <h3 class="reading-navigation-section-title">{relationsTitle}</h3>
+              {outgoingLinks.length > 0 && (
+                <div class="reading-navigation-relation-group">
+                  <h4>{outgoingLabel}</h4>
+                  <ul>
+                    {outgoingLinks.map(({ reference, href }) => (
+                      <li>
+                        <a href={href} data-astro-prefetch="tap">
+                          <span aria-hidden="true">↗</span>
+                          <span>{reference.title}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {backlinkLinks.length > 0 && (
+                <div class="reading-navigation-relation-group">
+                  <h4>{backlinksLabel}</h4>
+                  <ul>
+                    {backlinkLinks.map(({ reference, href }) => (
+                      <li>
+                        <a href={href} data-astro-prefetch="tap">
+                          <span aria-hidden="true">↙</span>
+                          <span>{reference.title}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </section>
+          )
+        }
+        {
+          !hasHeadings && !hasRelations && (
+            <p class="reading-navigation-empty">{emptyLabel}</p>
+          )
+        }
+      </div>
+      {
+        safeFooterHref && footerLink && (
+          <a
+            class="reading-navigation-footer-link"
+            href={safeFooterHref}
+            data-astro-prefetch="tap"
+          >
+            <span aria-hidden="true">←</span>
+            <span>{footerLink.label}</span>
+          </a>
+        )
+      }
+    </div>
+  </details>
+</div>
+
+<script>
+  import { initReadingNavigation } from "./reading-navigation";
+
+  declare global {
+    interface Window {
+      __readingNavigationCleanup?: () => void;
+      __readingNavigationPageLoadHandler?: () => void;
+      __readingNavigationBeforeSwapHandler?: () => void;
+    }
+  }
+
+  const onPageLoad = () => {
+    window.__readingNavigationCleanup?.();
+    window.__readingNavigationCleanup = initReadingNavigation();
+  };
+
+  const onBeforeSwap = () => {
+    window.__readingNavigationCleanup?.();
+    window.__readingNavigationCleanup = undefined;
+  };
+
+  if (window.__readingNavigationPageLoadHandler) {
+    document.removeEventListener(
+      "astro:page-load",
+      window.__readingNavigationPageLoadHandler
+    );
+  }
+  if (window.__readingNavigationBeforeSwapHandler) {
+    document.removeEventListener(
+      "astro:before-swap",
+      window.__readingNavigationBeforeSwapHandler
+    );
+  }
+
+  window.__readingNavigationPageLoadHandler = onPageLoad;
+  window.__readingNavigationBeforeSwapHandler = onBeforeSwap;
+  document.addEventListener("astro:page-load", onPageLoad);
+  document.addEventListener("astro:before-swap", onBeforeSwap);
+
+  onPageLoad();
+</script>

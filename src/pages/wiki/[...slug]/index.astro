@@ -1,0 +1,29 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import WikiDetails from "@/layouts/WikiDetails.astro";
+
+export interface Props {
+  entry: CollectionEntry<"wiki">;
+  entries: CollectionEntry<"wiki">[];
+}
+
+export async function getStaticPaths() {
+  const entries = await getCollection("wiki");
+  return entries.map(entry => ({
+    // Astro performs URL encoding for dynamic params. Supplying an already
+    // encoded id makes the generated route double-encoded and breaks static
+    // path matching for non-ASCII concept names.
+    params: {
+      slug: entry.id
+        .replace(/\\/g, "/")
+        .replace(/\.(?:md|mdx)$/i, "")
+        .replace(/^\/+|\/+$/g, ""),
+    },
+    props: { entry, entries },
+  }));
+}
+
+const { entry, entries } = Astro.props;
+---
+
+<WikiDetails {entry} {entries} />

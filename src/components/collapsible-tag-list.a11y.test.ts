@@ -11,10 +11,6 @@ describe("CollapsibleTagList integration and accessibility contract", () => {
     import.meta.dirname,
     "../layouts/PostDetails.astro"
   );
-  const favoriteDetailsPath = resolve(
-    import.meta.dirname,
-    "../pages/favorites/[...slug]/index.astro"
-  );
 
   it("uses overflow detection and accessible expand/collapse semantics", () => {
     const source = readFileSync(componentPath, "utf-8");
@@ -34,15 +30,6 @@ describe("CollapsibleTagList integration and accessibility contract", () => {
 
   it("removes tags block from post details page", () => {
     const source = readFileSync(postDetailsPath, "utf-8");
-
-    expect(source).not.toContain(
-      'import CollapsibleTagList from "@/components/CollapsibleTagList.astro"'
-    );
-    expect(source).not.toContain("<CollapsibleTagList");
-  });
-
-  it("removes tags block from favorite details page", () => {
-    const source = readFileSync(favoriteDetailsPath, "utf-8");
 
     expect(source).not.toContain(
       'import CollapsibleTagList from "@/components/CollapsibleTagList.astro"'

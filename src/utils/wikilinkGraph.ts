@@ -16,6 +16,8 @@ export interface WikilinkEntry {
     /** Optional lookup alias. Article routes are still derived from `id`. */
     slug?: string;
   };
+  /** Public route family. Omitted entries retain the existing /posts behavior. */
+  routePrefix?: "/posts" | "/wiki";
 }
 
 export interface WikilinkReference {
@@ -43,6 +45,7 @@ interface EntrySnapshot {
   body?: string;
   title?: string;
   slug?: string;
+  routePrefix?: WikilinkEntry["routePrefix"];
 }
 
 interface GraphCache {
@@ -227,6 +230,13 @@ function entryRouteSlug(entry: WikilinkEntry): string {
   return id.split("/").pop() ?? id;
 }
 
+function entryRouteId(entry: WikilinkEntry): string {
+  return entry.id
+    .replace(/\\/g, "/")
+    .replace(/\.(?:md|mdx)$/i, "")
+    .replace(/^\/+|\/+$/g, "");
+}
+
 function encodePathSegment(value: string): string {
   return encodeURIComponent(value).replace(
     /[!'()*]/g,
@@ -235,7 +245,16 @@ function encodePathSegment(value: string): string {
 }
 
 function entryHref(entry: WikilinkEntry, heading?: string): string {
-  const path = `/posts/${encodePathSegment(entryRouteSlug(entry))}`;
+  const routePrefix = entry.routePrefix ?? "/posts";
+  const routeId =
+    routePrefix === "/wiki"
+      ? entryRouteId(entry)
+          .split("/")
+          .filter(Boolean)
+          .map(segment => slugHeading(segment))
+          .join("/")
+      : encodePathSegment(entryRouteSlug(entry));
+  const path = `${routePrefix}/${routeId}`;
   if (!heading) return path;
 
   const fragment = slugHeading(heading.trim());
@@ -247,7 +266,8 @@ function referenceFor(
   label: string,
   heading?: string
 ): WikilinkReference {
-  const routeSlug = entryRouteSlug(entry);
+  const routeSlug =
+    entry.routePrefix === "/wiki" ? entryRouteId(entry) : entryRouteSlug(entry);
   return {
     id: entry.id,
     title: entry.data.title || routeSlug,
@@ -264,6 +284,7 @@ function snapshotEntries(entries: readonly WikilinkEntry[]): EntrySnapshot[] {
     body: entry.body,
     title: entry.data.title,
     slug: entry.data.slug,
+    routePrefix: entry.routePrefix,
   }));
 }
 
@@ -277,7 +298,8 @@ function cacheMatches(entries: readonly WikilinkEntry[]): boolean {
       cached.filePath === entry.filePath &&
       cached.body === entry.body &&
       cached.title === entry.data.title &&
-      cached.slug === entry.data.slug
+      cached.slug === entry.data.slug &&
+      cached.routePrefix === entry.routePrefix
     );
   });
 }

@@ -41,7 +41,7 @@ export default defineAstroPaperConfig({
     content: {
       blogPath: "src/data/blog",
       diaryPath: "src/data/snippets",
-      clipPath: "src/data/clip",
+      wikiPath: "src/data/wiki",
     },
     showCalendar: true,
     createdAt: "2025-03-17",

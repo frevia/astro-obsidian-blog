@@ -20,6 +20,14 @@ export interface Props {
   canonicalURL?: string;
   published?: Date;
   scrollSmooth?: boolean;
+  /** Suppress indexing for private/projection pages such as the public wiki. */
+  noindex?: boolean;
+  /** Wiki pages are intentionally excluded from the site's RSS discovery link. */
+  includeRss?: boolean;
+  /** Content family exposed to search/consumers as a stable page-level marker. */
+  contentType?: "post" | "wiki" | "page";
+  /** Wiki pages are reference documents, not BlogPosting records. */
+  includeStructuredData?: boolean;
 }
 
 const {
@@ -31,6 +39,10 @@ const {
   canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url),
   published,
   scrollSmooth = false,
+  noindex = false,
+  includeRss = true,
+  contentType = "page",
+  includeStructuredData = true,
 } = Astro.props;
 
 const showCalendar = SITE.showCalendar;
@@ -69,6 +81,8 @@ const structuredData = {
     <link rel="icon" type="image/png" href={getAssetPath("/favicon.png")} />
     <link rel="canonical" href={canonicalURL} />
     <meta name="generator" content={Astro.generator} />
+    <meta name="content-type" content={contentType} />
+    {noindex && <meta name="robots" content="noindex,follow" />}
 
     <!-- General Meta Tags -->
     <title>{title}</title>
@@ -101,20 +115,28 @@ const structuredData = {
     <meta property="twitter:image" content={socialImageURL} />
 
     <!-- Google JSON-LD Structured data -->
-    <script
-      type="application/ld+json"
-      is:inline
-      set:html={JSON.stringify(structuredData)}
-    />
+    {
+      includeStructuredData && (
+        <script
+          type="application/ld+json"
+          is:inline
+          set:html={JSON.stringify(structuredData)}
+        />
+      )
+    }
 
     <!-- Enable RSS feed auto-discovery  -->
     <!-- https://docs.astro.build/en/recipes/rss/#enabling-rss-feed-auto-discovery -->
-    <link
-      rel="alternate"
-      type="application/rss+xml"
-      title={SITE.title}
-      href={rssURL}
-    />
+    {
+      includeRss && (
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title={SITE.title}
+          href={rssURL}
+        />
+      )
+    }
 
     <meta
       name="theme-color"
@@ -212,7 +234,7 @@ const structuredData = {
       }
     </style>
   </head>
-  <body>
+  <body data-content-type={contentType}>
     <slot />
     <Analytics />
     <SpeedInsights />

@@ -127,6 +127,49 @@ describe("buildWikilinkGraph", () => {
     ).toEqual(["other/shared", "guides/shared"]);
   });
 
+  it("keeps wiki hierarchy and route prefixes when public entries are mixed", () => {
+    const graph = buildWikilinkGraph([
+      {
+        id: "技术/source",
+        routePrefix: "/posts",
+        data: { title: "公开文章" },
+        body: "参见 [[concepts/数字证书]]。",
+      },
+      {
+        id: "concepts/数字证书",
+        routePrefix: "/wiki",
+        data: { title: "数字证书" },
+        body: "参见 [[concepts/信任链]]。",
+      },
+      {
+        id: "concepts/信任链",
+        routePrefix: "/wiki",
+        data: { title: "信任链" },
+        body: "[[private/未公开页面]]",
+      },
+    ]);
+
+    expect(graph.outgoing.get("技术/source")).toEqual([
+      expect.objectContaining({
+        id: "concepts/数字证书",
+        href: "/wiki/concepts/数字证书",
+      }),
+    ]);
+    expect(graph.outgoing.get("concepts/数字证书")).toEqual([
+      expect.objectContaining({
+        id: "concepts/信任链",
+        href: "/wiki/concepts/信任链",
+      }),
+    ]);
+    expect(graph.outgoing.get("concepts/信任链")).toEqual([]);
+    expect(graph.backlinks.get("concepts/数字证书")).toEqual([
+      expect.objectContaining({
+        id: "技术/source",
+        href: "/posts/source",
+      }),
+    ]);
+  });
+
   it("reuses an equivalent graph and invalidates the cache on content changes", () => {
     const firstEntries: WikilinkEntry[] = [
       { id: "cache-source", data: { title: "Source" }, body: "[[target]]" },

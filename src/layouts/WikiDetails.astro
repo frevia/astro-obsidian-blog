@@ -1,0 +1,415 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import BackToTopButton from "@/components/BackToTopButton.astro";
+import { estimateReadingMinutes } from "@/components/article/readingTime";
+import ReadingNavigation from "@/components/reading/ReadingNavigation.astro";
+import { buildWikilinkGraph } from "@/utils/wikilinkGraph";
+import { getWikiDomain } from "@/utils/wikiCatalog";
+import {
+  getWikiDescription,
+  getWikiPath,
+  getWikiTitle,
+} from "@/utils/wikiPath";
+import { SITE } from "@/config";
+import { useTranslations } from "@/i18n";
+import { withBase } from "@/utils/withBase";
+import "@/styles/article-reading.css";
+
+export interface Props {
+  entry: CollectionEntry<"wiki">;
+  entries: CollectionEntry<"wiki">[];
+}
+
+const { entry, entries } = Astro.props;
+const title = getWikiTitle(entry);
+const description = getWikiDescription(entry);
+const domain = getWikiDomain(title);
+const readingMinutes = estimateReadingMinutes(entry.body ?? "");
+const { Content, headings } = await render(entry);
+const tocHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 3);
+const t = useTranslations(SITE.lang);
+
+const wikilinkEntries = entries.map(item => ({
+  id: item.id,
+  filePath: item.filePath,
+  body: item.body,
+  data: { title: getWikiTitle(item), slug: item.data.title },
+  routePrefix: "/wiki" as const,
+}));
+const wikilinkGraph = buildWikilinkGraph(wikilinkEntries);
+const outgoingWikilinks = wikilinkGraph.outgoing.get(entry.id) ?? [];
+const backlinks = wikilinkGraph.backlinks.get(entry.id) ?? [];
+const relationCount = outgoingWikilinks.length + backlinks.length;
+
+const layoutProps = {
+  title: `${title} | ${SITE.title}`,
+  description,
+  canonicalURL: new URL(getWikiPath(entry.id, false), Astro.url.origin).href,
+  scrollSmooth: true,
+  noindex: true,
+  includeRss: false,
+  includeStructuredData: false,
+  contentType: "wiki" as const,
+};
+---
+
+<Layout {...layoutProps}>
+  <Header />
+  <main
+    id="main-content"
+    class="wiki-entry page-shell mx-auto mt-4 w-full max-w-app px-4 pb-16"
+    data-content-kind="wiki"
+    data-pagefind-body
+    data-pagefind-weight="5"
+  >
+    <span class="sr-only" data-pagefind-meta="type">wiki</span>
+
+    <header class="wiki-entry-hero">
+      <nav aria-label="面包屑" class="wiki-breadcrumb" data-pagefind-ignore>
+        <a href={withBase("/wiki")}>知识库</a>
+        <span aria-hidden="true">/</span>
+        <span>{domain.label}</span>
+      </nav>
+      <div class="wiki-entry-heading">
+        <p class="wiki-entry-index">{domain.index} · {domain.eyebrow}</p>
+        <h1 data-pagefind-meta="title">{title}</h1>
+        <p class="wiki-entry-description" data-pagefind-meta="description">
+          {description}
+        </p>
+      </div>
+      <dl class="wiki-entry-metrics" data-pagefind-ignore>
+        <div><dt>知识领域</dt><dd>{domain.label}</dd></div>
+        <div><dt>阅读时间</dt><dd>{readingMinutes} 分钟</dd></div>
+        <div><dt>内容章节</dt><dd>{tocHeadings.length}</dd></div>
+        <div><dt>知识连接</dt><dd>{relationCount}</dd></div>
+      </dl>
+    </header>
+
+    <div class="wiki-entry-grid">
+      <div class="wiki-entry-content">
+        <article
+          id="article"
+          class="app-prose article-reading-body js-toc-content relative prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
+        >
+          <Content />
+        </article>
+
+        <section
+          class="wiki-maintenance-note"
+          aria-label="维护说明"
+          data-pagefind-ignore
+        >
+          <span aria-hidden="true">↻</span>
+          <div>
+            <strong>这是一页生长中的知识</strong>
+            <p>
+              内容会随着新来源、实践与校订继续更新，而不是一次发布后就停止变化。
+            </p>
+          </div>
+        </section>
+      </div>
+
+      <ReadingNavigation
+        headings={tocHeadings}
+        eyebrow="KNOWLEDGE NAV"
+        title="知识导航"
+        tocTitle={t.post.tocTitle}
+        emptyLabel="单页概念笔记"
+        outgoing={outgoingWikilinks}
+        {backlinks}
+        relationsTitle={t.post.wikilinksTitle}
+        outgoingLabel={t.post.wikilinksOutgoing}
+        backlinksLabel={t.post.wikilinksBacklinks}
+        footerLink={{ href: withBase("/wiki"), label: "返回知识库" }}
+      />
+    </div>
+
+    <BackToTopButton />
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .wiki-entry {
+    --wiki-ink: color-mix(in oklab, var(--foreground) 92%, #102a43);
+    max-width: 50rem;
+  }
+
+  .wiki-entry-hero {
+    position: relative;
+    overflow: hidden;
+    border-block: 1px solid var(--border);
+    padding: clamp(1.5rem, 4vw, 2.5rem) 0 0;
+  }
+
+  .wiki-entry-hero::after {
+    position: absolute;
+    top: 3rem;
+    right: 2%;
+    width: min(27vw, 16rem);
+    aspect-ratio: 1;
+    border: 1px dashed color-mix(in oklab, var(--accent) 35%, transparent);
+    border-radius: 50%;
+    box-shadow:
+      0 0 0 2rem color-mix(in oklab, var(--accent) 3%, transparent),
+      0 0 0 4rem color-mix(in oklab, var(--accent) 2%, transparent);
+    content: "";
+    pointer-events: none;
+  }
+
+  .wiki-breadcrumb {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--foreground-muted);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+  }
+
+  .wiki-breadcrumb a:hover {
+    color: var(--accent);
+  }
+
+  .wiki-entry-heading {
+    position: relative;
+    z-index: 1;
+    margin-top: clamp(2.5rem, 7vw, 5rem);
+    padding-inline-start: 0.9rem;
+  }
+
+  .wiki-entry-heading::before {
+    position: absolute;
+    inset-block: 0.15rem 0.2rem;
+    inset-inline-start: 0;
+    width: 2px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to bottom,
+      var(--accent),
+      color-mix(in oklab, var(--accent) 18%, transparent)
+    );
+    content: "";
+  }
+
+  .wiki-entry-index {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .wiki-entry h1 {
+    position: relative;
+    z-index: 1;
+    max-width: 42rem;
+    margin-top: 0.8rem;
+    color: var(--wiki-ink);
+    font-family: var(--font-serif);
+    font-size: clamp(2.25rem, 5.5vw, 3.9rem);
+    font-weight: 650;
+    letter-spacing: -0.055em;
+    line-height: 1.04;
+  }
+
+  .wiki-entry-description {
+    position: relative;
+    z-index: 1;
+    max-width: 38rem;
+    margin-top: 1.35rem;
+    color: var(--foreground-muted);
+    font-size: clamp(0.95rem, 2vw, 1.08rem);
+    line-height: 1.85;
+  }
+
+  .wiki-entry-metrics {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    border-top: 1px solid var(--border);
+  }
+
+  .wiki-entry-metrics div {
+    min-width: 0;
+    padding: 1rem;
+    border-right: 1px solid var(--border);
+  }
+
+  .wiki-entry-metrics div:first-child {
+    padding-left: 0;
+  }
+
+  .wiki-entry-metrics div:last-child {
+    border-right: 0;
+  }
+
+  .wiki-entry-metrics dt {
+    color: var(--foreground-muted);
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+  }
+
+  .wiki-entry-metrics dd {
+    margin-top: 0.35rem;
+    color: var(--wiki-ink);
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    font-weight: 650;
+  }
+
+  .wiki-entry-grid {
+    display: block;
+    padding-top: clamp(2.5rem, 6vw, 4.5rem);
+  }
+
+  .wiki-entry-content {
+    min-width: 0;
+  }
+
+  .wiki-entry-content article {
+    width: 100%;
+    max-width: none;
+    margin: 0 auto;
+    color: color-mix(in oklab, var(--foreground) 90%, transparent);
+    font-size: 1.04rem;
+    line-height: 1.85;
+  }
+
+  .wiki-entry-content :global(.app-prose > p:first-child) {
+    margin-top: 0;
+    color: color-mix(in oklab, var(--foreground) 76%, transparent);
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    line-height: 1.9;
+  }
+
+  .wiki-entry-content :global(.app-prose h2) {
+    margin-top: 3.4rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1.35rem;
+    color: var(--wiki-ink);
+    font-family: var(--font-serif);
+    font-size: clamp(1.55rem, 3vw, 2rem);
+    font-weight: 650;
+    letter-spacing: -0.025em;
+    line-height: 1.35;
+  }
+
+  .wiki-entry-content :global(.app-prose h3) {
+    margin-top: 2.2rem;
+    color: var(--wiki-ink);
+    font-family: var(--font-serif);
+    font-size: 1.22rem;
+    line-height: 1.45;
+  }
+
+  .wiki-entry-content :global(.app-prose p) {
+    text-wrap: pretty;
+  }
+
+  .wiki-entry-content :global(.app-prose table) {
+    width: 100%;
+    font-size: 0.86rem;
+    line-height: 1.6;
+  }
+
+  .wiki-entry-content :global(.app-prose blockquote) {
+    border-radius: 0;
+    border-block: 1px solid var(--border);
+    border-inline: 0;
+    background: color-mix(in oklab, var(--surface-muted) 72%, transparent);
+    font-family: var(--font-serif);
+    line-height: 1.85;
+  }
+
+  .wiki-maintenance-note {
+    display: flex;
+    max-width: none;
+    gap: 0.9rem;
+    margin: 3.5rem auto 0;
+    border-block: 1px solid var(--border);
+    padding: 1.2rem 0;
+  }
+
+  .wiki-maintenance-note > span {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    color: white;
+    background: var(--accent);
+  }
+
+  .wiki-maintenance-note strong {
+    color: var(--wiki-ink);
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+  }
+
+  .wiki-maintenance-note p {
+    margin-top: 0.2rem;
+    color: var(--foreground-muted);
+    font-size: 0.73rem;
+    line-height: 1.65;
+  }
+
+  @media (max-width: 1299px) {
+    .wiki-entry-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .wiki-entry-hero::after {
+      opacity: 0.35;
+      right: -5rem;
+      width: 15rem;
+    }
+
+    .wiki-entry-metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .wiki-entry-metrics div:nth-child(2) {
+      border-right: 0;
+    }
+
+    .wiki-entry-metrics div:nth-child(n + 3) {
+      border-top: 1px solid var(--border);
+    }
+
+    .wiki-entry-metrics div:nth-child(3) {
+      padding-left: 0;
+    }
+
+    .wiki-entry-content article {
+      font-size: 1rem;
+    }
+
+    .wiki-entry-content :global(.app-prose table) {
+      display: block;
+      max-width: 100%;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .wiki-entry h1 {
+      font-size: clamp(2.25rem, 10vw, 2.65rem);
+    }
+  }
+</style>

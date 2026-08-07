@@ -4,12 +4,12 @@ export default {
   nav: {
     home: "首页",
     posts: "文章",
+    wiki: "知识库",
     tags: "标签",
     about: "关于",
     archives: "归档",
     search: "搜索",
     fragments: "碎片",
-    favorites: "收藏",
     footprint: "足迹",
     feeds: "邻居",
     mainLabel: "主导航",

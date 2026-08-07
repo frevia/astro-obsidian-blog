@@ -1,7 +1,7 @@
 import { defineCollection } from "astro:content";
 import { z } from "astro/zod";
 import { glob } from "astro/loaders";
-import { SITE, BLOG_PATH, DIARY_PATH, CLIP_PATH } from "@/config";
+import { SITE, BLOG_PATH, DIARY_PATH, WIKI_PATH } from "@/config";
 
 const normalizeAuthor = (
   author?: string | string[] | null,
@@ -109,58 +109,27 @@ const diary = defineCollection({
   }),
 });
 
-const clip = defineCollection({
+/**
+ * Public projection of the private knowledge wiki.
+ *
+ * The exporter deliberately copies only an explicit allowlist into this
+ * directory. Keep the schema permissive for the source shape: wiki pages have
+ * `sources[]` frontmatter but intentionally do not need blog-only fields such
+ * as `published` or `description`.
+ */
+const wiki = defineCollection({
   loader: glob({
-    pattern: "**/[^_]*.{md,mdx}",
-    base: `./${CLIP_PATH}`,
+    pattern: "**/[^_]*.md",
+    base: `./${WIKI_PATH}`,
     deferRender: true,
   }),
-  schema: () =>
-    z
-      .object({
-        author: z
-          .union([z.string(), z.array(z.string())])
-          .nullable()
-          .optional(),
-        authors: z
-          .union([z.string(), z.array(z.string())])
-          .nullable()
-          .optional(),
-        published: z.preprocess(parsePublishedDate, z.date()),
-        created: z.preprocess(val => {
-          if (!val || val === "") return new Date();
-          if (val instanceof Date) return val;
-          if (typeof val === "string") {
-            try {
-              return new Date(val);
-            } catch {
-              return new Date();
-            }
-          }
-          return new Date();
-        }, z.date().optional()),
-        title: z.string(),
-        tags: z
-          .array(z.string())
-          .nullable()
-          .optional()
-          .transform(value => value ?? []),
-        cover: z.string().optional(),
-        description: z
-          .string()
-          .nullable()
-          .optional()
-          .transform(value => value ?? ""),
-        summary: z.string().optional(),
-        source: z.string().optional(),
-        canonicalURL: z.string().optional(),
-        timezone: z.string().optional(),
-        slug: z.string().optional(),
-      })
-      .transform(data => ({
-        ...data,
-        author: normalizeAuthor(data.author, data.authors),
-      })),
+  schema: z.object({
+    title: z.string().optional(),
+    description: z.string().optional(),
+    summary: z.string().optional(),
+    sources: z.array(z.string()).default([]),
+    tags: z.array(z.string()).default([]),
+  }),
 });
 
-export const collections = { blog, diary, clip };
+export const collections = { blog, diary, wiki };

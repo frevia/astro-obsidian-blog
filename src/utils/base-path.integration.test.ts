@@ -24,12 +24,6 @@ describe("base path integration", () => {
 
     const postPage = source("src/pages/posts/[...slug]/index.astro");
     expect(postPage).toContain("getPath(post.id, post.filePath, false)");
-
-    const favoritePage = source("src/pages/favorites/[...slug]/index.astro");
-    expect(favoritePage).toContain(
-      "params: { slug: resolveFavoriteSlug(post) }"
-    );
-    expect(favoritePage).not.toContain("params: { slug: withBase(");
   });
 
   it("uses base-aware URLs at owned navigation and asset output sites", () => {

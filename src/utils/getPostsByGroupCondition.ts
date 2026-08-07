@@ -1,12 +1,10 @@
-import type { CollectionEntry } from "astro:content";
-
 type GroupKey = string | number | symbol;
 
 interface GroupFunction<T> {
   (item: T, index?: number): GroupKey;
 }
 
-const getPostsByGroupCondition = <T extends CollectionEntry<"blog" | "clip">>(
+const getPostsByGroupCondition = <T>(
   posts: T[],
   groupFunction: GroupFunction<T>
 ) => {

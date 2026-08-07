@@ -112,7 +112,8 @@ export interface ShareLink {
 export interface LocalContentConfig {
   blogPath?: string;
   diaryPath?: string;
-  clipPath?: string;
+  /** Generated public knowledge projection used by the /wiki routes. */
+  wikiPath?: string;
 }
 
 export interface LocalFeedsConfig {

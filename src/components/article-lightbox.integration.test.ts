@@ -3,24 +3,15 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 describe("ArticleLightbox integration", () => {
-  it("is mounted on blog post details and favorites details", () => {
+  it("is mounted on blog post details", () => {
     const postDetails = readFileSync(
       resolve(import.meta.dirname, "../layouts/PostDetails.astro"),
       "utf-8"
     );
-    const favoriteDetails = readFileSync(
-      resolve(import.meta.dirname, "../pages/favorites/[...slug]/index.astro"),
-      "utf-8"
-    );
-
     expect(postDetails).toContain(
       'import ArticleLightbox from "@/components/ArticleLightbox.astro"'
     );
     expect(postDetails).toContain("<ArticleLightbox />");
-    expect(favoriteDetails).toContain(
-      'import ArticleLightbox from "@/components/ArticleLightbox.astro"'
-    );
-    expect(favoriteDetails).toContain("<ArticleLightbox />");
   });
 
   it("removes photosuite without changing diary lightgallery support", () => {

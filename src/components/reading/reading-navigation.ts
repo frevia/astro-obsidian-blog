@@ -1,4 +1,4 @@
-type ReadingRailEntry = {
+type ReadingNavigationEntry = {
   heading: HTMLElement;
   link: HTMLAnchorElement;
   tocItem: HTMLElement;
@@ -21,15 +21,33 @@ function isRenderable(element: HTMLElement) {
   return !element.hidden && element.getClientRects().length > 0;
 }
 
-export function initArticleReadingRail(doc: Document = document) {
+export interface ReadingNavigationOptions {
+  scrollActiveIntoView?: boolean;
+}
+
+/**
+ * Enhance the server-rendered reading navigation with active heading feedback.
+ * The returned callback removes every listener installed by this invocation.
+ */
+export function initReadingNavigation(
+  doc: Document = document,
+  options: ReadingNavigationOptions = {}
+) {
+  const root = doc.querySelector<HTMLElement>("[data-reading-navigation]");
+  if (!root) return () => {};
+
   const desktopLinks = Array.from(
-    doc.querySelectorAll<HTMLAnchorElement>("#sidebar [data-toc-link]")
+    root.querySelectorAll<HTMLAnchorElement>(
+      "[data-reading-navigation-desktop] [data-toc-link]"
+    )
   );
   const mobileLinks = Array.from(
-    doc.querySelectorAll<HTMLAnchorElement>("#mobile-sidebar [data-toc-link]")
+    root.querySelectorAll<HTMLAnchorElement>(
+      "[data-reading-navigation-mobile] [data-toc-link]"
+    )
   );
   const links = [...desktopLinks, ...mobileLinks];
-  const entries: ReadingRailEntry[] = links.flatMap(link => {
+  const entries: ReadingNavigationEntry[] = links.flatMap(link => {
     const id = getHeadingId(link);
     if (!id) return [];
 
@@ -39,22 +57,25 @@ export function initArticleReadingRail(doc: Document = document) {
       ? [{ heading, link, tocItem }]
       : [];
   });
+
+  // A relations-only navigation is intentionally static and needs no scroll
+  // listener. This also keeps an empty page safe during ClientRouter swaps.
   if (!entries.length) return () => {};
 
   const headings = Array.from(
     new Map(entries.map(entry => [entry.heading.id, entry.heading])).values()
   );
   const progressLabels = Array.from(
-    doc.querySelectorAll<HTMLElement>("[data-toc-progress]")
+    root.querySelectorAll<HTMLElement>("[data-toc-progress]")
   );
   const progressBars = Array.from(
-    doc.querySelectorAll<HTMLElement>("[data-toc-progress-bar]")
+    root.querySelectorAll<HTMLElement>("[data-toc-progress-bar]")
   );
-  const currentLabels = Array.from(
-    doc.querySelectorAll<HTMLElement>("[data-toc-current]")
-  );
-  const mobileSidebar = doc.getElementById("mobile-sidebar");
+  const mobileSidebar = root.querySelector("[data-reading-navigation-mobile]");
   const view = doc.defaultView;
+  const shouldScrollActiveIntoView =
+    options.scrollActiveIntoView ??
+    root.dataset.scrollActiveIntoView !== "false";
   let previousActiveHeading: HTMLElement | undefined;
   let activeHeadingState: HTMLElement | undefined;
 
@@ -62,6 +83,7 @@ export function initArticleReadingRail(doc: Document = document) {
     activeHeading: HTMLElement,
     force = false
   ) => {
+    if (!shouldScrollActiveIntoView) return;
     if (!force && previousActiveHeading === activeHeading) return;
 
     let didScroll = false;
@@ -118,10 +140,6 @@ export function initArticleReadingRail(doc: Document = document) {
         `${((activeIndex + 1) / headings.length) * 100}%`
       );
     });
-    currentLabels.forEach(label => {
-      label.textContent = activeHeading.textContent?.trim() || "开始阅读";
-    });
-
     links.forEach(link => {
       const isActive = entries.some(
         entry => entry.link === link && entry.heading === activeHeading

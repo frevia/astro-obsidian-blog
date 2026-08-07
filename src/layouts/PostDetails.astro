@@ -16,9 +16,8 @@ import MediaCard from "../components/MediaCard.astro";
 import Twikoo from "@/components/Twikoo.astro";
 import AiSummaryCard from "@/components/AiSummaryCard.astro";
 import ArticleLightbox from "@/components/ArticleLightbox.astro";
-import WikilinkPanel from "@/components/WikilinkPanel.astro";
 import ArticleHero from "@/components/article/ArticleHero.astro";
-import ArticleReadingRail from "@/components/article/ArticleReadingRail.astro";
+import ReadingNavigation from "@/components/reading/ReadingNavigation.astro";
 import {
   getArticleAccent,
   getArticleAccentStyle,
@@ -127,6 +126,10 @@ const [commentsMissingTwikooBefore, commentsMissingTwikooAfter = ""] =
 const wikilinkGraph = buildWikilinkGraph(posts);
 const outgoingWikilinks = wikilinkGraph.outgoing.get(post.id) ?? [];
 const backlinks = wikilinkGraph.backlinks.get(post.id) ?? [];
+const hasReadingNavigation =
+  tocHeadings.length > 0 ||
+  outgoingWikilinks.length > 0 ||
+  backlinks.length > 0;
 ---
 
 <Layout {...layoutProps}>
@@ -161,10 +164,17 @@ const backlinks = wikilinkGraph.backlinks.get(post.id) ?? [];
     {summary && <AiSummaryCard {summary} />}
 
     {
-      tocHeadings.length > 0 && (
-        <ArticleReadingRail
+      hasReadingNavigation && (
+        <ReadingNavigation
           headings={tocHeadings}
-          title={postDetailsLabels.tocTitle}
+          eyebrow="文章阅读"
+          title="阅读导航"
+          tocTitle={postDetailsLabels.tocTitle}
+          outgoing={outgoingWikilinks}
+          {backlinks}
+          relationsTitle={postDetailsLabels.wikilinksTitle}
+          outgoingLabel={postDetailsLabels.wikilinksOutgoing}
+          backlinksLabel={postDetailsLabels.wikilinksBacklinks}
         />
       )
     }
@@ -176,14 +186,6 @@ const backlinks = wikilinkGraph.backlinks.get(post.id) ?? [];
       <Content components={{ MediaCard }} />
     </article>
     <ArticleLightbox />
-
-    <WikilinkPanel
-      outgoing={outgoingWikilinks}
-      {backlinks}
-      title={postDetailsLabels.wikilinksTitle}
-      outgoingLabel={postDetailsLabels.wikilinksOutgoing}
-      backlinksLabel={postDetailsLabels.wikilinksBacklinks}
-    />
 
     <hr class="my-8 border-dashed" />
 

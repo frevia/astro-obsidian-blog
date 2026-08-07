@@ -25,7 +25,6 @@ describe("typography readability baseline", () => {
 describe("empty-state visual consistency", () => {
   it("uses consistent empty-state container class", () => {
     const feeds = readFileSync("src/pages/feeds/index.astro", "utf-8");
-    const favorites = readFileSync("src/pages/favorites/index.astro", "utf-8");
     const diary = readFileSync("src/pages/diary/[...page].astro", "utf-8");
     const diaryLoadState = readFileSync(
       "src/components/diary/DiaryLoadState.tsx",
@@ -34,7 +33,6 @@ describe("empty-state visual consistency", () => {
     const globalCss = readFileSync("src/styles/global.css", "utf-8");
 
     expect(feeds).toContain("empty-state-card");
-    expect(favorites).toContain("empty-state-card");
     expect(diary).toContain("empty-state-card");
     expect(diaryLoadState).toContain("empty-state-card");
     expect(globalCss).toContain(".empty-state-card");

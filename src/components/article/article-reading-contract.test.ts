@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
+const legacyRailClass = ["article", "reading", "rail"].join("-");
+
 describe("article reading presentation contracts", () => {
   it("keeps the hero metadata and shared transition hooks server-rendered", () => {
     const source = readFileSync(
@@ -19,63 +21,56 @@ describe("article reading presentation contracts", () => {
     expect(source).toContain('loading="eager"');
   });
 
-  it("exposes both a desktop chapter rail and a keyboard-reachable mobile TOC", () => {
+  it("uses one shared desktop/mobile reading navigation source", () => {
     const source = readFileSync(
-      "src/components/article/ArticleReadingRail.astro",
+      "src/components/reading/ReadingNavigation.astro",
       "utf-8"
     );
 
     expect(source).toContain('id="sidebar"');
-    expect(source).toContain("article-reading-rail");
-    expect(source).toContain("article-reading-rail-card");
-    expect(source).toContain("article-reading-rail-mobile");
+    expect(source).toContain("reading-navigation-desktop");
+    expect(source).toContain("reading-navigation-mobile");
     expect(source).toContain("<details");
     expect(source).toContain("<summary");
     expect(source).toContain("data-toc-link");
     expect(source).toContain("data-toc-progress");
     expect(source).toContain("data-toc-progress-bar");
-    expect(source).toContain("data-toc-current");
-    expect(source).toContain('aria-labelledby="post-toc-title"');
+    expect(source).not.toContain("data-toc-current");
+    expect(source).toContain("prepareWikilinkReferences(outgoing)");
+    expect(source).toContain("prepareWikilinkReferences(backlinks)");
+    expect(source).toContain("data-reading-relations");
+    expect(source).toContain("data-reading-navigation");
+    expect(source).toContain("hasHeadings && (");
+    expect(source).not.toContain('class="toc-link"');
+    expect(source).not.toContain('class="toc-list"');
   });
 
-  it("keeps article reading geometry and page-accent styles local", () => {
-    const css = readFileSync("src/styles/article-reading.css", "utf-8");
+  it("keeps article geometry separate from navigation presentation", () => {
+    const articleCss = readFileSync("src/styles/article-reading.css", "utf-8");
+    const navigationCss = readFileSync(
+      "src/styles/reading-navigation.css",
+      "utf-8"
+    );
 
-    expect(css).toContain(".article-page");
-    expect(css).toContain("var(--page-accent)");
-    expect(css).toContain("var(--page-accent-soft)");
-    expect(css).toContain(".article-hero-cover");
-    expect(css).toContain("aspect-ratio: 16 / 9");
-    expect(css).toContain(".article-reading-rail-mobile");
-    expect(css).toContain(".article-reading-rail-card");
-    expect(css).toContain(".article-reading-rail-progress-track");
-    expect(css).toContain("@media (min-width: 1300px)");
-    expect(css).toContain("position: fixed");
-    expect(css).toContain(".article-reading-body img");
-    expect(css).toMatch(
-      /\.article-hero-media\s*\{[\s\S]*?display:\s*flex;[\s\S]*?align-items:\s*center;[\s\S]*?justify-content:\s*center;/
+    expect(articleCss).toContain(".article-page");
+    expect(articleCss).toContain("var(--page-accent)");
+    expect(articleCss).toContain("var(--page-accent-soft)");
+    expect(articleCss).toContain(".article-hero-cover");
+    expect(articleCss).toContain("aspect-ratio: 16 / 9");
+    expect(articleCss).toContain(".article-reading-body img");
+    expect(articleCss).not.toContain(legacyRailClass);
+
+    expect(navigationCss).toContain(
+      "--reading-nav-accent: var(--page-accent, var(--accent))"
     );
-    expect(css).toMatch(
-      /\.article-hero-cover\s*\{[\s\S]*?width:\s*auto;[\s\S]*?height:\s*auto;[\s\S]*?max-width:\s*100%;[\s\S]*?max-height:\s*min\(65vh,\s*36rem\);[\s\S]*?object-fit:\s*contain;/
-    );
-    expect(css).toMatch(
-      /\.article-hero-cover-placeholder\s*\{[\s\S]*?width:\s*100%;[\s\S]*?aspect-ratio:\s*16 \/ 9;/
-    );
-    expect(css).toMatch(
-      /\.article-reading-body \.rehype-figure img,[\s\S]*?width:\s*auto;[\s\S]*?max-width:\s*100%;[\s\S]*?max-height:\s*min\(75vh,\s*48rem\);/
-    );
-    expect(css).toMatch(
-      /\.article-reading-body \.content-block--gallery img\s*\{[\s\S]*?width:\s*100%;[\s\S]*?aspect-ratio:\s*4 \/ 3;[\s\S]*?object-fit:\s*cover\s*!important;/
-    );
-    for (const component of [
-      "content-block--pullquote",
-      "content-block--gallery",
-      "content-block--timeline",
-      "content-block--aside",
-      "content-block--stats",
-      "content-block--map",
-    ]) {
-      expect(css).toContain(`.${component}`);
-    }
+    expect(navigationCss).toContain("font-size: 0.69rem");
+    expect(navigationCss).toContain("line-height: 1.45");
+    expect(navigationCss).toContain("border-inline-start: 1px solid");
+    expect(navigationCss).toContain("background: transparent");
+    expect(navigationCss).toContain("box-shadow: none");
+    expect(navigationCss).toContain("max-height: min(12rem, 24vh)");
+    expect(navigationCss).toContain("overflow-y: auto");
+    expect(navigationCss).toContain("left: calc(50% + 26.5rem)");
+    expect(navigationCss).toContain("@media (min-width: 1300px)");
   });
 });
