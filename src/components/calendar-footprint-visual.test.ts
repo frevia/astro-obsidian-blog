@@ -23,7 +23,7 @@ describe("calendar and footprint visual integration", () => {
     expect(html).toContain("data-calendar-today-panel");
     expect(html).toContain("今天");
     expect(html).toContain("29");
-    expect(html).toContain("当天有 2 条碎片或文章可回看。");
+    expect(html).toContain("当天有 2 条 Notes 或文章可回看。");
     expect(html).toContain("2024年2月29日");
   });
 

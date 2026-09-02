@@ -1,0 +1,157 @@
+---
+import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+import BackButton from "@/components/BackButton.astro";
+import BackToTopButton from "@/components/BackToTopButton.astro";
+import { SITE } from "@/config";
+import Layout from "@/layouts/Layout.astro";
+import { getCollection } from "astro:content";
+import { parseEntry } from "@/utils/parseEntry";
+import DiaryFeed from "@/components/diary/DiaryFeed.astro";
+import { withBase } from "@/utils/withBase";
+
+export async function getStaticPaths() {
+  const diaryEntries = await getCollection("diary");
+  const quarterKeys = new Set<string>();
+
+  diaryEntries.forEach(entry => {
+    const date = entry.id.split("/").pop()!.replace(".md", "");
+    const [year, month] = date.split("-");
+    quarterKeys.add(`${year}-Q${Math.ceil(parseInt(month) / 3)}`);
+  });
+
+  return [...quarterKeys].map(page => ({ params: { page } }));
+}
+
+const { page } = Astro.params;
+const quarterKey = page as string;
+const diaryEntries = await getCollection("diary");
+
+const getQuarterKey = (entry: (typeof diaryEntries)[number]) => {
+  const date = entry.id.split("/").pop()!.replace(".md", "");
+  const [year, month] = date.split("-");
+  return `${year}-Q${Math.ceil(parseInt(month) / 3)}`;
+};
+
+const quarterKeys = Array.from(new Set(diaryEntries.map(getQuarterKey))).sort(
+  (a, b) => b.localeCompare(a)
+);
+
+let quarterEntries = diaryEntries.filter(
+  entry => getQuarterKey(entry) === quarterKey
+);
+
+quarterEntries = quarterEntries.sort((a, b) => {
+  const dateA = a.id.split("/").pop()!.replace(".md", "");
+  const dateB = b.id.split("/").pop()!.replace(".md", "");
+  return dateA.localeCompare(dateB);
+});
+
+const parsedEntries = await Promise.all(
+  quarterEntries.map(entry => parseEntry(entry))
+);
+
+const [year, quarter] = quarterKey.split("-Q");
+const quarterNames = ["春", "夏", "秋", "冬"];
+const quarterName = quarterNames[parseInt(quarter) - 1];
+const pageTitle = `${year}年(${quarterName})`;
+const currentQuarterIndex = quarterKeys.indexOf(quarterKey);
+const newerQuarter =
+  currentQuarterIndex > 0 ? quarterKeys[currentQuarterIndex - 1] : undefined;
+const olderQuarter =
+  currentQuarterIndex >= 0 && currentQuarterIndex < quarterKeys.length - 1
+    ? quarterKeys[currentQuarterIndex + 1]
+    : undefined;
+const quarterLabel = (key: string) => {
+  const [keyYear, keyQuarter] = key.split("-Q");
+  return `${keyYear}年(${quarterNames[parseInt(keyQuarter) - 1]})`;
+};
+---
+
+<Layout title={`${pageTitle} · Notes | ${SITE.title}`}>
+  <Header />
+  <BackButton />
+  <main
+    id="main-content"
+    class:list={[
+      "page-main page-shell mx-auto w-full max-w-app px-4 pb-12",
+      { "mt-8": !SITE.showBackButton, "mt-4": SITE.showBackButton },
+    ]}
+    data-pagefind-body
+  >
+    <header class="page-intro mb-5 sm:mb-7">
+      <p class="page-kicker">按时间看</p>
+      <h1 class="page-title">{pageTitle}</h1>
+      <p class="page-desc">按季度翻看这些日常 Notes。</p>
+    </header>
+
+    <nav
+      class="mb-3 flex flex-wrap items-center justify-between gap-2 border-y border-border/50 py-3 text-sm"
+      aria-label="Notes 季度导航"
+    >
+      {
+        newerQuarter ? (
+          <a
+            href={withBase(`/notes/${newerQuarter}`)}
+            class="rounded-md px-2 py-1 text-accent hover:bg-accent/8"
+          >
+            ← {quarterLabel(newerQuarter)}
+          </a>
+        ) : (
+          <span class="px-2 py-1 text-foreground/35">已经是最新季度</span>
+        )
+      }
+      <span class="text-xs text-foreground/50"
+        >第 {currentQuarterIndex + 1} / {quarterKeys.length} 季</span
+      >
+      {
+        olderQuarter ? (
+          <a
+            href={withBase(`/notes/${olderQuarter}`)}
+            class="rounded-md px-2 py-1 text-accent hover:bg-accent/8"
+          >
+            {quarterLabel(olderQuarter)} →
+          </a>
+        ) : (
+          <span class="px-2 py-1 text-foreground/35">已经是最早季度</span>
+        )
+      }
+    </nav>
+
+    <div class="py-4 sm:py-6">
+      <div id="diary-content" class="space-y-4 sm:space-y-6">
+        {
+          parsedEntries.length > 0 ? (
+            <>
+              <DiaryFeed entries={parsedEntries} hideYear />
+              <article role="article" class="no-more empty-state-card py-6">
+                <div role="status" aria-live="polite">
+                  <div class="mb-2 text-2xl opacity-40">✨</div>
+                  <p class="text-skin-base opacity-70">
+                    已显示全部 {parsedEntries.length} 条 Notes 记录
+                  </p>
+                  <p class="mt-1 text-sm opacity-50">没有更多内容了</p>
+                  <div class="sr-only">
+                    已显示全部 {parsedEntries.length} 条 Notes 记录
+                  </div>
+                </div>
+              </article>
+            </>
+          ) : (
+            <div class="empty-state-card py-16 sm:py-20">
+              <div class="mb-4 text-4xl opacity-40">📝</div>
+              <p class="text-lg text-skin-base opacity-70">
+                这个季度还没有 Notes
+              </p>
+              <p class="mt-2 text-sm opacity-50">有新的想法时，再回来写。</p>
+            </div>
+          )
+        }
+      </div>
+    </div>
+
+    <BackToTopButton />
+  </main>
+
+  <Footer />
+</Layout>

@@ -4,58 +4,158 @@ import Card from "@/components/Card.astro";
 import { withBase } from "@/utils/withBase";
 import FragmentPreviewCard from "./FragmentPreviewCard.astro";
 import type { HomeFragmentPreview } from "./fragmentPreviews";
+import type { WikiCatalogItem } from "@/utils/wikiCatalog";
 
 interface Props {
   featuredPost?: CollectionEntry<"blog">;
   fragments?: HomeFragmentPreview[];
+  wikiHighlights?: WikiCatalogItem[];
 }
 
-const { featuredPost, fragments = [] } = Astro.props;
+const { featuredPost, fragments = [], wikiHighlights = [] } = Astro.props;
 ---
 
 {
-  (featuredPost || fragments.length > 0) && (
-    <section
-      class="mb-12 border-b border-border/50 pb-10"
-      aria-labelledby="home-editorial-heading"
-    >
-      <header class="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p class="text-xs font-semibold tracking-[0.22em] text-accent uppercase">
-            最近写下
-          </p>
-          <h2
-            id="home-editorial-heading"
-            class="mt-1 text-2xl font-semibold tracking-tight text-foreground"
-          >
-            文章和碎片
-          </h2>
-        </div>
-        <a
-          href={withBase("/posts")}
-          data-astro-prefetch="hover"
-          class="rounded-md px-2 py-1 text-sm font-medium text-accent hover:underline"
+  (featuredPost || fragments.length > 0 || wikiHighlights.length > 0) && (
+    <>
+      {(featuredPost || fragments.length > 0) && (
+        <section
+          class="mb-12 border-b border-border/50 pb-10"
+          aria-labelledby="home-editorial-heading"
         >
-          看全部文章 <span aria-hidden="true">↗</span>
-        </a>
-      </header>
+          <header class="mb-5 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p class="text-xs font-semibold tracking-[0.22em] text-accent uppercase">
+                最近写下
+              </p>
+              <h2
+                id="home-editorial-heading"
+                class="mt-1 text-2xl font-semibold tracking-tight text-foreground"
+              >
+                文章与 Notes
+              </h2>
+            </div>
+            <div class="flex flex-wrap items-center gap-1">
+              <a
+                href={withBase("/posts")}
+                data-astro-prefetch="hover"
+                class="rounded-md px-2 py-1 text-sm font-medium text-accent hover:underline"
+              >
+                看全部文章 <span aria-hidden="true">↗</span>
+              </a>
+              <a
+                href={withBase("/notes")}
+                data-astro-prefetch="hover"
+                class="rounded-md px-2 py-1 text-sm font-medium text-accent hover:underline"
+              >
+                查看全部 Notes <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+          </header>
 
-      {featuredPost && (
-        <ul class="mb-6" aria-label="最新精选文章">
-          <Card {...featuredPost} presentation="featured" variant="h3" />
-        </ul>
+          {featuredPost && (
+            <ul class="mb-6" aria-label="最新精选文章">
+              <Card {...featuredPost} presentation="featured" variant="h3" />
+            </ul>
+          )}
+
+          {fragments.length > 0 && (
+            <ol
+              class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              aria-label="近期 Notes 预览"
+            >
+              {fragments.map(preview => (
+                <FragmentPreviewCard {preview} />
+              ))}
+            </ol>
+          )}
+        </section>
       )}
 
-      {fragments.length > 0 && (
-        <ol
-          class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-          aria-label="近期碎片预览"
+      {wikiHighlights.length > 0 && (
+        <section
+          class="home-wiki-editorial mb-12 border-b border-border/50 pb-10"
+          aria-labelledby="home-wiki-heading"
         >
-          {fragments.map(preview => (
-            <FragmentPreviewCard {preview} />
-          ))}
-        </ol>
+          <header class="mb-5 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p class="text-xs font-semibold tracking-[0.22em] text-accent uppercase">
+                知识精选
+              </p>
+              <h2
+                id="home-wiki-heading"
+                class="mt-1 text-2xl font-semibold tracking-tight text-foreground"
+              >
+                值得继续读
+              </h2>
+            </div>
+            <a
+              href={withBase("/wiki")}
+              data-astro-prefetch="hover"
+              class="rounded-md px-2 py-1 text-sm font-medium text-accent hover:underline"
+            >
+              浏览全部知识 <span aria-hidden="true">↗</span>
+            </a>
+          </header>
+
+          <div class="grid gap-6 lg:grid-cols-[1.35fr_0.65fr] lg:gap-10">
+            {wikiHighlights[0] && (
+              <article class="home-wiki-lead border-l-2 border-accent/60 pl-4 sm:pl-5">
+                <a
+                  href={wikiHighlights[0].href}
+                  data-astro-prefetch="hover"
+                  class="flex min-h-56 flex-col no-underline"
+                >
+                  <span class="text-xs font-medium tracking-wide text-accent">
+                    {wikiHighlights[0].domain.label}
+                  </span>
+                  <h3 class="mt-4 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+                    {wikiHighlights[0].title}
+                  </h3>
+                  <p class="mt-3 line-clamp-4 max-w-2xl text-sm leading-7 text-foreground-muted sm:text-base">
+                    {wikiHighlights[0].description}
+                  </p>
+                  <span class="mt-auto pt-5 text-xs font-medium text-accent">
+                    {wikiHighlights[0].relations} 个知识连接{" "}
+                    <span aria-hidden="true">↗</span>
+                  </span>
+                </a>
+              </article>
+            )}
+
+            {wikiHighlights.length > 1 && (
+              <ol
+                class="home-wiki-followups divide-y divide-border/60 border-y border-border/60"
+                aria-label="延伸知识阅读"
+              >
+                {wikiHighlights.slice(1).map(item => (
+                  <li class="py-4 first:pt-0 last:pb-0">
+                    <a
+                      href={item.href}
+                      data-astro-prefetch="hover"
+                      class="group flex min-h-28 flex-col no-underline"
+                    >
+                      <span class="text-xs font-medium tracking-wide text-accent">
+                        {item.domain.label}
+                      </span>
+                      <h3 class="mt-2 text-base font-semibold tracking-tight text-foreground group-hover:text-accent">
+                        {item.title}
+                      </h3>
+                      <p class="mt-1 line-clamp-2 text-sm leading-6 text-foreground-muted">
+                        {item.description}
+                      </p>
+                      <span class="mt-auto pt-2 text-xs text-accent">
+                        {item.relations} 个知识连接{" "}
+                        <span aria-hidden="true">↗</span>
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        </section>
       )}
-    </section>
+    </>
   )
 }

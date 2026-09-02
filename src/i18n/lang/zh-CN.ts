@@ -9,7 +9,7 @@ export default {
     about: "关于",
     archives: "归档",
     search: "搜索",
-    fragments: "碎片",
+    fragments: "Notes",
     footprint: "足迹",
     feeds: "邻居",
     mainLabel: "主导航",

@@ -48,15 +48,31 @@ export function getWikiDescription(entry: {
   body?: string;
   data: { description?: string | null; summary?: string | null };
 }): string {
+  const toPlainText = (value: string): string =>
+    value
+      .replace(/!\[\[[^\]]+\]\]/g, "")
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+      .replace(/\[\[([^\]]+)\]\]/g, (_match, raw: string) => {
+        const [targetWithHeading, alias] = raw.split("|");
+        if (alias?.trim()) return alias.trim();
+
+        const target = targetWithHeading.split("#")[0].replace(/\\/g, "/");
+        return target.split("/").pop()?.trim() || "";
+      })
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/^\s*(?:#{1,6}|>|[-*+] |\d+\. )\s*/gm, "")
+      .replace(/[`*_~]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
   const explicit = entry.data.description?.trim() || entry.data.summary?.trim();
-  if (explicit) return explicit;
+  if (explicit) return toPlainText(explicit).slice(0, 180);
 
   const firstParagraph = (entry.body ?? "")
     .replace(/^\s*#.*$/gm, "")
-    .replace(/^\s*>\s?/gm, "")
-    .replace(/[`*_~]/g, "")
     .split(/\n\s*\n/)
-    .map(part => part.replace(/\s+/g, " ").trim())
+    .map(toPlainText)
     .find(Boolean);
   return firstParagraph?.slice(0, 180) || "持续更新的知识页";
 }

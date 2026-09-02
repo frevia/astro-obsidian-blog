@@ -1,4 +1,31 @@
+import type { WikilinkGraph } from "./wikilinkGraph";
+import { getWikiDescription, getWikiPath, getWikiTitle } from "./wikiPath";
+
 export type WikiDomainKey = "trust" | "learning" | "thinking" | "living";
+
+/** The part of an Astro wiki entry needed by the catalog view. */
+export interface WikiCatalogEntry {
+  id: string;
+  body?: string;
+  data: {
+    title?: string | null;
+    description?: string | null;
+    summary?: string | null;
+  };
+}
+
+/** A wiki entry enriched with the information shared by all browse surfaces. */
+export interface WikiCatalogItem<
+  TEntry extends WikiCatalogEntry = WikiCatalogEntry,
+> {
+  entry: TEntry;
+  id: string;
+  title: string;
+  description: string;
+  domain: WikiDomain;
+  relations: number;
+  href: string;
+}
 
 export interface WikiDomain {
   key: WikiDomainKey;
@@ -62,4 +89,50 @@ export function getWikiDomain(title: string): WikiDomain {
     DOMAIN_RULES[domain.key].some(keyword => title.includes(keyword))
   );
   return match ?? WIKI_DOMAINS[3];
+}
+
+/**
+ * Build the display-ready catalog once, so the wiki index and home page use
+ * the same titles, descriptions, URLs, domains, and connection counts.
+ */
+export function buildWikiCatalog<TEntry extends WikiCatalogEntry>(
+  entries: readonly TEntry[],
+  graph: WikilinkGraph
+): WikiCatalogItem<TEntry>[] {
+  return entries.map(entry => {
+    const title = getWikiTitle(entry);
+    const outgoing = graph.outgoing.get(entry.id)?.length ?? 0;
+    const backlinks = graph.backlinks.get(entry.id)?.length ?? 0;
+
+    return {
+      entry,
+      id: entry.id,
+      title,
+      description: getWikiDescription(entry),
+      domain: getWikiDomain(title),
+      relations: outgoing + backlinks,
+      href: getWikiPath(entry.id),
+    };
+  });
+}
+
+/**
+ * Select the most connected concepts without claiming that they are the most
+ * recently updated. The copy is sorted instead of the source catalog so the
+ * browse order remains untouched.
+ */
+export function selectWikiHighlights<TEntry extends WikiCatalogEntry>(
+  catalog: readonly WikiCatalogItem<TEntry>[],
+  limit = 3
+): WikiCatalogItem<TEntry>[] {
+  const safeLimit = Number.isFinite(limit) ? Math.max(0, Math.floor(limit)) : 0;
+
+  return [...catalog]
+    .sort(
+      (a, b) =>
+        b.relations - a.relations ||
+        a.title.localeCompare(b.title, "zh-Hans") ||
+        a.id.localeCompare(b.id, "zh-Hans")
+    )
+    .slice(0, safeLimit);
 }

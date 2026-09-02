@@ -5,27 +5,53 @@
   }
 
   .about-hero {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.34fr);
-    gap: 1.5rem;
+    position: relative;
+    display: flex;
+    min-height: clamp(20rem, 42vw, 30rem);
     align-items: end;
-    margin: 1.25rem 0 1.75rem;
-    padding: clamp(1.25rem, 3.5vw, 2.25rem);
+    overflow: hidden;
+    margin: 1.25rem 0 1.25rem;
+    padding: clamp(1.25rem, 3vw, 2rem);
     border: 1px solid
       color-mix(in oklab, var(--about-accent) 22%, var(--border));
     border-radius: var(--radius-card-emphasis);
-    background:
-      radial-gradient(
-        circle at 100% 0%,
-        color-mix(in oklab, var(--about-accent) 12%, transparent),
-        transparent 56%
-      ),
-      var(--surface);
+    background: var(--surface-muted);
     box-shadow: var(--shadow-md);
   }
 
+  .about-hero-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 54%;
+  }
+
+  .about-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, transparent 28%, rgb(3 12 24 / 16%) 58%),
+      linear-gradient(
+        90deg,
+        rgb(3 12 24 / 76%) 0%,
+        rgb(3 12 24 / 22%) 62%,
+        transparent 100%
+      );
+  }
+
   .about-hero-copy {
+    position: relative;
+    z-index: 1;
     min-width: 0;
+    max-width: 34rem;
+    color: white;
+  }
+
+  .about-hero .about-eyebrow {
+    color: rgb(180 218 255);
+    text-shadow: 0 1px 12px rgb(0 0 0 / 35%);
   }
 
   .about-eyebrow {
@@ -39,17 +65,18 @@
 
   .about-hero h1 {
     margin-top: 0.55rem;
-    color: var(--foreground);
-    font-size: clamp(2.2rem, 7vw, 4.6rem);
+    color: white;
+    font-size: clamp(2.2rem, 6vw, 4rem);
     font-weight: 700;
     letter-spacing: -0.08em;
     line-height: 0.95;
+    text-shadow: 0 2px 20px rgb(0 0 0 / 32%);
   }
 
   .about-hero-description {
     max-width: 33rem;
-    margin-top: 1rem;
-    color: color-mix(in oklab, var(--foreground) 72%, transparent);
+    margin-top: 0.75rem;
+    color: rgb(255 255 255 / 88%);
     font-size: clamp(0.92rem, 1.7vw, 1.08rem);
     line-height: 1.85;
   }
@@ -59,8 +86,8 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.45rem;
-    margin-top: 1.35rem;
-    color: var(--foreground-muted);
+    margin-top: 1rem;
+    color: rgb(255 255 255 / 74%);
     font-size: 0.67rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -68,43 +95,18 @@
 
   .about-hero-meta time {
     margin-left: 0.3rem;
-    color: var(--about-accent);
+    color: rgb(190 224 255);
     font-variant-numeric: tabular-nums;
     font-weight: 700;
     letter-spacing: 0.02em;
   }
 
   .about-hero-meta-dot {
-    color: color-mix(in oklab, var(--about-accent) 55%, transparent);
-  }
-
-  .about-hero-mark {
-    display: grid;
-    justify-items: end;
-    align-content: end;
-    gap: 0.35rem;
-    color: var(--foreground-muted);
-    font-size: 0.6rem;
-    letter-spacing: 0.15em;
-    line-height: 1.35;
-    text-align: right;
-    text-transform: uppercase;
-  }
-
-  .about-hero-mark-letter {
-    color: color-mix(in oklab, var(--about-accent) 68%, var(--foreground));
-    font-family: var(--font-serif);
-    font-size: clamp(4.5rem, 13vw, 8rem);
-    font-weight: 700;
-    letter-spacing: -0.14em;
-    line-height: 0.7;
-    opacity: 0.85;
+    color: rgb(255 255 255 / 48%);
   }
 
   .about-stats {
-    margin-bottom: 2.4rem;
-    border-bottom: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
-    padding-bottom: 1.6rem;
+    margin-bottom: 2rem;
   }
 
   .about-stats-head {
@@ -112,7 +114,7 @@
     align-items: end;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
   }
 
   .about-stats-head h2 {
@@ -133,29 +135,27 @@
   .about-stat-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
+    overflow: hidden;
+    border-block: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+    background: color-mix(in oklab, var(--surface-muted) 55%, transparent);
   }
 
   .about-stat {
     min-width: 0;
-    border: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
-    border-radius: var(--radius-card);
-    padding: 0.9rem 0.95rem;
-    background: var(--surface-muted);
+    border-inline-end: 1px solid
+      color-mix(in oklab, var(--border) 72%, transparent);
+    padding: 1rem 1.1rem;
     transition:
-      border-color 180ms ease,
-      background-color 180ms ease,
-      transform 180ms ease;
+      color 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .about-stat:last-child {
+    border-inline-end: 0;
   }
 
   .about-stat:hover {
-    border-color: color-mix(in oklab, var(--about-accent) 32%, var(--border));
-    background: color-mix(
-      in oklab,
-      var(--about-accent) 4%,
-      var(--surface-muted)
-    );
-    transform: translateY(-2px);
+    background: color-mix(in oklab, var(--about-accent) 5%, transparent);
   }
 
   .about-stat-label {
@@ -170,12 +170,12 @@
     display: flex;
     align-items: baseline;
     gap: 0.35rem;
-    margin-top: 0.65rem;
+    margin-top: 0.5rem;
   }
 
   .about-stat-value strong {
     color: var(--foreground);
-    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-size: clamp(1.7rem, 3.4vw, 2.55rem);
     font-variant-numeric: tabular-nums;
     font-weight: 650;
     letter-spacing: -0.08em;
@@ -190,8 +190,7 @@
   }
 
   .about-stat p {
-    min-height: 2.6em;
-    margin-top: 0.65rem;
+    margin-top: 0.5rem;
     color: var(--foreground-muted);
     font-size: 0.69rem;
     line-height: 1.55;
@@ -204,22 +203,28 @@
   }
 
   .about-content {
-    max-width: 44rem;
+    max-width: none;
     margin-inline: auto;
   }
 
-  .about-portrait {
-    margin: 0 0 2rem;
-    overflow: hidden;
-    border: 1px solid
-      color-mix(in oklab, var(--about-accent) 18%, var(--border));
-    border-radius: var(--radius-card-emphasis);
-    background: var(--surface-muted);
-    box-shadow: var(--shadow-md);
+  .about-story {
+    width: 100%;
+    padding-inline: 0;
   }
 
-  .about-portrait > div {
-    border-radius: inherit;
+  .about-story-copy {
+    min-width: 0;
+  }
+
+  .about-content .about-story-copy h2 {
+    margin: 0.45rem 0 1rem;
+    font-size: clamp(1.45rem, 2.8vw, 2rem);
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+
+  .about-content .about-story-copy h2::before {
+    content: none;
   }
 
   .about-content .about-lede {
@@ -230,7 +235,7 @@
   }
 
   .about-content .about-note {
-    margin: 1.35rem 0 2.6rem;
+    margin: 1.15rem 0 1.5rem;
     border-inline-start: 2px solid var(--about-accent);
     padding: 0.25rem 0 0.25rem 1rem;
     color: var(--foreground-muted);
@@ -266,6 +271,36 @@
     line-height: 1.95;
   }
 
+  .about-signature {
+    border-top: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+    padding-top: 1.25rem;
+  }
+
+  .about-signature-label {
+    color: var(--about-accent);
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+  }
+
+  .about-signature blockquote {
+    margin: 0.65rem 0 0;
+    color: color-mix(in oklab, var(--foreground) 78%, transparent);
+    font-family: var(--font-serif);
+    font-size: 0.9rem;
+    line-height: 1.9;
+  }
+
+  .about-signature cite {
+    display: block;
+    margin-top: 0.45rem;
+    color: var(--foreground-muted);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-style: normal;
+    text-align: right;
+  }
+
   .about-content > hr {
     margin-block: 2.5rem;
     border-color: color-mix(in oklab, var(--border) 80%, transparent);
@@ -277,39 +312,72 @@
 
   @media (max-width: 680px) {
     .about-hero {
-      grid-template-columns: minmax(0, 1fr) 5.5rem;
-      gap: 0.75rem;
+      min-height: 25rem;
       padding: 1.2rem;
     }
 
-    .about-hero-mark-letter {
-      font-size: 5.5rem;
+    .about-hero-image {
+      object-position: 56% center;
+    }
+
+    .about-hero-overlay {
+      background: linear-gradient(
+        0deg,
+        rgb(3 12 24 / 78%) 0%,
+        rgb(3 12 24 / 10%) 72%
+      );
     }
 
     .about-stat-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .about-stat p {
       min-height: 0;
     }
+
+    .about-stat {
+      padding: 0.85rem 0.55rem;
+    }
+
+    .about-stat-label {
+      letter-spacing: 0.06em;
+    }
+
+    .about-stat-value {
+      gap: 0.2rem;
+    }
+
+    .about-stat-value strong {
+      font-size: clamp(1.45rem, 8vw, 2rem);
+    }
+
+    .about-stat p {
+      font-size: 0.62rem;
+      line-height: 1.45;
+    }
   }
 
   @media (max-width: 430px) {
     .about-hero {
-      grid-template-columns: minmax(0, 1fr);
+      min-height: 22rem;
+      padding: 1.1rem;
     }
 
-    .about-hero-mark {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      flex-direction: row-reverse;
-      text-align: left;
+    .about-hero-description {
+      line-height: 1.65;
     }
 
-    .about-hero-mark-letter {
-      font-size: 4.6rem;
+    .about-hero-meta {
+      font-size: 0.61rem;
+    }
+
+    .about-stats-head {
+      align-items: center;
+    }
+
+    .about-stats-status {
+      display: none;
     }
   }
 

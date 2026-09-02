@@ -27,4 +27,20 @@ describe("wiki paths and metadata", () => {
     expect(getWikiTitle(entry)).toBe("示例知识页");
     expect(getWikiDescription(entry)).toBe("这是一个持续更新的说明。");
   });
+
+  it("turns Obsidian and Markdown links into clean summary text", () => {
+    const entry = {
+      id: "concepts/example",
+      body: [
+        "# 示例知识页",
+        "",
+        "负责编排 [[concepts/数字证书|证书]] 与 [[concepts/信任链]]，参考 [规范](https://example.com)。",
+      ].join("\n"),
+      data: {},
+    };
+
+    expect(getWikiDescription(entry)).toBe(
+      "负责编排 证书 与 信任链，参考 规范。"
+    );
+  });
 });

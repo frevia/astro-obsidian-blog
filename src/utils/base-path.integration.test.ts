@@ -44,7 +44,13 @@ describe("base path integration", () => {
     );
     expect(source("src/pages/404.astro")).toContain('href={withBase("/")}');
     expect(source("src/utils/getCalendarEvents.ts")).toContain(
-      "withBase(`/diary/${quarterKey}#date-${dateStr}`)"
+      "withBase(`/notes/${quarterKey}#date-${dateStr}`)"
+    );
+    expect(source("src/components/home/fragmentPreviews.ts")).toContain(
+      "withBase("
+    );
+    expect(source("src/components/home/fragmentPreviews.ts")).toContain(
+      "/notes#diary-"
     );
     expect(source("src/components/DiaryEntryReact.tsx")).toContain(
       "withBase(`/diary/${date}`)"

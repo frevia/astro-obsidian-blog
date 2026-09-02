@@ -72,6 +72,7 @@ const structuredData = {
   dir={SITE.dir}
   lang={`${SITE.lang ?? "en"}`}
   class={`${scrollSmooth && "scroll-smooth"}`}
+  data-view-transitions={useNativeViewTransitions ? "native" : "client-router"}
 >
   <head>
     <meta charset="UTF-8" />
@@ -168,32 +169,32 @@ const structuredData = {
         navigation: auto;
       }
 
-      #site-header {
+      html[data-view-transitions="native"] #site-header {
         view-transition-name: site-header;
       }
 
-      ::view-transition-group(site-brand) {
+      html[data-view-transitions="native"]::view-transition-group(site-brand) {
         z-index: 3;
       }
 
-      ::view-transition-old(site-brand) {
+      html[data-view-transitions="native"]::view-transition-old(site-brand) {
         animation: 140ms cubic-bezier(0.4, 0, 1, 1) both brand-out;
       }
 
-      ::view-transition-new(site-brand) {
+      html[data-view-transitions="native"]::view-transition-new(site-brand) {
         animation: 220ms cubic-bezier(0, 0, 0.2, 1) both brand-in;
       }
 
-      ::view-transition-old(site-header),
-      ::view-transition-new(site-header) {
+      html[data-view-transitions="native"]::view-transition-old(site-header),
+      html[data-view-transitions="native"]::view-transition-new(site-header) {
         animation-duration: 180ms;
       }
 
-      ::view-transition-old(root) {
+      html[data-view-transitions="native"]::view-transition-old(root) {
         animation: 120ms cubic-bezier(0.4, 0, 1, 1) both native-page-out;
       }
 
-      ::view-transition-new(root) {
+      html[data-view-transitions="native"]::view-transition-new(root) {
         animation: 220ms cubic-bezier(0, 0, 0.2, 1) both native-page-in;
       }
 
@@ -226,9 +227,9 @@ const structuredData = {
       }
 
       @media (prefers-reduced-motion: reduce) {
-        ::view-transition-group(*),
-        ::view-transition-old(*),
-        ::view-transition-new(*) {
+        html[data-view-transitions="native"]::view-transition-group(*),
+        html[data-view-transitions="native"]::view-transition-old(*),
+        html[data-view-transitions="native"]::view-transition-new(*) {
           animation-duration: 1ms !important;
         }
       }

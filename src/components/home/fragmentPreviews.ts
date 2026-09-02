@@ -7,6 +7,7 @@ import {
   contentKindStyle,
   type ContentKind,
 } from "@/components/post-list/contentPresentation";
+import { withBase } from "@/utils/withBase";
 
 export interface HomeFragmentPreview {
   date: string;
@@ -76,7 +77,7 @@ function mediaFromBlock(block: PreviewTimeBlock): {
       poster: block.musicData.poster,
       title: block.musicData.title,
     };
-  if (block.htmlContent) return { label: "片段" };
+  if (block.htmlContent) return { label: "内容" };
   return {};
 }
 
@@ -97,17 +98,19 @@ export function buildFragmentPreviews(
         [block.text, block.postText].filter(Boolean).join(" ")
       );
       const excerpt = truncate(
-        plainText || media.title || firstImage?.alt || "查看这条碎片记录"
+        plainText || media.title || firstImage?.alt || "查看这条 Notes 记录"
       );
 
       previews.push({
         date: entry.date,
         time: block.time,
-        href: `#diary-${entry.date}-${block.time.replace(/:/g, "-")}`,
+        href: withBase(
+          `/notes#diary-${entry.date}-${block.time.replace(/:/g, "-")}`
+        ),
         kind,
         excerpt,
         image: firstImage
-          ? { src: firstImage.src, alt: firstImage.alt || "碎片配图" }
+          ? { src: firstImage.src, alt: firstImage.alt || "Notes 配图" }
           : media.poster
             ? { src: media.poster, alt: media.title || "媒体封面" }
             : undefined,

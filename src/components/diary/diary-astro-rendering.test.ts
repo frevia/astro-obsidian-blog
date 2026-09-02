@@ -50,6 +50,8 @@ describe("Astro diary rendering contracts", () => {
     expect(entry).toContain('client:visible={{ rootMargin: "300px" }}');
     expect(entry).toContain("collapsedWhenEmpty");
     expect(entry).toContain("data-diary-date");
+    expect(entry).toContain("diary-date-accent");
+    expect(entry).not.toContain("font-bold text-skin-accent");
     expect(entry).not.toContain("<script");
 
     const feed = source("DiaryFeed.astro");

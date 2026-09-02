@@ -2,16 +2,20 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
 describe("index hydration boundary", () => {
-  it("hydrates only the diary pagination island on home page", () => {
-    const source = readFileSync("src/pages/index.astro", "utf-8");
+  it("keeps the editorial home static and hydrates pagination only on Notes", () => {
+    const home = readFileSync("src/pages/index.astro", "utf-8");
+    const notes = readFileSync("src/pages/notes/index.astro", "utf-8");
 
-    expect(source).toContain("<DiaryFeed");
-    expect(source).toContain("<DiaryLoadMore");
-    expect(source).toContain('client:visible={{ rootMargin: "800px" }}');
-    expect(source).not.toContain("<DiaryTimeline");
+    expect(home).not.toContain("<DiaryFeed");
+    expect(home).not.toContain("<DiaryLoadMore");
+    expect(home).not.toContain("client:");
+    expect(notes).toContain("<DiaryFeed");
+    expect(notes).toContain("<DiaryLoadMore");
+    expect(notes).toContain('client:visible={{ rootMargin: "800px" }}');
+    expect(notes).not.toContain("<DiaryTimeline");
 
     const hydrateDirectives = Array.from(
-      source.matchAll(/client:(?:load|idle|visible|media|only)/g),
+      notes.matchAll(/client:(?:load|idle|visible|media|only)/g),
       m => m[0]
     );
 

@@ -4,27 +4,22 @@ title: "关于"
 description: "记录日常、技术、阅读和路上的见闻。"
 ---
 
-import DisintegrationImg from "../components/DisintegrationImg.tsx";
-import aboutImage from "../assets/images/about.jpeg";
+<section class="about-story" aria-labelledby="about-story-title">
+  <div class="about-story-copy">
+    <span class="about-eyebrow">关于这里</span>
+    <h2 id="about-story-title">一份持续更新的个人记录</h2>
+    <p class="about-lede">
+      这里放着最近读过的书、做过的实验、走过的路，还有一些没想明白的事。
+    </p>
+    <p class="about-note">写下来，方便以后回来看看。</p>
 
-export const aboutPlaceholder = {
-  src: aboutImage.src,
-  width: aboutImage.width,
-  height: aboutImage.height,
-  format: aboutImage.format,
-};
+    <div class="about-signature">
+      <span class="about-signature-label">签名</span>
+      <blockquote>
+        “人生就是一列开往坟墓的列车，路途上会有很多站，很难有人可以自始至终陪着走完。当陪你的人要下车时，即使不舍也该心存感激，然后挥手道别。”
+        <cite>——《千与千寻》</cite>
+      </blockquote>
+    </div>
 
-<figure class="about-portrait rehype-figure">
-  <DisintegrationImg client:idle image={aboutPlaceholder} />
-  {/* <figcaption>🌞🌳🌹🦁🍽️🩸🐆</figcaption> */}
-</figure>
-
-<p class="about-lede">
-  这里放着最近读过的书、做过的实验、走过的路，还有一些没想明白的事。
-</p>
-
-<p class="about-note">写下来，方便以后回来看看。</p>
-
-## 签名
-
-”人生就是一列开往坟墓的列车,路途上会有很多站,很难有人可以自始至终陪着走完。当陪你的人要下车时,即使不舍也该心存感激,然后挥手道别。"——《千与千寻》
+  </div>
+</section>

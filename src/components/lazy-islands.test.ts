@@ -17,7 +17,7 @@ describe("lazy island SSR contracts", () => {
     expect(html).toContain("2024年2月");
     expect(html).toContain('aria-label="2024-02-29');
     expect(html).toContain("2024年2月29日");
-    expect(html).toContain("该日暂无碎片或文章");
+    expect(html).toContain("该日暂无 Notes 或文章");
   });
 
   it("produces the same initial Calendar markup on the server and client", () => {
@@ -76,25 +76,33 @@ describe("lazy island SSR contracts", () => {
     expect(mapSource).toContain("正在准备地图图层");
   });
 
-  it("keeps diary entries static and hydrates only the pagination island", () => {
+  it("keeps Notes entries static and hydrates only the pagination island", () => {
     const homeSource = readFileSync(
       resolve(import.meta.dirname, "../pages/index.astro"),
       "utf-8"
     );
-    const diarySource = readFileSync(
-      resolve(import.meta.dirname, "../pages/diary/[...page].astro"),
+    const notesSource = readFileSync(
+      resolve(import.meta.dirname, "../pages/notes/index.astro"),
+      "utf-8"
+    );
+    const notesQuarterSource = readFileSync(
+      resolve(import.meta.dirname, "../pages/notes/[...page].astro"),
       "utf-8"
     );
 
-    expect(homeSource).toContain("<DiaryFeed");
-    expect(homeSource).toContain("<DiaryLoadMore");
-    expect(homeSource).toContain('client:visible={{ rootMargin: "800px" }}');
+    expect(homeSource).not.toContain("<DiaryFeed");
+    expect(homeSource).not.toContain("<DiaryLoadMore");
+    expect(notesSource).toContain("<DiaryFeed");
+    expect(notesSource).toContain("<DiaryLoadMore");
+    expect(notesSource).toContain('client:visible={{ rootMargin: "800px" }}');
     expect(homeSource).not.toContain("<DiaryTimeline");
-    expect(diarySource).toContain("<DiaryFeed");
-    expect(diarySource).not.toMatch(/client:(?:load|idle|visible|media|only)/);
-    expect(diarySource).not.toContain("<DiaryTimeline");
-    expect(diarySource).not.toContain("<DiaryLoadMore");
+    expect(notesQuarterSource).toContain("<DiaryFeed");
+    expect(notesQuarterSource).not.toMatch(
+      /client:(?:load|idle|visible|media|only)/
+    );
+    expect(notesQuarterSource).not.toContain("<DiaryTimeline");
+    expect(notesQuarterSource).not.toContain("<DiaryLoadMore");
     expect(homeSource).not.toContain("client:load");
-    expect(diarySource).not.toContain("client:load");
+    expect(notesQuarterSource).not.toContain("client:load");
   });
 });

@@ -353,8 +353,8 @@ const Calendar: React.FC<CalendarProps> = ({
             </p>
             <p className="leading-snug text-foreground-muted">
               {todayEventCount > 0
-                ? `当天有 ${todayEventCount} 条碎片或文章可回看。`
-                : "当天暂无碎片或文章，翻阅日历可回看历史记录。"}
+                ? `当天有 ${todayEventCount} 条 Notes 或文章可回看。`
+                : "当天暂无 Notes 或文章，翻阅日历可回看历史记录。"}
             </p>
             <p className="leading-snug text-foreground-muted">
               {todayInfo
@@ -791,7 +791,7 @@ const Calendar: React.FC<CalendarProps> = ({
                   {selected.events.map((ev, idx) => {
                     const isDiary = ev.type === "diary";
                     const label = isDiary
-                      ? "碎片"
+                      ? "Notes"
                       : ev.type === "blog" && ev.title
                         ? ev.title
                         : "文章";
@@ -813,10 +813,10 @@ const Calendar: React.FC<CalendarProps> = ({
                                 : "bg-teal-500/15 text-teal-800 dark:text-teal-200",
                             ].join(" ")}
                           >
-                            {isDiary ? "碎片" : "文章"}
+                            {isDiary ? "Notes" : "文章"}
                           </span>
                           <span className="min-w-0 flex-1 text-xs leading-snug text-foreground group-hover:text-accent">
-                            {isDiary ? "当日碎片" : label}
+                            {isDiary ? "当日 Notes" : label}
                           </span>
                           <span
                             className="shrink-0 text-[10px] text-foreground-muted opacity-0 transition-opacity group-hover:opacity-100"
@@ -831,7 +831,7 @@ const Calendar: React.FC<CalendarProps> = ({
                 </ul>
               ) : (
                 <div className="rounded-lg border border-dashed border-border bg-surface-muted px-3 py-4 text-center text-xs leading-relaxed text-foreground-muted">
-                  该日暂无碎片或文章
+                  该日暂无 Notes 或文章
                 </div>
               )}
             </div>

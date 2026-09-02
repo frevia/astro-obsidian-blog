@@ -1,0 +1,87 @@
+---
+import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+import BackToTopButton from "@/components/BackToTopButton.astro";
+import { SITE } from "@/config";
+import Layout from "@/layouts/Layout.astro";
+import { getCollection } from "astro:content";
+import { parseEntry } from "@/utils/parseEntry";
+import DiaryFeed from "@/components/diary/DiaryFeed.astro";
+import DiaryLoadMore from "@/components/diary/DiaryLoadMore";
+import ArchiveHero from "@/components/ArchiveHero.astro";
+
+const diaryEntries = await getCollection("diary");
+
+// 按文件名（日期）排序，最新的在前；完整时间线只在 Notes 页面解析。
+const sortedEntries = diaryEntries.sort((a, b) => {
+  const dateA = a.id.split("/").pop()!.replace(".md", "");
+  const dateB = b.id.split("/").pop()!.replace(".md", "");
+  return dateB.localeCompare(dateA);
+});
+
+const ITEMS_PER_PAGE = 5;
+const initialEntries = sortedEntries.slice(0, ITEMS_PER_PAGE);
+const initialParsedEntries = await Promise.all(
+  initialEntries.map(entry => parseEntry(entry))
+);
+
+const totalPages = Math.ceil(sortedEntries.length / ITEMS_PER_PAGE);
+const paginationInfo = {
+  currentPage: 1,
+  totalPages,
+  hasMore: totalPages > 1,
+  itemsPerPage: ITEMS_PER_PAGE,
+};
+---
+
+<Layout title={`Notes | ${SITE.title}`}>
+  <Header />
+
+  <main
+    id="main-content"
+    data-pagefind-ignore
+    role="main"
+    aria-label="Notes 页主要内容"
+    class="page-shell mx-auto mt-6 w-full max-w-app min-w-0 px-4 pb-8"
+  >
+    <a
+      href="#diary-content"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded focus:bg-skin-accent focus:px-4 focus:py-2 focus:text-skin-inverted focus:no-underline"
+    >
+      跳转到主要内容
+    </a>
+
+    <section
+      id="notes"
+      class="min-h-screen"
+      role="region"
+      aria-labelledby="notes-heading"
+    >
+      <ArchiveHero />
+
+      <div id="diary-description" class="sr-only">
+        Notes 条目按时间倒序排列，每页显示 {ITEMS_PER_PAGE} 条记录，当前共有
+        {sortedEntries.length} 条记录
+      </div>
+      <div
+        id="diary-content"
+        role="feed"
+        aria-label="Notes 时间线"
+        aria-describedby="diary-description"
+        aria-live="polite"
+        aria-busy="false"
+      >
+        <DiaryFeed entries={initialParsedEntries} />
+        <DiaryLoadMore
+          client:visible={{ rootMargin: "800px" }}
+          paginationInfo={paginationInfo}
+          initialCount={initialParsedEntries.length}
+        />
+      </div>
+
+      <BackToTopButton />
+    </section>
+  </main>
+
+  <Footer />
+</Layout>

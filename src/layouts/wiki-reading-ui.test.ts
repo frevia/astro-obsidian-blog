@@ -6,11 +6,16 @@ const legacyRelationsClass = ["wiki", "rail", "relations"].join("-");
 const legacyInitializer = ["init", "Article", "Reading", "Rail"].join("");
 
 describe("wiki reading UI", () => {
-  it("keeps the process title readable when its column wraps", () => {
-    const source = readFileSync("src/pages/wiki/index.astro", "utf-8");
+  it("keeps the editorial directory typography readable", () => {
+    const source = readFileSync("src/styles/wiki-index.css", "utf-8");
 
     expect(source).toContain("line-height: 1.15");
-    expect(source).toContain("white-space: nowrap");
+    expect(source).toContain("text-wrap: balance");
+    expect(source).toContain(".wiki-directory-row");
+    expect(source).not.toContain(".wiki-metrics");
+    expect(source).not.toContain(".wiki-process");
+    expect(source).not.toContain(".wiki-highlight-grid");
+    expect(source).not.toContain(".wiki-card-grid");
   });
 
   it("uses the shared long-form reading navigation", () => {
@@ -39,10 +44,12 @@ describe("wiki reading UI", () => {
       "src/layouts/WikiDetails.astro",
       "utf-8"
     );
+    const indexStyles = readFileSync("src/styles/wiki-index.css", "utf-8");
 
     expect(indexSource).not.toContain("BackButton");
     expect(detailsSource).not.toContain("BackButton");
-    expect(indexSource).toContain(".wiki-hero-copy::before");
+    expect(indexSource).toContain('import "@/styles/wiki-index.css"');
+    expect(indexStyles).toContain(".wiki-hero-copy::before");
     expect(detailsSource).toContain(".wiki-entry-heading::before");
   });
 });

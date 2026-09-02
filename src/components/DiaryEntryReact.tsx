@@ -64,8 +64,8 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
         <div className="flex items-baseline gap-3">
           <h2
             id={`date-${date}`}
-            className="m-0 text-3xl leading-none font-bold text-skin-accent"
-            aria-label={`${relativeLabel ?? absoluteLabel} ${weekdayLabel} ${!hideYear ? yearLabel : ""} 的碎片`}
+            className="diary-date-accent m-0 text-3xl leading-none font-bold"
+            aria-label={`${relativeLabel ?? absoluteLabel} ${weekdayLabel} ${!hideYear ? yearLabel : ""} 的 Notes`}
           >
             {/* SSR 时渲染 absoluteLabel；CSR 完成后若有相对文案则替换。
                suppressHydrationWarning 防止首帧文本差异触发水合警告 */}
