@@ -13,7 +13,7 @@ const dateLabel = preview.date.replace(/-/g, ".");
   <a
     href={preview.href}
     data-astro-prefetch="tap"
-    class="app-card group relative isolate flex h-full min-h-72 flex-col overflow-hidden rounded-[var(--radius-card)] px-4 py-4 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-accent/55 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:min-h-80"
+    class="app-card home-lift-card group relative isolate flex h-full min-h-72 flex-col overflow-hidden rounded-[var(--radius-card)] px-4 py-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:min-h-80"
   >
     <span
       aria-hidden="true"
@@ -38,7 +38,7 @@ const dateLabel = preview.date.replace(/-/g, ".");
     <div
       class="flex items-center justify-between gap-3 text-xs tracking-wide text-foreground/55 tabular-nums"
     >
-      <span>{preview.mediaLabel ?? "碎片"}</span>
+      <span>{preview.mediaLabel ?? "Notes"}</span>
       <time datetime={`${preview.date}T${preview.time}`}>
         {dateLabel} · {preview.time}
       </time>
@@ -47,7 +47,7 @@ const dateLabel = preview.date.replace(/-/g, ".");
       {preview.excerpt}
     </p>
     <span class="mt-auto pt-4 text-sm font-medium text-accent">
-      查看这条记录 <span aria-hidden="true">↘</span>
+      查看这条 Notes <span aria-hidden="true">↘</span>
     </span>
   </a>
 </li>

@@ -20,7 +20,7 @@ const {
     <article role="article" class="py-12 text-center sm:py-14">
       <div role="status" aria-live="polite">
         <div class="mb-4 text-4xl opacity-40">📝</div>
-        <p class="text-lg text-skin-base opacity-70">还没有任何碎片...</p>
+        <p class="text-lg text-skin-base opacity-70">还没有任何 Notes...</p>
         <p class="mt-2 text-sm opacity-50">开始记录您的日常吧</p>
       </div>
     </article>
@@ -98,7 +98,7 @@ const {
         const hideYear = heading.dataset.diaryHideYear === "true";
         heading.setAttribute(
           "aria-label",
-          `${relative} ${weekday} ${hideYear ? "" : year} 的碎片`
+          `${relative} ${weekday} ${hideYear ? "" : year} 的 Notes`
         );
       });
   };

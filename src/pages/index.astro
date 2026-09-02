@@ -1,21 +1,21 @@
 ---
 import Footer from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
-import BackToTopButton from "@/components/BackToTopButton.astro";
 import { SITE } from "@/config";
 import Layout from "@/layouts/Layout.astro";
 import { getCollection } from "astro:content";
 import { parseEntry } from "@/utils/parseEntry";
-import DiaryFeed from "@/components/diary/DiaryFeed.astro";
-import DiaryLoadMore from "@/components/diary/DiaryLoadMore";
-import ArchiveHero from "@/components/ArchiveHero.astro";
 import HomeEditorial from "@/components/home/HomeEditorial.astro";
 import { buildFragmentPreviews } from "@/components/home/fragmentPreviews";
 import getSortedPosts from "@/utils/getSortedPosts";
+import { buildWikiCatalog, selectWikiHighlights } from "@/utils/wikiCatalog";
+import { getWikiTitle } from "@/utils/wikiPath";
+import { buildWikilinkGraph } from "@/utils/wikilinkGraph";
 
-const [diaryEntries, blogPosts] = await Promise.all([
+const [diaryEntries, blogPosts, wikiEntries] = await Promise.all([
   getCollection("diary"),
   getCollection("blog"),
+  getCollection("wiki"),
 ]);
 
 // 按文件名（日期）排序，最新的在前
@@ -26,84 +26,50 @@ const sortedEntries = diaryEntries.sort((a, b) => {
   return dateB.localeCompare(dateA);
 });
 
-// 分页设置
-const ITEMS_PER_PAGE = 5;
-const initialEntries = sortedEntries.slice(0, ITEMS_PER_PAGE);
-
-// 解析初始数据
+// 首页只解析少量 Notes，用于 SSR 渲染融合精选；完整时间线由 /notes 承载。
+const initialEntries = sortedEntries.slice(0, 5);
 const initialParsedEntries = await Promise.all(
   initialEntries.map(entry => parseEntry(entry))
 );
 const featuredPost = getSortedPosts(blogPosts)[0];
 const fragmentPreviews = buildFragmentPreviews(initialParsedEntries, 3);
-
-// 为了性能考虑，只解析初始数据，其他数据通过API端点按需加载
-// 创建分页数据结构
-const totalPages = Math.ceil(sortedEntries.length / ITEMS_PER_PAGE);
-const paginationInfo = {
-  currentPage: 1,
-  totalPages,
-  hasMore: totalPages > 1,
-  itemsPerPage: ITEMS_PER_PAGE,
-};
+const wikiGraphEntries = wikiEntries.map(entry => ({
+  id: entry.id,
+  filePath: entry.filePath,
+  body: entry.body,
+  data: { title: getWikiTitle(entry), slug: entry.data.title },
+  routePrefix: "/wiki" as const,
+}));
+const wikiGraph = buildWikilinkGraph(wikiGraphEntries);
+const wikiHighlights = selectWikiHighlights(
+  buildWikiCatalog(wikiEntries, wikiGraph),
+  3
+);
 ---
 
-<Layout title={`碎片 | ${SITE.title}`}>
+<Layout title={SITE.title}>
   <Header />
 
-  <div class="w-full min-w-0 flex-1">
-    <main
-      id="main-content"
-      data-pagefind-ignore
-      role="main"
-      aria-label="碎片页主要内容"
-      class="w-full min-w-0"
+  <main
+    id="main-content"
+    data-pagefind-ignore
+    role="main"
+    aria-label="首页主要内容"
+    class="page-shell mx-auto mt-6 w-full max-w-app min-w-0 px-4 pb-8"
+  >
+    <a
+      href="#home-editorial-heading"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded focus:bg-skin-accent focus:px-4 focus:py-2 focus:text-skin-inverted focus:no-underline"
     >
-      <!-- 跳转到主要内容的链接 -->
-      <a
-        href="#diary-content"
-        class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded focus:bg-skin-accent focus:px-4 focus:py-2 focus:text-skin-inverted focus:no-underline"
-      >
-        跳转到主要内容
-      </a>
+      跳转到主要内容
+    </a>
 
-      <section
-        id="diary"
-        class="page-shell mx-auto mt-6 min-h-screen w-full max-w-app min-w-0 bg-background px-4 pb-8"
-        role="region"
-        aria-labelledby="diary-heading"
-      >
-        <div class="min-h-screen">
-          <div class="pb-5 sm:pb-6">
-            <ArchiveHero />
-            <HomeEditorial {featuredPost} fragments={fragmentPreviews} />
-
-            <div id="diary-description" class="sr-only">
-              碎片条目按时间倒序排列，每页显示 {ITEMS_PER_PAGE} 条记录，当前共有
-              {sortedEntries.length} 条记录
-            </div>
-            <div
-              id="diary-content"
-              role="feed"
-              aria-label="碎片时间线"
-              aria-describedby="diary-description"
-              aria-live="polite"
-              aria-busy="false"
-            >
-              <DiaryFeed entries={initialParsedEntries} />
-              <DiaryLoadMore
-                client:visible={{ rootMargin: "800px" }}
-                paginationInfo={paginationInfo}
-                initialCount={initialParsedEntries.length}
-              />
-            </div>
-          </div>
-
-          <BackToTopButton />
-        </div>
-      </section>
-    </main>
-  </div>
+    <HomeEditorial
+      {featuredPost}
+      fragments={fragmentPreviews}
+      {wikiHighlights}
+    />
+  </main>
 
   <Footer />
 </Layout>

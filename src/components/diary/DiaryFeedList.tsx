@@ -18,7 +18,9 @@ const DiaryFeedList: React.FC<DiaryFeedListProps> = ({
       <article role="article" className="py-12 text-center sm:py-14">
         <div role="status" aria-live="polite">
           <div className="mb-4 text-4xl opacity-40">📝</div>
-          <p className="text-lg text-skin-base opacity-70">还没有任何碎片...</p>
+          <p className="text-lg text-skin-base opacity-70">
+            还没有任何 Notes...
+          </p>
           <p className="mt-2 text-sm opacity-50">开始记录您的日常吧</p>
         </div>
       </article>

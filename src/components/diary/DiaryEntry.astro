@@ -35,13 +35,13 @@ const threadPath = withBase(`/diary/${date}`);
     <div class="flex items-baseline gap-3">
       <h2
         id={`date-${date}`}
-        class="m-0 text-3xl leading-none font-bold text-skin-accent"
+        class="diary-date-accent m-0 text-3xl leading-none font-bold"
         data-diary-date={date}
         data-diary-absolute-label={absoluteLabel}
         data-diary-weekday-label={weekdayLabel}
         data-diary-year-label={yearLabel}
         data-diary-hide-year={hideYear ? "true" : "false"}
-        aria-label={`${absoluteLabel} ${weekdayLabel} ${!hideYear ? yearLabel : ""} 的碎片`}
+        aria-label={`${absoluteLabel} ${weekdayLabel} ${!hideYear ? yearLabel : ""} 的 Notes`}
       >
         <span data-diary-relative-label>{absoluteLabel}</span>
         <span class="sr-only" data-diary-date-status></span>

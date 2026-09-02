@@ -25,7 +25,7 @@ describe("typography readability baseline", () => {
 describe("empty-state visual consistency", () => {
   it("uses consistent empty-state container class", () => {
     const feeds = readFileSync("src/pages/feeds/index.astro", "utf-8");
-    const diary = readFileSync("src/pages/diary/[...page].astro", "utf-8");
+    const notes = readFileSync("src/pages/notes/[...page].astro", "utf-8");
     const diaryLoadState = readFileSync(
       "src/components/diary/DiaryLoadState.tsx",
       "utf-8"
@@ -33,7 +33,7 @@ describe("empty-state visual consistency", () => {
     const globalCss = readFileSync("src/styles/global.css", "utf-8");
 
     expect(feeds).toContain("empty-state-card");
-    expect(diary).toContain("empty-state-card");
+    expect(notes).toContain("empty-state-card");
     expect(diaryLoadState).toContain("empty-state-card");
     expect(globalCss).toContain(".empty-state-card");
   });
@@ -58,10 +58,22 @@ describe("neighbor and about page presentation", () => {
 
     expect(about).toContain('class="about-page');
     expect(about).toContain("about-hero");
+    expect(about).toContain('class="about-hero-image"');
+    expect(about).toContain('from "astro:assets"');
     expect(about).toContain("about-stat-grid");
+    expect(aboutPage).toContain('class="about-story"');
+    expect(aboutPage).toContain('class="about-story-copy"');
+    expect(aboutPage).toContain('class="about-signature"');
+    expect(aboutPage).not.toContain("DisintegrationImg");
+    expect(aboutPage).not.toContain('class="about-portrait');
     expect(about).toContain('id="running-days"');
     expect(aboutPage).toContain("description:");
     expect(aboutCss).toContain(".about-hero");
     expect(aboutCss).toContain(".about-stat-grid");
+    expect(aboutCss).toContain(".about-story");
+    expect(aboutCss).toContain(".about-hero-image");
+    expect(aboutCss).toContain("object-fit: cover");
+    expect(aboutCss).toContain("text-wrap: balance");
+    expect(aboutCss).toContain("repeat(3, minmax(0, 1fr))");
   });
 });

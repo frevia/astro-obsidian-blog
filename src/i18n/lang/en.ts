@@ -9,7 +9,7 @@ export default {
     about: "About",
     archives: "Archives",
     search: "Search",
-    fragments: "Fragments",
+    fragments: "Notes",
     footprint: "Footprint",
     feeds: "Neighbors",
     mainLabel: "Main navigation",

@@ -6,18 +6,44 @@ const root = resolve(import.meta.dirname, "../..");
 const source = (path: string) => readFileSync(resolve(root, path), "utf-8");
 
 describe("editorial home and post list contracts", () => {
-  it("keeps the diary feed static below the SSR editorial area", () => {
+  it("keeps the home page focused on the SSR editorial selection", () => {
     const index = source("pages/index.astro");
 
     expect(index).toContain("<HomeEditorial");
     expect(index).toContain("buildFragmentPreviews(initialParsedEntries, 3)");
-    expect(index).toContain("<DiaryFeed");
-    expect(index).toContain("<DiaryLoadMore");
-    expect(index.match(/client:(?:load|idle|visible|media|only)/g)).toEqual([
+    expect(index).not.toContain("<DiaryFeed");
+    expect(index).not.toContain("<DiaryLoadMore");
+    expect(index).not.toContain("client:");
+    expect(index).not.toContain("<DiaryTimeline");
+  });
+
+  it("moves the full Notes feed and pagination island to /notes", () => {
+    const notes = source("pages/notes/index.astro");
+
+    expect(notes).toContain("<ArchiveHero");
+    expect(notes).toContain("<DiaryFeed");
+    expect(notes).toContain("<DiaryLoadMore");
+    expect(notes.match(/client:(?:load|idle|visible|media|only)/g)).toEqual([
       "client:visible",
     ]);
-    expect(index).toContain('rootMargin: "800px"');
-    expect(index).not.toContain("<DiaryTimeline");
+    expect(notes).toContain('rootMargin: "800px"');
+    expect(notes).toContain('aria-label="Notes 时间线"');
+    expect(notes).not.toContain("<HomeEditorial");
+  });
+
+  it("keeps quarterly Notes pages static and preserves old diary redirects", () => {
+    const notesQuarter = source("pages/notes/[...page].astro");
+    const legacyQuarter = source("pages/diary/[...page].astro");
+
+    expect(notesQuarter).toContain("<DiaryFeed");
+    expect(notesQuarter).toContain("/notes/");
+    expect(notesQuarter).toContain("newerQuarter");
+    expect(notesQuarter).toContain("olderQuarter");
+    expect(notesQuarter).not.toMatch(/client:(?:load|idle|visible|media|only)/);
+    expect(legacyQuarter).toContain("Astro.redirect");
+    expect(legacyQuarter).toContain("import.meta.env.BASE_URL");
+    expect(legacyQuarter).toContain("/notes/");
+    expect(legacyQuarter).not.toContain("<DiaryFeed");
   });
 
   it("keeps post sorting, pagination and a zero-JS editorial list", () => {
@@ -46,22 +72,24 @@ describe("editorial home and post list contracts", () => {
     const card = source("components/Card.astro");
 
     expect(card).toContain("data-content-kind={contentKind}");
+    expect(card).toContain("data-cover-orientation={isEditorial");
     expect(card).toContain("data-transition-title={titleTransitionName}");
     expect(card).toContain("data-transition-cover={coverTransitionName}");
     expect(card).toContain("transition:name={titleTransitionName}");
     expect(card).toContain("transition:name={coverTransitionName}");
     expect(card).toContain("post-card-editorial");
-    expect(card).toContain(
-      "const coverWidth = isFeatured ? 720 : isStandard ? 88 : 480;"
-    );
-    expect(card).toContain(
-      "const coverHeight = isFeatured ? 405 : isStandard ? 88 : 360;"
-    );
+    expect(card).toContain("classifyCoverOrientation(data.cover)");
+    expect(card).toContain('coverOrientation === "portrait"');
+    expect(card).toContain('coverOrientation === "landscape"');
+    expect(card).toContain("const editorialCoverSizes =");
     expect(card).toContain("const hasAuthoredCover = Boolean(data.cover);");
     expect(card).toContain("const cardCover = isStandard");
     expect(card).toContain("data.cover ?? fallbackCover");
-    expect(card).toContain('"aspect-[4/3] w-24 rounded-xl sm:w-48"');
-    expect(card).not.toContain('"aspect-video w-full rounded-xl sm:w-64"');
+    expect(card).not.toContain('"aspect-[4/3] w-24 rounded-xl sm:w-48"');
+    expect(card).toContain('"w-24 self-center rounded-xl sm:w-40"');
+    expect(card).toContain(
+      '"w-full self-center rounded-xl sm:w-[42%] sm:max-w-80"'
+    );
     expect(card).toContain('"aspect-video w-full rounded-xl sm:w-[52%]"');
     expect(card).toContain(
       'isFeatured && Boolean(cardCover) && mediaAlign === "start"'
@@ -69,19 +97,38 @@ describe("editorial home and post list contracts", () => {
     expect(card).toContain(
       'isFeatured && Boolean(cardCover) && mediaAlign === "end"'
     );
-    expect(card).toContain('"flex-row items-start gap-4 sm:gap-6"');
+    expect(card).toContain('"flex-row items-stretch gap-4 sm:gap-6"');
+    expect(card).toContain(
+      '"flex-col gap-4 sm:flex-row sm:items-stretch sm:gap-6"'
+    );
     expect(card).toContain('"line-clamp-2 hidden text-sm leading-6 sm:block"');
-    expect(card).not.toContain("sm:items-stretch");
+    expect(card).toContain("sm:items-stretch");
+    expect(card).toContain("width: 100%");
+    expect(card).toContain("height: auto");
+    expect(card).toContain("margin: 0");
     expect(card).toContain("object-cover");
     expect(card).toContain("object-contain");
-    expect(card).toContain("decorative");
-    expect(card).toContain("ariaHidden");
+    expect(card).not.toContain("decorative");
+    expect(card).not.toContain("ariaHidden");
     expect(card).toContain("preserveAspect={hasAuthoredCover}");
     expect(card).toContain('fit="contain"');
-    expect(card.match(/fit="cover"/g)).toHaveLength(2);
-    expect(card.match(/style="height: 100%;"/g)).toHaveLength(3);
-    expect(card).toContain("blur-md");
-    expect(card).toContain("object-contain p-2");
+    expect(card.match(/fit="cover"/g)).toHaveLength(1);
+    expect(card.match(/style="height: 100%;"/g)).toHaveLength(1);
+    expect(card).toContain('style={isEditorial ? undefined : "height: 100%;"}');
+    expect(card).not.toContain("blur-md");
+    expect(card).toContain("post-card-cover-frame");
+    expect(card).not.toContain("!isEditorial && (");
+    expect(card).not.toContain("post-card-cover-backdrop");
+    expect(card).toContain("post-card-cover-image");
+    expect(card).not.toContain(".post-card-cover-frame::before");
+    expect(card).not.toContain(".post-card-cover-frame::after");
+    expect(card).toContain('"border border-border/60 bg-muted/15": isStandard');
+    expect(card).toContain(":global(.post-card-cover-image)");
+    expect(card).toContain("animation: none");
+    expect(card).toContain("transform: translateY(-2px)");
+    expect(card).toContain("@media (hover: hover) and (pointer: fine)");
+    expect(card).toContain("background: var(--interactive-hover)");
+    expect(card).not.toContain("translateY(-2px) scale(1.025)");
     expect(card).toContain("cardCover && (");
     expect(card).not.toContain("aspect-[16/10]");
   });

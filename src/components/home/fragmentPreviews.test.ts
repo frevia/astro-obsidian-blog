@@ -11,7 +11,7 @@ describe("buildFragmentPreviews", () => {
             { time: "23:59", text: "divider" },
             {
               time: "21:30",
-              text: "<p>有图片的碎片</p>",
+              text: "<p>有图片的 Notes</p>",
               images: [{ src: "/photo.webp", alt: "湖边" }],
             },
             {
@@ -26,8 +26,8 @@ describe("buildFragmentPreviews", () => {
     );
 
     expect(previews.map(item => item.kind)).toEqual(["image", "media", "text"]);
-    expect(previews[0].href).toBe("#diary-2026-04-25-21-30");
-    expect(previews[0].excerpt).toBe("有图片的碎片");
+    expect(previews[0].href).toBe("/notes#diary-2026-04-25-21-30");
+    expect(previews[0].excerpt).toBe("有图片的 Notes");
     expect(previews[1].mediaLabel).toBe("阅读");
   });
 });

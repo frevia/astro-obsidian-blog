@@ -11,6 +11,7 @@ import {
   inferPostContentKind,
   type ContentKind,
 } from "@/components/post-list/contentPresentation";
+import { classifyCoverOrientation } from "@/components/post-list/coverPresentation";
 
 export interface Props extends CollectionEntry<"blog"> {
   variant?: "h2" | "h3";
@@ -57,14 +58,35 @@ const hasAuthoredCover = Boolean(data.cover);
 const cardCover = isStandard
   ? (data.cover ?? fallbackCover ?? defaultCover)
   : (data.cover ?? fallbackCover);
+const coverOrientation = isEditorial
+  ? classifyCoverOrientation(data.cover)
+  : "unknown";
 
-const coverWidth = isFeatured ? 720 : isStandard ? 88 : 480;
-const coverHeight = isFeatured ? 405 : isStandard ? 88 : 360;
+const editorialCoverWidth =
+  coverOrientation === "portrait"
+    ? 320
+    : coverOrientation === "landscape"
+      ? 640
+      : 400;
+const editorialCoverHeight =
+  coverOrientation === "portrait"
+    ? 450
+    : coverOrientation === "landscape"
+      ? 360
+      : 400;
+const coverWidth = isFeatured ? 720 : isStandard ? 88 : editorialCoverWidth;
+const coverHeight = isFeatured ? 405 : isStandard ? 88 : editorialCoverHeight;
+const editorialCoverSizes =
+  coverOrientation === "portrait"
+    ? "(min-width: 640px) 160px, 96px"
+    : coverOrientation === "landscape"
+      ? "(min-width: 1024px) 320px, (min-width: 640px) 42vw, 100vw"
+      : "(min-width: 640px) 176px, 96px";
 const coverSizes = isStandard
   ? "(min-width: 640px) 88px, 56px"
   : isFeatured
     ? "(min-width: 640px) 52vw, 100vw"
-    : "(min-width: 640px) 192px, 96px";
+    : editorialCoverSizes;
 const titleClass = isStandard
   ? "text-lg font-semibold leading-7"
   : isFeatured
@@ -74,6 +96,7 @@ const titleClass = isStandard
 
 <li
   data-content-kind={contentKind}
+  data-cover-orientation={isEditorial ? coverOrientation : undefined}
   data-transition-title={titleTransitionName}
   data-transition-cover={coverTransitionName}
   style={contentKindStyle(contentKind)}
@@ -89,7 +112,7 @@ const titleClass = isStandard
         ? "rounded-[var(--radius-card)] px-4 py-4 hover:border-accent/55"
         : isEditorial
           ? "post-card-editorial rounded-[var(--radius-card-emphasis)] px-4 py-4 sm:px-5 sm:py-5"
-          : "rounded-[var(--radius-card-emphasis)] px-4 py-4 shadow-sm hover:-translate-y-0.5 hover:border-accent/55 hover:shadow-md sm:px-5 sm:py-5",
+          : "home-lift-card rounded-[var(--radius-card-emphasis)] px-4 py-4 sm:px-5 sm:py-5",
     ]}
   >
     {
@@ -110,8 +133,14 @@ const titleClass = isStandard
             isFeatured && Boolean(cardCover) && mediaAlign === "start",
           "flex-col sm:flex-row-reverse sm:items-center sm:gap-6":
             isFeatured && Boolean(cardCover) && mediaAlign === "end",
-          "flex-row items-start gap-4 sm:gap-6":
-            isEditorial && Boolean(cardCover),
+          "flex-row items-stretch gap-4 sm:gap-6":
+            isEditorial &&
+            Boolean(cardCover) &&
+            coverOrientation !== "landscape",
+          "flex-col gap-4 sm:flex-row sm:items-stretch sm:gap-6":
+            isEditorial &&
+            Boolean(cardCover) &&
+            coverOrientation === "landscape",
           "flex-col": isEditorial && !Boolean(cardCover),
         },
       ]}
@@ -121,30 +150,24 @@ const titleClass = isStandard
           <div
             transition:name={coverTransitionName}
             class:list={[
-              "relative shrink-0 overflow-hidden border border-border/60 bg-muted/15",
+              "relative shrink-0 overflow-hidden",
+              {
+                "post-card-cover-frame": isEditorial,
+                "border border-border/60 bg-muted/15": isStandard,
+              },
               isStandard
                 ? "block h-14 w-14 rounded-lg sm:h-[88px] sm:w-[88px]"
                 : isFeatured
                   ? "aspect-video w-full rounded-xl sm:w-[52%]"
-                  : "aspect-[4/3] w-24 rounded-xl sm:w-48",
+                  : coverOrientation === "portrait"
+                    ? "w-24 self-center rounded-xl sm:w-40"
+                    : coverOrientation === "landscape"
+                      ? "w-full self-center rounded-xl sm:w-[42%] sm:max-w-80"
+                      : "w-24 self-center rounded-xl sm:w-44",
             ]}
           >
             {!isStandard ? (
               <>
-                <CardCoverImage
-                  src={cardCover}
-                  alt=""
-                  width={coverWidth}
-                  height={coverHeight}
-                  sizes={coverSizes}
-                  loading={isFeatured ? "eager" : "lazy"}
-                  decorative
-                  ariaHidden
-                  preserveAspect={hasAuthoredCover}
-                  fit="cover"
-                  style="height: 100%;"
-                  class="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-md"
-                />
                 <CardCoverImage
                   src={cardCover}
                   alt={title}
@@ -154,8 +177,12 @@ const titleClass = isStandard
                   loading={isFeatured ? "eager" : "lazy"}
                   preserveAspect={hasAuthoredCover}
                   fit="contain"
-                  style="height: 100%;"
-                  class="app-card-media relative z-10 block h-full w-full object-contain p-2 transition duration-500 group-hover:scale-[1.025]"
+                  style={isEditorial ? undefined : "height: 100%;"}
+                  class={
+                    isEditorial
+                      ? "app-card-media post-card-cover-image relative z-10 block object-contain transition duration-500"
+                      : "app-card-media relative z-10 block h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
+                  }
                 />
               </>
             ) : (
@@ -202,7 +229,9 @@ const titleClass = isStandard
               transition:name={titleTransitionName}
               class:list={[
                 titleClass,
-                "text-foreground transition-colors group-hover:text-accent group-focus-visible:text-accent",
+                isFeatured
+                  ? "text-foreground"
+                  : "text-foreground transition-colors group-hover:text-accent group-focus-visible:text-accent",
                 { "line-clamp-2": isEditorial },
               ]}
             >
@@ -213,7 +242,9 @@ const titleClass = isStandard
               transition:name={titleTransitionName}
               class:list={[
                 titleClass,
-                "text-foreground transition-colors group-hover:text-accent group-focus-visible:text-accent",
+                isFeatured
+                  ? "text-foreground"
+                  : "text-foreground transition-colors group-hover:text-accent group-focus-visible:text-accent",
                 { "line-clamp-2": isEditorial },
               ]}
             >
@@ -276,5 +307,46 @@ const titleClass = isStandard
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .post-card-cover-frame {
+    display: grid;
+    place-items: center;
+    transform: translateY(-2px);
+    transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  :global(.post-card-cover-image) {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    margin: 0;
+    animation: none;
+    border-radius: 0.55rem;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .post-card-editorial:hover .post-card-cover-frame {
+      transform: translateY(-4px);
+    }
+
+    .post-card-editorial:hover :global(.post-card-cover-image) {
+      transform: translateY(-2px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .post-card-cover-frame,
+    :global(.post-card-cover-image) {
+      transition: none;
+    }
+
+    .post-card-editorial:hover .post-card-cover-frame {
+      transform: translateY(-2px);
+    }
+
+    .post-card-editorial:hover :global(.post-card-cover-image) {
+      transform: none;
+    }
   }
 </style>

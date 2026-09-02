@@ -20,10 +20,12 @@
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Twikoo from "@/components/Twikoo.astro";
+import aboutImage from "@/assets/images/about.jpeg";
 import Layout from "./Layout.astro";
 import { SITE } from "@/config";
 import { getYMDParts } from "@/utils/calendarDate";
 import { getBlogMetrics } from "@/utils/getBlogMetrics";
+import { Image } from "astro:assets";
 import "@/styles/about-page.css";
 import {
   PUBLIC_TWIKOO_ENABLED,
@@ -62,6 +64,18 @@ const {
     class="about-page page-shell mx-auto mt-6 w-full max-w-app px-4 pb-12"
   >
     <section class="about-hero" aria-labelledby="about-heading">
+      <Image
+        class="about-hero-image"
+        src={aboutImage}
+        alt="雪山、旷野与同行的人"
+        widths={[640, 960, 1280, 1600]}
+        sizes="(max-width: 680px) calc(100vw - 2rem), min(100vw - 2rem, 72rem)"
+        format="webp"
+        quality={82}
+        loading="eager"
+        fetchpriority="high"
+      />
+      <div class="about-hero-overlay" aria-hidden="true"></div>
       <div class="about-hero-copy">
         <span class="about-eyebrow">Frevia 的记录</span>
         <h1 id="about-heading">{frontmatter.title}</h1>
@@ -82,10 +96,6 @@ const {
           <span class="about-hero-meta-dot" aria-hidden="true">·</span>
           <span>还在继续</span>
         </div>
-      </div>
-      <div class="about-hero-mark" aria-hidden="true">
-        <span class="about-hero-mark-letter">F</span>
-        <span>继续<br />记录</span>
       </div>
     </section>
 
@@ -114,7 +124,7 @@ const {
           </div>
           <p>
             <span id="blog-posts">{blogStats.blogPosts}</span> 篇文章 ·
-            <span id="diary-posts">{blogStats.diaryPosts}</span> 篇碎片
+            <span id="diary-posts">{blogStats.diaryPosts}</span> 篇 Notes
           </p>
         </article>
         <article class="about-stat about-stat--words">

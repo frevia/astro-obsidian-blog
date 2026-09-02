@@ -31,7 +31,8 @@ const isActive = (path: string) => {
 };
 
 const navItems = [
-  { href: "/", label: t.nav.fragments },
+  { href: "/", label: t.nav.home },
+  { href: "/notes", label: t.nav.fragments },
   { href: "/posts", label: t.nav.posts },
   { href: "/wiki", label: t.nav.wiki },
   { href: "/footprint", label: t.nav.footprint },
@@ -71,18 +72,17 @@ const headerLabels = {
   </a>
   <div
     id="nav-container"
-    class="mx-auto flex w-full max-w-app flex-col items-center justify-between sm:flex-row"
+    class="mx-auto flex w-full max-w-app flex-col items-center justify-between lg:flex-row"
   >
     <div
       id="top-nav-wrap"
-      class="relative flex w-full items-center justify-between bg-surface px-4 py-3 sm:h-16 sm:justify-start sm:py-0"
+      class="relative flex w-full items-center justify-between bg-surface px-4 py-3 lg:h-16 lg:justify-start lg:py-0"
     >
       <!-- 左侧：网站标题 -->
       <a
         href={withBase("/")}
         data-astro-prefetch="hover"
-        transition:name="site-brand"
-        class="mr-8 py-1 text-xl leading-8 font-semibold whitespace-nowrap sm:my-auto sm:flex-shrink-0 sm:leading-none"
+        class="mr-8 py-1 text-xl leading-8 font-semibold whitespace-nowrap lg:my-auto lg:flex-shrink-0 lg:leading-none"
       >
         <div class="relative -left-1.5 flex items-center">
           <img
@@ -98,7 +98,7 @@ const headerLabels = {
       <!-- 主导航菜单（桌面端） -->
       <nav
         id="main-nav"
-        class="hidden sm:flex sm:items-center"
+        class="hidden lg:flex lg:items-center"
         aria-label={headerLabels.mainNav}
       >
         <ul class="flex items-center gap-x-2">
@@ -107,6 +107,7 @@ const headerLabels = {
               <li>
                 <a
                   href={withBase(item.href)}
+                  data-nav-path={item.href}
                   data-astro-prefetch="hover"
                   aria-current={
                     isActive(item.href) &&
@@ -133,7 +134,7 @@ const headerLabels = {
 
       <!-- 右侧：功能按钮（桌面端） -->
       <div
-        class="hidden sm:ml-auto sm:flex sm:flex-shrink-0 sm:items-center sm:gap-x-2"
+        class="hidden lg:ml-auto lg:flex lg:flex-shrink-0 lg:items-center lg:gap-x-2"
       >
         {
           SITE.showArchives && (
@@ -225,7 +226,7 @@ const headerLabels = {
       <!-- 移动端菜单按钮 -->
       <button
         id="menu-btn"
-        class="focus-outline min-h-11 rounded-md border border-transparent p-2 hover:border-border/70 sm:hidden"
+        class="focus-outline min-h-11 rounded-md border border-transparent p-2 hover:border-border/70 lg:hidden"
         aria-label={headerLabels.openMenu}
         aria-expanded="false"
         aria-controls="menu-items"
@@ -240,7 +241,7 @@ const headerLabels = {
     <!-- 移动端导航菜单 -->
     <nav
       id="nav-menu"
-      class="w-full sm:hidden"
+      class="w-full lg:hidden"
       aria-label={headerLabels.mobileNav}
     >
       <ul
@@ -256,6 +257,7 @@ const headerLabels = {
             <li>
               <a
                 href={withBase(item.href)}
+                data-nav-path={item.href}
                 data-astro-prefetch="hover"
                 aria-current={
                   isActive(item.href) &&
@@ -385,6 +387,27 @@ const headerLabels = {
     syncHeaderOffset();
   }
 
+  function syncActiveNavigation() {
+    const normalizePath = (value: string) => {
+      const path = value.replace(/\/+$/, "");
+      return path || "/";
+    };
+    const current = normalizePath(window.location.pathname);
+
+    document
+      .querySelectorAll<HTMLAnchorElement>("a[data-nav-path]")
+      .forEach(link => {
+        const target = normalizePath(new URL(link.href).pathname);
+        const isCurrent =
+          current === target ||
+          (link.dataset.navPath !== "/" && current.startsWith(`${target}/`));
+
+        link.classList.toggle("active-nav", isCurrent);
+        if (isCurrent) link.setAttribute("aria-current", "page");
+        else link.removeAttribute("aria-current");
+      });
+  }
+
   function toggleNav() {
     const menuBtn = document.querySelector("#menu-btn");
     const menuItems = document.querySelector("#menu-items");
@@ -450,14 +473,24 @@ const headerLabels = {
     }
     currentEscCloseHandler = handleEscClose;
     document.addEventListener("keydown", currentEscCloseHandler);
+
+    // The header persists across client-router navigations, so discard any
+    // expanded mobile-menu state from the previous page.
+    syncMenuState(false);
+    document.body.style.overflow = "";
+    previousBodyOverflow = "";
+    lastFocusedElement = null;
   }
 
   enforceFixedHeader();
+  syncActiveNavigation();
   toggleNav();
 
   // Runs on view transitions navigation
   document.addEventListener("astro:page-load", enforceFixedHeader);
+  document.addEventListener("astro:page-load", syncActiveNavigation);
   document.addEventListener("astro:after-swap", enforceFixedHeader);
+  document.addEventListener("astro:after-swap", syncActiveNavigation);
   document.addEventListener("astro:after-swap", toggleNav);
   window.addEventListener("resize", syncHeaderOffset);
 </script>
