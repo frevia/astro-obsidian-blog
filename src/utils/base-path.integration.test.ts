@@ -49,7 +49,16 @@ describe("base path integration", () => {
     expect(source("src/components/DiaryEntryReact.tsx")).toContain(
       "withBase(`/diary/${date}`)"
     );
+    expect(source("src/components/diary/DiaryEntry.astro")).toContain(
+      "withBase(`/diary/${date}`)"
+    );
+    expect(source("src/components/diary/DiaryTimelineItem.astro")).toContain(
+      "withBase(path)"
+    );
     expect(source("src/components/DiaryTimeline.tsx")).toContain(
+      "fetch(withBase(`/api/diary/${nextPage}.json`))"
+    );
+    expect(source("src/components/diary/DiaryLoadMore.tsx")).toContain(
       "fetch(withBase(`/api/diary/${nextPage}.json`))"
     );
     expect(source("src/utils/parseEntry.ts")).toContain(

@@ -36,6 +36,30 @@ export function initReadingNavigation(
   const root = doc.querySelector<HTMLElement>("[data-reading-navigation]");
   if (!root) return () => {};
 
+  const mobileSidebar = root.querySelector("[data-reading-navigation-mobile]");
+  const articleHero = doc.querySelector<HTMLElement>("[data-article-hero]");
+  const mobileActiveClass = "is-mobile-reading-active";
+  const view = doc.defaultView;
+
+  const updateMobileVisibility = () => {
+    const header = doc.getElementById("site-header");
+    const headerBottom =
+      header instanceof HTMLElement
+        ? header.getBoundingClientRect().bottom || header.offsetHeight
+        : 0;
+    const heroBottom = articleHero?.getBoundingClientRect().bottom;
+    const isPastHero = !articleHero || (heroBottom ?? 0) <= headerBottom;
+
+    root.classList.toggle(mobileActiveClass, isPastHero);
+    if (
+      !isPastHero &&
+      mobileSidebar instanceof HTMLDetailsElement &&
+      mobileSidebar.open
+    ) {
+      mobileSidebar.open = false;
+    }
+  };
+
   const desktopLinks = Array.from(
     root.querySelectorAll<HTMLAnchorElement>(
       "[data-reading-navigation-desktop] [data-toc-link]"
@@ -58,9 +82,34 @@ export function initReadingNavigation(
       : [];
   });
 
-  // A relations-only navigation is intentionally static and needs no scroll
-  // listener. This also keeps an empty page safe during ClientRouter swaps.
-  if (!entries.length) return () => {};
+  // A relations-only navigation has no active heading state, but still needs
+  // the single hero reveal lifecycle when it appears on an article page.
+  if (!entries.length) {
+    updateMobileVisibility();
+
+    if (!articleHero) {
+      return () => {
+        root.classList.remove(mobileActiveClass);
+        if (mobileSidebar instanceof HTMLDetailsElement) {
+          mobileSidebar.open = false;
+        }
+      };
+    }
+
+    doc.addEventListener("scroll", updateMobileVisibility, { passive: true });
+    view?.addEventListener("resize", updateMobileVisibility, {
+      passive: true,
+    });
+
+    return () => {
+      doc.removeEventListener("scroll", updateMobileVisibility);
+      view?.removeEventListener("resize", updateMobileVisibility);
+      root.classList.remove(mobileActiveClass);
+      if (mobileSidebar instanceof HTMLDetailsElement) {
+        mobileSidebar.open = false;
+      }
+    };
+  }
 
   const headings = Array.from(
     new Map(entries.map(entry => [entry.heading.id, entry.heading])).values()
@@ -71,8 +120,6 @@ export function initReadingNavigation(
   const progressBars = Array.from(
     root.querySelectorAll<HTMLElement>("[data-toc-progress-bar]")
   );
-  const mobileSidebar = root.querySelector("[data-reading-navigation-mobile]");
-  const view = doc.defaultView;
   const shouldScrollActiveIntoView =
     options.scrollActiveIntoView ??
     root.dataset.scrollActiveIntoView !== "false";
@@ -103,6 +150,7 @@ export function initReadingNavigation(
   };
 
   const updateActiveLink = () => {
+    updateMobileVisibility();
     const header = doc.getElementById("site-header");
     const offset =
       (header instanceof HTMLElement ? header.offsetHeight : 0) + 8;
@@ -156,6 +204,7 @@ export function initReadingNavigation(
   };
 
   const onMobileToggle = () => {
+    updateMobileVisibility();
     if (
       !(mobileSidebar instanceof HTMLDetailsElement) ||
       !mobileSidebar.open ||
@@ -177,5 +226,9 @@ export function initReadingNavigation(
     doc.removeEventListener("scroll", updateActiveLink);
     view?.removeEventListener("resize", updateActiveLink);
     mobileSidebar?.removeEventListener("toggle", onMobileToggle);
+    root.classList.remove(mobileActiveClass);
+    if (mobileSidebar instanceof HTMLDetailsElement) {
+      mobileSidebar.open = false;
+    }
   };
 }

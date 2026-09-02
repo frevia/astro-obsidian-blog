@@ -3,72 +3,9 @@ import TimelineItemReact from "./TimelineItemReact";
 import TwikooThread from "./TwikooThread";
 import { parseYMDAsUTC, formatSiteDate, toSiteYMD } from "@/utils/calendarDate";
 import { withBase } from "@/utils/withBase";
+import type { TimeBlock } from "./diary/types";
 
-// 本地电影数据接口
-interface LocalMovieData {
-  id?: number;
-  title: string;
-  release_date?: string;
-  region?: string;
-  rating?: number;
-  runtime?: number;
-  genres?: string;
-  overview?: string;
-  poster?: string;
-  source?: string;
-  external_url?: string;
-}
-
-// 本地TV数据接口
-interface LocalTVData {
-  id?: string;
-  title: string;
-  release_date?: string;
-  region?: string;
-  rating?: number;
-  genres?: string;
-  overview?: string;
-  poster?: string;
-  source?: string;
-  external_url?: string;
-}
-
-// 本地书籍数据接口
-interface LocalBookData {
-  id?: string;
-  title: string;
-  release_date?: string;
-  region?: string;
-  rating?: number;
-  genres?: string;
-  overview?: string;
-  poster?: string;
-  external_url?: string;
-}
-
-// 本地音乐数据接口
-interface LocalMusicData {
-  title: string;
-  author?: string;
-  album?: string;
-  duration?: number;
-  genres?: string;
-  poster?: string;
-  url?: string;
-}
-
-export interface TimeBlock {
-  time: string;
-  text?: string;
-  postText?: string;
-  images?: Array<{ alt: string; src: string; title?: string }>;
-  htmlContent?: string;
-  movieData?: LocalMovieData;
-  tvData?: LocalTVData;
-  bookData?: LocalBookData;
-  musicData?: LocalMusicData;
-  footnoteHtml?: string;
-}
+export type { TimeBlock } from "./diary/types";
 
 export interface DiaryEntryProps {
   date: string;

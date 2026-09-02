@@ -27,9 +27,8 @@ const { year, posts } = Astro.props;
       posts.map((post, index) => (
         <Card
           {...post}
-          presentation="editorial"
+          presentation={index === 0 ? "featured" : "editorial"}
           variant="h3"
-          mediaAlign={index % 2 === 0 ? "start" : "end"}
         />
       ))
     }

@@ -1,31 +1,19 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import MediaCard from "./MediaCard";
 import type { MediaCardData } from "../types/media";
+import DiaryImageGallery from "./diary/DiaryImageGallery";
+import type { DiaryImage } from "./diary/types";
 
-// 导入 lightgallery 样式
-import "lightgallery/css/lightgallery.css";
-import "lightgallery/css/lg-zoom.css";
-
-const LIGHTGALLERY_PLACEHOLDER_KEY = "0000-0000-000-0000";
-const lightGalleryLicenseKey =
-  import.meta.env.PUBLIC_LIGHTGALLERY_LICENSE_KEY?.trim();
-const hasValidLightGalleryLicense =
-  !!lightGalleryLicenseKey &&
-  lightGalleryLicenseKey !== LIGHTGALLERY_PLACEHOLDER_KEY;
+// DiaryImageGallery owns the optional lightbox enhancement (including
+// `await import("lightgallery")`) so this compatibility renderer has no
+// second gallery implementation.
 
 export interface TimelineItemProps {
   time: string;
   date?: string;
   text?: string;
   postText?: string;
-  images?: Array<{
-    alt: string;
-    src: string;
-    title?: string;
-    original?: string;
-    width?: number;
-    height?: number;
-  }>;
+  images?: DiaryImage[];
   htmlContent?: string;
   movieData?: MediaCardData;
   tvData?: MediaCardData;
@@ -47,91 +35,6 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
   musicData,
   footnoteHtml,
 }) => {
-  const galleryRef = useRef<HTMLDivElement>(null);
-  const lightGalleryRef = useRef<{ destroy: () => void } | null>(null);
-  const [optimizedImages, setOptimizedImages] = useState<
-    {
-      thumbnail: string;
-      original: string;
-      width?: number;
-      height?: number;
-    }[]
-  >([]);
-  const [isImagesLoaded, setIsImagesLoaded] = useState(false);
-
-  // 优化图片
-  useEffect(() => {
-    if (images && images.length > 0) {
-      const optimizeAllImages = async () => {
-        const optimizedResults = images.map(img => {
-          // 如果图片数据中已经包含宽高信息，直接使用
-          if (img.width && img.height) {
-            return {
-              thumbnail: img.src,
-              original: img.original || img.src,
-              width: img.width,
-              height: img.height,
-            };
-          }
-          // 否则使用默认尺寸信息
-          return {
-            thumbnail: img.src,
-            original: img.original || img.src,
-            width: 800,
-            height: 600,
-          };
-        });
-        setOptimizedImages(optimizedResults);
-        setIsImagesLoaded(true);
-      };
-      optimizeAllImages();
-    }
-  }, [images]);
-
-  // 初始化 lightgallery（依赖于图片优化完成）
-  useEffect(() => {
-    // 没有有效 license 时，退回原生 a 标签打开图片，避免控制台持续告警。
-    if (!hasValidLightGalleryLicense) return;
-
-    if (isImagesLoaded && optimizedImages.length > 0 && galleryRef.current) {
-      // 使用动态导入来避免 ES 模块问题
-      const initLightGallery = async () => {
-        try {
-          const { default: lightGallery } = await import("lightgallery");
-          const { default: lgZoom } = await import("lightgallery/plugins/zoom");
-
-          // 初始化 lightgallery
-          lightGalleryRef.current = lightGallery(galleryRef.current!, {
-            licenseKey: lightGalleryLicenseKey,
-            plugins: [lgZoom],
-            speed: 400,
-            selector: "a.lg-item",
-            download: false,
-            counter: false,
-            getCaptionFromTitleOrAlt: false,
-            mode: "lg-fade",
-            hideBarsDelay: 2000,
-            showZoomInOutIcons: true,
-            actualSize: false,
-            enableDrag: true,
-            enableSwipe: true,
-            zoomFromOrigin: true,
-            allowMediaOverlap: false,
-          });
-        } catch {
-          // Failed to load lightGallery - silently handle the error
-        }
-      };
-
-      initLightGallery();
-    }
-
-    return () => {
-      if (lightGalleryRef.current) {
-        lightGalleryRef.current.destroy();
-      }
-    };
-  }, [isImagesLoaded, optimizedImages]);
   return (
     <article
       className="mb-1 pb-6 last:pb-0"
@@ -193,89 +96,8 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
                 />
               )}
 
-              {isImagesLoaded && optimizedImages.length > 0 && (
-                <figure
-                  className="images-grid mb-4"
-                  ref={galleryRef}
-                  role="group"
-                  aria-label={`图片集合，共 ${optimizedImages.length} 张图片`}
-                >
-                  <div
-                    className={`grid gap-3 ${
-                      htmlContent
-                        ? "w-full grid-cols-1"
-                        : optimizedImages.length === 1
-                          ? "max-w-80 grid-cols-1"
-                          : optimizedImages.length === 2
-                            ? "max-w-83 grid-cols-2"
-                            : optimizedImages.length === 4
-                              ? "max-w-83 grid-cols-2"
-                              : "max-w-126 grid-cols-3"
-                    }`}
-                  >
-                    {optimizedImages.map((optimizedImg, index) => {
-                      const originalImg = images![index];
-
-                      return (
-                        <a
-                          key={index}
-                          className={`lg-item group block overflow-hidden rounded-xl focus:ring-skin-accent focus:outline-none ${
-                            optimizedImages.length === 1
-                              ? "relative"
-                              : "image-item relative aspect-square"
-                          }`}
-                          style={
-                            optimizedImages.length === 1
-                              ? {}
-                              : ({
-                                  aspectRatio: "1 / 1",
-                                  WebkitAspectRatio: "1 / 1",
-                                } as React.CSSProperties)
-                          }
-                          data-src={optimizedImg.original}
-                          data-lg-size={`${optimizedImg.width}-${optimizedImg.height}`}
-                          data-sub-html={`<h4>${originalImg.alt}</h4><p>${originalImg.title || `${originalImg.width}x${optimizedImg.height}`}</p>`}
-                          href={optimizedImg.original}
-                          aria-label={`查看大图：${originalImg.alt}${originalImg.title ? ` - ${originalImg.title}` : ""}`}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={e => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              e.currentTarget.click();
-                            }
-                          }}
-                        >
-                          <img
-                            src={optimizedImg.thumbnail}
-                            alt={originalImg.alt || `图片 ${index + 1}`}
-                            width={optimizedImg.width}
-                            height={optimizedImg.height}
-                            className="app-card-media h-full w-full cursor-pointer object-cover transition-transform duration-300 hover:scale-105"
-                            style={
-                              optimizedImages.length === 1
-                                ? {}
-                                : {
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                  }
-                            }
-                            loading="lazy"
-                            decoding="async"
-                            title={originalImg.title}
-                          />
-                        </a>
-                      );
-                    })}
-                  </div>
-                  {optimizedImages.length > 1 && (
-                    <figcaption className="sr-only">
-                      图片集合包含 {optimizedImages.length}{" "}
-                      张图片，点击任意图片可查看大图
-                    </figcaption>
-                  )}
-                </figure>
+              {images && images.length > 0 && (
+                <DiaryImageGallery images={images} htmlContent={htmlContent} />
               )}
 
               {htmlContent && (

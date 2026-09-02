@@ -1,5 +1,8 @@
-import type { ParsedEntry } from "@/components/DiaryTimeline";
-import type { TimeBlock } from "@/components/DiaryEntryReact";
+import type {
+  DiaryImage,
+  ParsedEntry,
+  TimeBlock,
+} from "@/components/diary/types";
 import {
   contentKindStyle,
   type ContentKind,
@@ -15,6 +18,18 @@ export interface HomeFragmentPreview {
   mediaLabel?: string;
   style: string;
 }
+
+// Keep this presentation helper tolerant of the small image fixtures used by
+// older callers. Collection parsing still produces the complete DiaryImage
+// shape consumed by the Astro feed and gallery.
+type PreviewImage = Pick<DiaryImage, "alt" | "src"> &
+  Partial<Omit<DiaryImage, "alt" | "src">>;
+type PreviewTimeBlock = Omit<TimeBlock, "images"> & {
+  images?: PreviewImage[];
+};
+type PreviewEntry = Omit<ParsedEntry, "timeBlocks"> & {
+  timeBlocks: PreviewTimeBlock[];
+};
 
 const stripHtml = (value: string): string =>
   value
@@ -32,7 +47,7 @@ const stripHtml = (value: string): string =>
 const truncate = (value: string, length = 92): string =>
   value.length > length ? `${value.slice(0, length).trimEnd()}…` : value;
 
-function mediaFromBlock(block: TimeBlock): {
+function mediaFromBlock(block: PreviewTimeBlock): {
   label?: string;
   poster?: string;
   title?: string;
@@ -66,7 +81,7 @@ function mediaFromBlock(block: TimeBlock): {
 }
 
 export function buildFragmentPreviews(
-  entries: ParsedEntry[],
+  entries: PreviewEntry[],
   limit = 3
 ): HomeFragmentPreview[] {
   const previews: HomeFragmentPreview[] = [];

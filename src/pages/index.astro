@@ -6,7 +6,8 @@ import { SITE } from "@/config";
 import Layout from "@/layouts/Layout.astro";
 import { getCollection } from "astro:content";
 import { parseEntry } from "@/utils/parseEntry";
-import DiaryTimeline from "@/components/DiaryTimeline.tsx";
+import DiaryFeed from "@/components/diary/DiaryFeed.astro";
+import DiaryLoadMore from "@/components/diary/DiaryLoadMore";
 import ArchiveHero from "@/components/ArchiveHero.astro";
 import HomeEditorial from "@/components/home/HomeEditorial.astro";
 import { buildFragmentPreviews } from "@/components/home/fragmentPreviews";
@@ -89,10 +90,11 @@ const paginationInfo = {
               aria-live="polite"
               aria-busy="false"
             >
-              <DiaryTimeline
-                client:idle
-                initialEntries={initialParsedEntries}
+              <DiaryFeed entries={initialParsedEntries} />
+              <DiaryLoadMore
+                client:visible={{ rootMargin: "800px" }}
                 paginationInfo={paginationInfo}
+                initialCount={initialParsedEntries.length}
               />
             </div>
           </div>

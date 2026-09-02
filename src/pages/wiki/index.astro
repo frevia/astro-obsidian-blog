@@ -93,39 +93,6 @@ const layoutProps = {
       </dl>
     </header>
 
-    <section
-      class="wiki-process"
-      aria-labelledby="wiki-process-title"
-      data-pagefind-ignore
-    >
-      <div>
-        <p class="wiki-section-number">00 / PROCESS</p>
-        <h2 id="wiki-process-title">从输入到理解</h2>
-      </div>
-      <ol>
-        <li>
-          <span>01</span><strong>收藏</strong><small
-            >保留值得追问的原始材料</small
-          >
-        </li>
-        <li>
-          <span>02</span><strong>提炼</strong><small
-            >区分论点、证据与适用边界</small
-          >
-        </li>
-        <li>
-          <span>03</span><strong>连接</strong><small
-            >让新认知进入已有概念网络</small
-          >
-        </li>
-        <li>
-          <span>04</span><strong>更新</strong><small
-            >用新来源和实践持续校订</small
-          >
-        </li>
-      </ol>
-    </section>
-
     <section class="wiki-explorer" aria-labelledby="wiki-explorer-title">
       <div class="wiki-explorer-head">
         <div>
@@ -245,6 +212,39 @@ const layoutProps = {
         <h3>没有找到对应概念</h3>
         <p>换一个关键词，或者浏览全部知识领域。</p>
       </div>
+    </section>
+
+    <section
+      class="wiki-process"
+      aria-labelledby="wiki-process-title"
+      data-pagefind-ignore
+    >
+      <div>
+        <p class="wiki-section-number">02 / PROCESS</p>
+        <h2 id="wiki-process-title">从输入到理解</h2>
+      </div>
+      <ol>
+        <li>
+          <span>01</span><strong>收藏</strong><small
+            >保留值得追问的原始材料</small
+          >
+        </li>
+        <li>
+          <span>02</span><strong>提炼</strong><small
+            >区分论点、证据与适用边界</small
+          >
+        </li>
+        <li>
+          <span>03</span><strong>连接</strong><small
+            >让新认知进入已有概念网络</small
+          >
+        </li>
+        <li>
+          <span>04</span><strong>更新</strong><small
+            >用新来源和实践持续校订</small
+          >
+        </li>
+      </ol>
     </section>
   </main>
   <Footer />
@@ -694,16 +694,32 @@ const layoutProps = {
   }
   @media (max-width: 640px) {
     .wiki-hero {
-      padding-top: 2.4rem;
+      padding-top: 1.25rem;
+    }
+    .wiki-kicker {
+      line-height: 1.3;
     }
     .wiki-hero h1 {
-      font-size: clamp(2.5rem, 14vw, 4rem);
+      margin-top: 0.6rem;
+      font-size: clamp(2.25rem, 11vw, 3.25rem);
     }
     .wiki-hero-map {
       display: none;
     }
+    .wiki-intro {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      line-height: 1.65;
+    }
     .wiki-metrics {
       grid-template-columns: repeat(2, 1fr);
+      margin-top: 1.5rem;
+    }
+    .wiki-metrics div {
+      padding: 0.75rem 0.75rem 0.8rem 0;
+    }
+    .wiki-metrics div + div {
+      padding-left: 0.75rem;
     }
     .wiki-metrics div:nth-child(2) {
       border-right: 0;
@@ -714,10 +730,16 @@ const layoutProps = {
     .wiki-explorer-head {
       align-items: stretch;
       flex-direction: column;
-      gap: 1.3rem;
+      gap: 0.75rem;
     }
     .wiki-search {
       width: 100%;
+    }
+    .wiki-explorer {
+      padding-top: 1.5rem;
+    }
+    .wiki-domain-tabs {
+      margin-top: 1rem;
     }
     .wiki-card-grid {
       grid-template-columns: 1fr;
@@ -727,6 +749,8 @@ const layoutProps = {
     }
     .wiki-domain-head {
       align-items: start;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
     }
     .wiki-domain-description {
       margin-top: 0.2rem;
@@ -736,6 +760,9 @@ const layoutProps = {
     }
     .wiki-process li {
       min-height: 8rem;
+    }
+    .wiki-domain {
+      padding-top: 1.5rem;
     }
   }
 </style>

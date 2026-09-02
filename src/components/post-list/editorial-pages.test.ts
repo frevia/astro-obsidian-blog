@@ -6,15 +6,18 @@ const root = resolve(import.meta.dirname, "../..");
 const source = (path: string) => readFileSync(resolve(root, path), "utf-8");
 
 describe("editorial home and post list contracts", () => {
-  it("keeps the existing diary hydration boundary below the SSR editorial area", () => {
+  it("keeps the diary feed static below the SSR editorial area", () => {
     const index = source("pages/index.astro");
 
     expect(index).toContain("<HomeEditorial");
     expect(index).toContain("buildFragmentPreviews(initialParsedEntries, 3)");
-    expect(index).toContain("<DiaryTimeline");
+    expect(index).toContain("<DiaryFeed");
+    expect(index).toContain("<DiaryLoadMore");
     expect(index.match(/client:(?:load|idle|visible|media|only)/g)).toEqual([
-      "client:idle",
+      "client:visible",
     ]);
+    expect(index).toContain('rootMargin: "800px"');
+    expect(index).not.toContain("<DiaryTimeline");
   });
 
   it("keeps post sorting, pagination and a zero-JS editorial list", () => {
@@ -24,7 +27,19 @@ describe("editorial home and post list contracts", () => {
     expect(posts).toContain("pageSize: SITE.postPerPage");
     expect(posts).toContain("<EditorialYear");
     expect(posts).toContain("<Pagination {page} />");
+    expect(posts).toContain("const DEFAULT_VISIBLE_TAGS = 8;");
     expect(posts).not.toMatch(/client:(?:load|idle|visible|media|only)/);
+  });
+
+  it("uses a featured first post and a single-column editorial sequence per year", () => {
+    const editorialYear = source("components/post-list/EditorialYear.astro");
+
+    expect(editorialYear).toContain(
+      'presentation={index === 0 ? "featured" : "editorial"}'
+    );
+    expect(editorialYear).not.toContain("mediaAlign=");
+    expect(editorialYear).toContain('class="flex min-w-0 flex-col gap-6"');
+    expect(editorialYear).not.toContain('class="grid');
   });
 
   it("publishes content and view-transition hooks on shared cards", () => {
@@ -40,22 +55,22 @@ describe("editorial home and post list contracts", () => {
       "const coverWidth = isFeatured ? 720 : isStandard ? 88 : 480;"
     );
     expect(card).toContain(
-      "const coverHeight = isFeatured ? 405 : isStandard ? 88 : 270;"
+      "const coverHeight = isFeatured ? 405 : isStandard ? 88 : 360;"
     );
     expect(card).toContain("const hasAuthoredCover = Boolean(data.cover);");
     expect(card).toContain("const cardCover = isStandard");
     expect(card).toContain("data.cover ?? fallbackCover");
-    expect(card).toContain(
-      '"aspect-[3/2] w-full rounded-xl sm:aspect-[4/3] sm:w-60"'
-    );
+    expect(card).toContain('"aspect-[4/3] w-24 rounded-xl sm:w-48"');
     expect(card).not.toContain('"aspect-video w-full rounded-xl sm:w-64"');
     expect(card).toContain('"aspect-video w-full rounded-xl sm:w-[52%]"');
     expect(card).toContain(
-      '!isStandard && Boolean(cardCover) && mediaAlign === "start"'
+      'isFeatured && Boolean(cardCover) && mediaAlign === "start"'
     );
     expect(card).toContain(
-      '!isStandard && Boolean(cardCover) && mediaAlign === "end"'
+      'isFeatured && Boolean(cardCover) && mediaAlign === "end"'
     );
+    expect(card).toContain('"flex-row items-start gap-4 sm:gap-6"');
+    expect(card).toContain('"line-clamp-2 hidden text-sm leading-6 sm:block"');
     expect(card).not.toContain("sm:items-stretch");
     expect(card).toContain("object-cover");
     expect(card).toContain("object-contain");

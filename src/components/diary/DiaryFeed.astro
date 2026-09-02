@@ -1,0 +1,115 @@
+---
+import DiaryEntry from "./DiaryEntry.astro";
+import type { ParsedEntry } from "./types";
+
+interface Props {
+  entries: ParsedEntry[];
+  hideYear?: boolean;
+  density?: "comfortable" | "compact";
+}
+
+const {
+  entries = [],
+  hideYear = false,
+  density = "comfortable",
+} = Astro.props as Props;
+---
+
+{
+  entries.length === 0 ? (
+    <article role="article" class="py-12 text-center sm:py-14">
+      <div role="status" aria-live="polite">
+        <div class="mb-4 text-4xl opacity-40">📝</div>
+        <p class="text-lg text-skin-base opacity-70">还没有任何碎片...</p>
+        <p class="mt-2 text-sm opacity-50">开始记录您的日常吧</p>
+      </div>
+    </article>
+  ) : (
+    entries.map((entry, index) => (
+      <article
+        role="article"
+        aria-labelledby={`date-${entry.date}`}
+        aria-describedby={`content-${entry.date}`}
+        tabindex="0"
+        class:list={[
+          "diary-entry-reveal -mx-3 rounded-lg border border-transparent transition-all duration-200 hover:border-border/70 hover:bg-skin-fill/30 focus:ring-skin-accent focus:ring-offset-skin-fill focus:outline-none",
+          density === "compact" ? "p-2" : "p-3",
+        ]}
+        style={`animation-delay: ${Math.min(index, 8) * 70}ms`}
+      >
+        <DiaryEntry
+          date={entry.date}
+          hideYear={hideYear}
+          timeBlocks={entry.timeBlocks}
+        />
+      </article>
+    ))
+  )
+}
+
+<script>
+  declare global {
+    interface Window {
+      __diaryRelativeDateHandler?: () => void;
+    }
+  }
+
+  const TIME_ZONE = "Asia/Shanghai";
+
+  const toSiteYmd = (value: Date) => {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: TIME_ZONE,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(value);
+    const part = (type: Intl.DateTimeFormatPartTypes) =>
+      parts.find(item => item.type === type)?.value || "";
+    return `${part("year")}-${part("month")}-${part("day")}`;
+  };
+
+  const updateRelativeDates = () => {
+    const today = Date.parse(`${toSiteYmd(new Date())}T00:00:00Z`);
+
+    document
+      .querySelectorAll<HTMLElement>("[data-diary-date]")
+      .forEach(heading => {
+        const date = heading.dataset.diaryDate;
+        const absolute = heading.dataset.diaryAbsoluteLabel || "";
+        if (!date || !absolute) return;
+
+        const entry = Date.parse(`${date}T00:00:00Z`);
+        const diffDays = Math.floor((today - entry) / 86400000);
+        const relative =
+          diffDays === 0
+            ? "今天"
+            : diffDays === 1
+              ? "昨天"
+              : diffDays === 2
+                ? "前天"
+                : absolute;
+        const label = heading.querySelector("[data-diary-relative-label]");
+        if (label && label.textContent !== relative) {
+          label.textContent = relative;
+        }
+
+        const weekday = heading.dataset.diaryWeekdayLabel || "";
+        const year = heading.dataset.diaryYearLabel || "";
+        const hideYear = heading.dataset.diaryHideYear === "true";
+        heading.setAttribute(
+          "aria-label",
+          `${relative} ${weekday} ${hideYear ? "" : year} 的碎片`
+        );
+      });
+  };
+
+  if (window.__diaryRelativeDateHandler) {
+    document.removeEventListener(
+      "astro:page-load",
+      window.__diaryRelativeDateHandler
+    );
+  }
+  window.__diaryRelativeDateHandler = updateRelativeDates;
+  document.addEventListener("astro:page-load", updateRelativeDates);
+  updateRelativeDates();
+</script>
