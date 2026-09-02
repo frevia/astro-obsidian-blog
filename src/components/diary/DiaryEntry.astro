@@ -1,0 +1,88 @@
+---
+import TwikooThread from "@/components/TwikooThread";
+import { formatSiteDate, parseYMDAsUTC } from "@/utils/calendarDate";
+import { withBase } from "@/utils/withBase";
+import DiaryTimelineItem from "./DiaryTimelineItem.astro";
+import type { TimeBlock } from "./types";
+
+interface Props {
+  date: string;
+  hideYear?: boolean;
+  timeBlocks: TimeBlock[];
+}
+
+const { date, hideYear = false, timeBlocks } = Astro.props as Props;
+const entryDateUTC = parseYMDAsUTC(date);
+const absoluteLabel = formatSiteDate(entryDateUTC, "zh-CN", {
+  month: "2-digit",
+  day: "2-digit",
+});
+const weekdayLabel = formatSiteDate(entryDateUTC, "zh-CN", {
+  weekday: "short",
+});
+const yearLabel = formatSiteDate(entryDateUTC, "zh-CN", {
+  year: "numeric",
+});
+const threadKey = `twikoo-diary-${date}`;
+const threadPath = withBase(`/diary/${date}`);
+---
+
+<div
+  class="date-group mb-5 border-b border-border/25 pb-5"
+  data-pagefind-weight="2"
+>
+  <header class="mb-8">
+    <div class="flex items-baseline gap-3">
+      <h2
+        id={`date-${date}`}
+        class="m-0 text-3xl leading-none font-bold text-skin-accent"
+        data-diary-date={date}
+        data-diary-absolute-label={absoluteLabel}
+        data-diary-weekday-label={weekdayLabel}
+        data-diary-year-label={yearLabel}
+        data-diary-hide-year={hideYear ? "true" : "false"}
+        aria-label={`${absoluteLabel} ${weekdayLabel} ${!hideYear ? yearLabel : ""} 的碎片`}
+      >
+        <span data-diary-relative-label>{absoluteLabel}</span>
+        <span class="sr-only" data-diary-date-status></span>
+      </h2>
+      <div class="flex flex-col" aria-hidden="true">
+        <div class="text-base leading-tight font-medium text-skin-base">
+          {weekdayLabel}
+        </div>
+        {
+          !hideYear && (
+            <div class="text-sm leading-tight text-skin-base/70">
+              {yearLabel}
+            </div>
+          )
+        }
+      </div>
+    </div>
+    <div class="sr-only">
+      {date} 共有 {timeBlocks.length} 个时间段的记录
+    </div>
+  </header>
+
+  <div
+    id={`content-${date}`}
+    class="space-y-0"
+    role="group"
+    aria-labelledby={`date-${date}`}
+  >
+    {timeBlocks.map(block => <DiaryTimelineItem {...block} date={date} />)}
+  </div>
+
+  <div class="flex flex-col sm:flex-row sm:items-start sm:gap-3">
+    <div class="hidden sm:block sm:w-0 sm:flex-shrink-0" aria-hidden="true">
+    </div>
+    <div class="w-full min-w-0 flex-1">
+      <TwikooThread
+        client:visible={{ rootMargin: "300px" }}
+        threadKey={threadKey}
+        path={threadPath}
+        collapsedWhenEmpty
+      />
+    </div>
+  </div>
+</div>

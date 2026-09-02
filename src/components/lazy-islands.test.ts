@@ -44,13 +44,13 @@ describe("lazy island SSR contracts", () => {
     }
   });
 
-  it("server-renders Calendar before hydrating it when the browser is idle", () => {
+  it("server-renders Calendar and hydrates it only when visible", () => {
     const source = readFileSync(
       resolve(import.meta.dirname, "CalendarWidget.astro"),
       "utf-8"
     );
 
-    expect(source).toContain("client:idle");
+    expect(source).toContain("client:visible");
     expect(source).toContain("const initialDateKey = toSiteYMD(new Date());");
     expect(source).toContain("initialDateKey={initialDateKey}");
     expect(source).not.toContain("client:only");
@@ -76,7 +76,7 @@ describe("lazy island SSR contracts", () => {
     expect(mapSource).toContain("正在准备地图图层");
   });
 
-  it("defers the diary timeline until the browser is idle", () => {
+  it("keeps diary entries static and hydrates only the pagination island", () => {
     const homeSource = readFileSync(
       resolve(import.meta.dirname, "../pages/index.astro"),
       "utf-8"
@@ -86,9 +86,14 @@ describe("lazy island SSR contracts", () => {
       "utf-8"
     );
 
-    expect(homeSource).toContain("<DiaryTimeline");
-    expect(homeSource).toContain("client:idle");
-    expect(diarySource).toContain("client:idle");
+    expect(homeSource).toContain("<DiaryFeed");
+    expect(homeSource).toContain("<DiaryLoadMore");
+    expect(homeSource).toContain('client:visible={{ rootMargin: "800px" }}');
+    expect(homeSource).not.toContain("<DiaryTimeline");
+    expect(diarySource).toContain("<DiaryFeed");
+    expect(diarySource).not.toMatch(/client:(?:load|idle|visible|media|only)/);
+    expect(diarySource).not.toContain("<DiaryTimeline");
+    expect(diarySource).not.toContain("<DiaryLoadMore");
     expect(homeSource).not.toContain("client:load");
     expect(diarySource).not.toContain("client:load");
   });

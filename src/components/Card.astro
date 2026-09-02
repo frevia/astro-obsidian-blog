@@ -59,17 +59,17 @@ const cardCover = isStandard
   : (data.cover ?? fallbackCover);
 
 const coverWidth = isFeatured ? 720 : isStandard ? 88 : 480;
-const coverHeight = isFeatured ? 405 : isStandard ? 88 : 270;
+const coverHeight = isFeatured ? 405 : isStandard ? 88 : 360;
 const coverSizes = isStandard
   ? "(min-width: 640px) 88px, 56px"
   : isFeatured
     ? "(min-width: 640px) 52vw, 100vw"
-    : "(min-width: 640px) 240px, 100vw";
+    : "(min-width: 640px) 192px, 96px";
 const titleClass = isStandard
   ? "text-lg font-semibold leading-7"
   : isFeatured
     ? "text-2xl font-semibold leading-tight sm:text-3xl"
-    : "text-xl font-semibold leading-tight sm:text-2xl";
+    : "text-lg font-semibold leading-snug sm:text-xl";
 ---
 
 <li
@@ -88,7 +88,7 @@ const titleClass = isStandard
       isStandard
         ? "rounded-[var(--radius-card)] px-4 py-4 hover:border-accent/55"
         : isEditorial
-          ? "post-card-editorial rounded-[var(--radius-card-emphasis)] px-5 py-5 sm:px-6 sm:py-6"
+          ? "post-card-editorial rounded-[var(--radius-card-emphasis)] px-4 py-4 sm:px-5 sm:py-5"
           : "rounded-[var(--radius-card-emphasis)] px-4 py-4 shadow-sm hover:-translate-y-0.5 hover:border-accent/55 hover:shadow-md sm:px-5 sm:py-5",
     ]}
   >
@@ -103,13 +103,16 @@ const titleClass = isStandard
 
     <div
       class:list={[
-        "flex min-w-0 flex-col gap-4",
+        "flex min-w-0 gap-4",
         {
-          "sm:flex-row sm:items-start sm:gap-4": isStandard,
-          "sm:flex-row sm:items-center sm:gap-6":
-            !isStandard && Boolean(cardCover) && mediaAlign === "start",
-          "sm:flex-row-reverse sm:items-center sm:gap-6":
-            !isStandard && Boolean(cardCover) && mediaAlign === "end",
+          "flex-col sm:flex-row sm:items-start sm:gap-4": isStandard,
+          "flex-col sm:flex-row sm:items-center sm:gap-6":
+            isFeatured && Boolean(cardCover) && mediaAlign === "start",
+          "flex-col sm:flex-row-reverse sm:items-center sm:gap-6":
+            isFeatured && Boolean(cardCover) && mediaAlign === "end",
+          "flex-row items-start gap-4 sm:gap-6":
+            isEditorial && Boolean(cardCover),
+          "flex-col": isEditorial && !Boolean(cardCover),
         },
       ]}
     >
@@ -123,7 +126,7 @@ const titleClass = isStandard
                 ? "block h-14 w-14 rounded-lg sm:h-[88px] sm:w-[88px]"
                 : isFeatured
                   ? "aspect-video w-full rounded-xl sm:w-[52%]"
-                  : "aspect-[3/2] w-full rounded-xl sm:aspect-[4/3] sm:w-60",
+                  : "aspect-[4/3] w-24 rounded-xl sm:w-48",
             ]}
           >
             {!isStandard ? (
@@ -175,7 +178,10 @@ const titleClass = isStandard
       <div
         class:list={[
           "min-w-0 flex-1",
-          { "flex flex-col justify-center py-1 sm:py-3": !isStandard },
+          {
+            "flex flex-col justify-center py-1 sm:py-3": isFeatured,
+            "flex flex-col justify-center py-0.5 sm:py-1": isEditorial,
+          },
         ]}
       >
         {
@@ -194,14 +200,22 @@ const titleClass = isStandard
           variant === "h2" ? (
             <h2
               transition:name={titleTransitionName}
-              class={`${titleClass} text-foreground transition-colors group-hover:text-accent group-focus-visible:text-accent`}
+              class:list={[
+                titleClass,
+                "text-foreground transition-colors group-hover:text-accent group-focus-visible:text-accent",
+                { "line-clamp-2": isEditorial },
+              ]}
             >
               {title}
             </h2>
           ) : (
             <h3
               transition:name={titleTransitionName}
-              class={`${titleClass} text-foreground transition-colors group-hover:text-accent group-focus-visible:text-accent`}
+              class:list={[
+                titleClass,
+                "text-foreground transition-colors group-hover:text-accent group-focus-visible:text-accent",
+                { "line-clamp-2": isEditorial },
+              ]}
             >
               {title}
             </h3>
@@ -219,14 +233,21 @@ const titleClass = isStandard
             "mt-2 text-foreground/80",
             isStandard
               ? "text-sm leading-7"
-              : "line-clamp-3 text-sm leading-7 sm:text-base",
+              : isFeatured
+                ? "line-clamp-3 text-sm leading-7 sm:text-base"
+                : "line-clamp-2 hidden text-sm leading-6 sm:block",
           ]}
         >
           {description}
         </p>
         {
           !isStandard && (
-            <span class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent">
+            <span
+              class:list={[
+                "inline-flex items-center gap-1 text-sm font-medium text-accent",
+                isEditorial ? "mt-2 hidden sm:inline-flex" : "mt-4",
+              ]}
+            >
               阅读全文 <span aria-hidden="true">↗</span>
             </span>
           )
@@ -248,5 +269,12 @@ const titleClass = isStandard
     background: var(--interactive-hover);
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
+  }
+
+  .post-card-editorial .app-chip {
+    max-width: 8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 </style>

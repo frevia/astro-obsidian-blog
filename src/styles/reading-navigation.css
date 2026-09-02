@@ -358,19 +358,37 @@
   position: fixed;
   right: 1rem;
   bottom: max(1rem, env(safe-area-inset-bottom));
-  left: 1rem;
+  left: auto;
   z-index: 45;
+  width: min(11rem, calc(100vw - 2rem));
   margin: 0;
   border: 1px solid
     color-mix(in oklab, var(--reading-nav-accent) 28%, var(--border));
-  border-radius: var(--radius-card);
+  border-radius: 9999px;
   background: var(--surface-glass);
   box-shadow: var(--shadow-md);
   backdrop-filter: blur(14px);
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--motion-fast) ease,
+    visibility var(--motion-fast) ease,
+    border-radius var(--motion-fast) ease;
+}
+
+.reading-navigation-shell.is-mobile-reading-active .reading-navigation-mobile {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .reading-navigation-mobile[open] {
+  right: 1rem;
+  left: 1rem;
+  width: auto;
   max-height: min(60vh, 30rem);
+  border-radius: var(--radius-card);
 }
 
 .reading-navigation-mobile-toggle {
@@ -504,6 +522,15 @@
   }
 }
 
+/* Wiki and other detail surfaces without an article hero remain immediately
+ * available before the enhancement script runs. Article pages are revealed
+ * by the hero-aware lifecycle above. */
+body:not(:has([data-article-hero])) .reading-navigation-mobile {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* The decorative date chime occupies the same right-hand column. Keep it out
  * of the reading controls while retaining it on wider detail pages. */
 @media (min-width: 1300px) and (max-width: 1399px) {
@@ -520,6 +547,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .reading-navigation-mobile-icon,
+  .reading-navigation-mobile,
   .reading-navigation-progress-track > span {
     transition: none;
   }

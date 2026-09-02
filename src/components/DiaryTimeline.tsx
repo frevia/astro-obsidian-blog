@@ -1,20 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { type TimeBlock } from "./DiaryEntryReact";
 import DiaryFeedList from "./diary/DiaryFeedList";
 import DiaryLoadState from "./diary/DiaryLoadState";
+import type { ParsedEntry, PaginationInfo } from "./diary/types";
 import { withBase } from "@/utils/withBase";
 
-export interface ParsedEntry {
-  date: string;
-  timeBlocks: TimeBlock[];
-}
-
-export interface PaginationInfo {
-  currentPage: number;
-  totalPages: number;
-  hasMore: boolean;
-  itemsPerPage: number;
-}
+export type { ParsedEntry, PaginationInfo } from "./diary/types";
 
 export interface DiaryTimelineProps {
   initialEntries: ParsedEntry[];

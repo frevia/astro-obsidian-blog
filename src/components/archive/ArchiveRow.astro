@@ -1,0 +1,58 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { SITE } from "@/config";
+import { slugifyStr } from "@/utils/slugify";
+import { getPath } from "@/utils/getPath";
+import { toYMDInTimeZone, SITE_TIMEZONE } from "@/utils/calendarDate";
+import { withBase } from "@/utils/withBase";
+
+export type Props = CollectionEntry<"blog">;
+
+const { data, id, filePath } = Astro.props;
+const { title, published, tags, timezone } = data;
+const displayTimeZone = timezone || SITE_TIMEZONE;
+const dateKey = toYMDInTimeZone(published, displayTimeZone);
+const dayLabel = dateKey.slice(-2);
+const firstTag = tags[0] ?? "其他";
+const tagSlug = slugifyStr(firstTag);
+const postHref = getPath(id, filePath);
+const locale = SITE.lang.toLowerCase().startsWith("zh") ? "zh-CN" : "en-US";
+const fullDateLabel = new Intl.DateTimeFormat(locale, {
+  timeZone: displayTimeZone,
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+}).format(published);
+---
+
+<li
+  class="archive-row group grid min-w-0 grid-cols-[3rem_minmax(0,1fr)] items-center gap-x-3 border-b border-border/35 py-3 sm:grid-cols-[3.25rem_minmax(0,1fr)_auto] sm:gap-x-5 sm:py-3.5"
+>
+  <a
+    href={postHref}
+    data-astro-prefetch="tap"
+    class="col-span-2 grid min-w-0 grid-cols-[3rem_minmax(0,1fr)] items-center gap-x-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:col-span-2 sm:gap-x-5"
+  >
+    <time
+      datetime={published.toISOString()}
+      title={fullDateLabel}
+      class="archive-row-day text-sm font-semibold text-foreground/55 tabular-nums transition-colors group-hover:text-accent sm:text-base"
+    >
+      {dayLabel}
+    </time>
+    <span
+      class="archive-row-title min-w-0 truncate text-base text-foreground transition-colors group-hover:text-accent sm:text-[1.05rem]"
+      title={title}
+    >
+      {title}
+    </span>
+  </a>
+  <a
+    href={withBase(`/posts/${tagSlug}/`)}
+    data-astro-prefetch="tap"
+    class="archive-row-tag hidden max-w-40 truncate text-sm text-foreground/55 underline decoration-dashed underline-offset-4 transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:block"
+    aria-label={`按标签浏览：${firstTag}`}
+  >
+    {firstTag}
+  </a>
+</li>

@@ -7,7 +7,7 @@ import { SITE } from "@/config";
 import Layout from "@/layouts/Layout.astro";
 import { getCollection } from "astro:content";
 import { parseEntry } from "@/utils/parseEntry";
-import DiaryTimeline from "@/components/DiaryTimeline.tsx";
+import DiaryFeed from "@/components/diary/DiaryFeed.astro";
 import { withBase } from "@/utils/withBase";
 
 export async function getStaticPaths() {
@@ -90,14 +90,6 @@ const quarterLabel = (key: string) => {
   const [keyYear, keyQuarter] = key.split("-Q");
   return `${keyYear}年(${quarterNames[parseInt(keyQuarter) - 1]})`;
 };
-
-// 创建简化的分页信息（用于兼容现有组件）
-const paginationInfo = {
-  currentPage: 1,
-  totalPages: 1,
-  hasMore: false,
-  itemsPerPage: parsedEntries.length,
-};
 ---
 
 <Layout title={`${pageTitle} | ${SITE.title}`}>
@@ -155,12 +147,21 @@ const paginationInfo = {
       <div id="diary-content" class="space-y-4 sm:space-y-6">
         {
           parsedEntries.length > 0 ? (
-            <DiaryTimeline
-              client:idle
-              initialEntries={parsedEntries}
-              paginationInfo={paginationInfo}
-              hideYear={true}
-            />
+            <>
+              <DiaryFeed entries={parsedEntries} hideYear />
+              <article role="article" class="no-more empty-state-card py-6">
+                <div role="status" aria-live="polite">
+                  <div class="mb-2 text-2xl opacity-40">✨</div>
+                  <p class="text-skin-base opacity-70">
+                    已显示全部 {parsedEntries.length} 条碎片记录
+                  </p>
+                  <p class="mt-1 text-sm opacity-50">没有更多内容了</p>
+                  <div class="sr-only">
+                    已显示全部 {parsedEntries.length} 条碎片记录
+                  </div>
+                </div>
+              </article>
+            </>
           ) : (
             <div class="empty-state-card py-16 sm:py-20">
               <div class="mb-4 text-4xl opacity-40">📝</div>

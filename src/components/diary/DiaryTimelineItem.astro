@@ -1,0 +1,198 @@
+---
+import MediaCard from "@/components/MediaCard.astro";
+import DiaryImageGallery from "./DiaryImageGallery";
+import type { DiaryImage } from "./types";
+import type { MediaCardData } from "@/types/media";
+import { withBase } from "@/utils/withBase";
+
+interface Props {
+  time: string;
+  date: string;
+  text?: string;
+  postText?: string;
+  images?: DiaryImage[];
+  htmlContent?: string;
+  movieData?: MediaCardData;
+  tvData?: MediaCardData;
+  bookData?: MediaCardData;
+  musicData?: MediaCardData;
+  footnoteHtml?: string;
+}
+
+const {
+  time,
+  date,
+  text,
+  postText,
+  images,
+  htmlContent,
+  movieData,
+  tvData,
+  bookData,
+  musicData,
+  footnoteHtml,
+} = Astro.props as Props;
+
+const baseAwarePath = (path: string) =>
+  path.startsWith("/") ? withBase(path) : path;
+
+const diaryImages = images?.map(image => ({
+  ...image,
+  src: baseAwarePath(image.src),
+  original: baseAwarePath(image.original),
+}));
+const lightGalleryLicenseKey =
+  import.meta.env.PUBLIC_LIGHTGALLERY_LICENSE_KEY?.trim();
+const hasGalleryEnhancement =
+  Boolean(lightGalleryLicenseKey) &&
+  lightGalleryLicenseKey !== "0000-0000-000-0000";
+---
+
+<article
+  class="mb-1 pb-6 last:pb-0"
+  tabindex="0"
+  role="article"
+  aria-label={`${time} 时间段的记录`}
+>
+  <div class="content group transition-all duration-300">
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
+      <h3
+        id={`diary-${date}-${time.replace(/:/g, "-")}`}
+        class="m-0 flex-none border-b border-dashed border-border/40 pb-1 text-base font-medium text-skin-base/60 sm:flex sm:items-center sm:gap-1 sm:border-none sm:pr-2 sm:pb-0 sm:pl-0"
+        aria-label={`${time} 时间段的记录`}
+      >
+        <span class="sr-only">{date}</span>
+        <span class="inline-flex items-center gap-1">
+          <span
+            class="h-4 w-4 flex-none text-skin-base/60 sm:hidden"
+            aria-hidden="true"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="9"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"></circle>
+              <path
+                d="M12 7v5l3 2"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <time datetime={date ? `${date}T${time}` : time}>{time}</time>
+        </span>
+      </h3>
+
+      <div class="min-w-0 flex-1">
+        <div class="text-skin-base">
+          {
+            text && (
+              <div
+                class="text-base leading-relaxed whitespace-pre-wrap"
+                set:html={text}
+              />
+            )
+          }
+
+          {
+            diaryImages &&
+              diaryImages.length > 0 &&
+              (hasGalleryEnhancement ? (
+                <DiaryImageGallery
+                  client:visible={{ rootMargin: "300px" }}
+                  images={diaryImages}
+                  htmlContent={htmlContent}
+                />
+              ) : (
+                <DiaryImageGallery
+                  images={diaryImages}
+                  htmlContent={htmlContent}
+                />
+              ))
+          }
+
+          {
+            htmlContent && (
+              <div
+                class="html-content mt-0 mb-4 max-w-none leading-relaxed"
+                set:html={htmlContent}
+                role="region"
+                aria-label="富文本内容"
+              />
+            )
+          }
+
+          {
+            movieData && (
+              <section
+                class="movie-card-container mb-4 px-0"
+                aria-label="电影信息"
+              >
+                <MediaCard mediaData={movieData} cardType="movie" />
+              </section>
+            )
+          }
+
+          {
+            tvData && (
+              <section
+                class="tv-card-container mb-4 px-0"
+                aria-label="电视剧信息"
+              >
+                <MediaCard mediaData={tvData} cardType="tv" />
+              </section>
+            )
+          }
+
+          {
+            bookData && (
+              <section
+                class="book-card-container mb-4 px-0"
+                aria-label="书籍信息"
+              >
+                <MediaCard mediaData={bookData} cardType="book" />
+              </section>
+            )
+          }
+
+          {
+            musicData && (
+              <section
+                class="music-card-container mb-4 px-0"
+                aria-label="音乐信息"
+              >
+                <MediaCard mediaData={musicData} cardType="music" />
+              </section>
+            )
+          }
+
+          {
+            postText && (
+              <div
+                class="mb-4 text-base leading-relaxed whitespace-pre-wrap"
+                set:html={postText}
+              />
+            )
+          }
+
+          {
+            footnoteHtml && (
+              <div class="footnotes-container mt-4" set:html={footnoteHtml} />
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</article>

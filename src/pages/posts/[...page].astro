@@ -21,7 +21,7 @@ import getUniqueTags from "@/utils/getUniqueTags";
 
 const posts = await getCollection("blog");
 const tags = getUniqueTags(posts);
-const DEFAULT_VISIBLE_TAGS = 20;
+const DEFAULT_VISIBLE_TAGS = 8;
 const tagCountMap = posts
   .filter(postFilter)
   .flatMap(post => post.data.tags)

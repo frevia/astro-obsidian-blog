@@ -22,7 +22,6 @@ const {
   title,
   category,
   description,
-  summary,
   author,
   published,
   timezone,
@@ -35,7 +34,7 @@ const {
   coverTransitionName,
 } = Astro.props;
 
-const excerpt = summary?.trim() || description;
+const excerpt = description.trim();
 const visibleTags = tags.filter(tag => tag.trim()).slice(0, 6);
 ---
 

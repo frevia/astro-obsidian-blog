@@ -1,6 +1,6 @@
 import React from "react";
 import DiaryEntryReact from "../DiaryEntryReact";
-import type { ParsedEntry } from "../DiaryTimeline";
+import type { ParsedEntry } from "./types";
 
 interface DiaryFeedListProps {
   entries: ParsedEntry[];

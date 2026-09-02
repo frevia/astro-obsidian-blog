@@ -23,63 +23,73 @@ const tagCountMap = posts
     return counts;
   }, new Map<string, number>());
 
-let tags = getUniqueTags(posts).sort(
-  (a, b) =>
-    (tagCountMap.get(b.tag) ?? 0) - (tagCountMap.get(a.tag) ?? 0) ||
-    a.tagName.localeCompare(b.tagName, "zh-CN")
+const allTags = getUniqueTags(posts).sort((a, b) =>
+  a.tagName.localeCompare(b.tagName, "zh-CN")
 );
+const popularTags = [...allTags]
+  .sort(
+    (a, b) =>
+      (tagCountMap.get(b.tag) ?? 0) - (tagCountMap.get(a.tag) ?? 0) ||
+      a.tagName.localeCompare(b.tagName, "zh-CN")
+  )
+  .slice(0, 12);
 ---
 
 <Layout title={`${t.pages.tagsTitle} | ${SITE.title}`}>
   <Header />
   <Main pageTitle={t.pages.tagsTitle} pageDesc={t.pages.tagsDesc}>
-    <!-- 页面描述区域 -->
-    <div
-      class="mb-8 rounded-xl border-l-4 border-accent/60 bg-accent/5 px-4 py-4 text-sm text-foreground/80"
-    >
-      <div class="flex items-start gap-3">
-        <span class="mt-0.5 text-lg text-accent/80">🏷️</span>
-        <div class="flex-1">
-          <p class="mb-2 text-base font-semibold text-foreground/90">
-            {t.pages.tagsIntroTitle}
-          </p>
-          <p class="mb-2">
-            {t.pages.tagsIntroDesc}
-          </p>
-          <p class="mb-3 text-xs text-foreground/55">
-            共 {tags.length} 个标签，常用的排在前面。
-          </p>
-          <div class="flex flex-wrap gap-4 text-xs text-foreground/60">
-            <span class="flex items-center gap-1.5">
-              <span class="h-2 w-2 rounded-full bg-accent/60"></span>
-              {t.pages.tagsBrowseByTopic}
-            </span>
-            <span class="flex items-center gap-1.5">
-              <span class="h-2 w-2 rounded-full bg-accent/40"></span>
-              {t.pages.tagsFindContent}
-            </span>
-            <span class="flex items-center gap-1.5">
-              <span class="h-2 w-2 rounded-full bg-accent/20"></span>
-              {t.pages.tagsCloudSystem}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
+    {
+      allTags.length > 0 && (
+        <>
+          <section class="tags-section" aria-labelledby="popular-tags-title">
+            <header class="tags-section-header">
+              <div>
+                <p class="tags-section-number">01 / POPULAR</p>
+                <h2 id="popular-tags-title">常用标签</h2>
+              </div>
+              <p>
+                共 {allTags.length} 个标签；按文章数量排序，先从高频主题开始。
+              </p>
+            </header>
+            <ul
+              class="tags-cloud tags-cloud--popular flex flex-wrap gap-3"
+              aria-label="常用标签"
+            >
+              {popularTags.map(({ tag, tagName }) => (
+                <Tag
+                  {tag}
+                  {tagName}
+                  size="lg"
+                  count={tagCountMap.get(tag) ?? 0}
+                />
+              ))}
+            </ul>
+          </section>
 
-    <div class="mb-12">
-      <ul class="tags-cloud flex flex-wrap gap-3">
-        {
-          tags.map(({ tag, tagName }) => (
-            <Tag {tag} {tagName} size="lg" count={tagCountMap.get(tag) ?? 0} />
-          ))
-        }
-      </ul>
-    </div>
+          <section
+            class="tags-section tags-section--all"
+            aria-labelledby="all-tags-title"
+          >
+            <header class="tags-section-header">
+              <div>
+                <p class="tags-section-number">02 / ALL TAGS</p>
+                <h2 id="all-tags-title">全部标签</h2>
+              </div>
+              <p>按中文顺序排列，完整浏览所有主题。</p>
+            </header>
+            <ul class="tags-cloud flex flex-wrap gap-3" aria-label="全部标签">
+              {allTags.map(({ tag, tagName }) => (
+                <Tag {tag} {tagName} count={tagCountMap.get(tag) ?? 0} />
+              ))}
+            </ul>
+          </section>
+        </>
+      )
+    }
 
     <!-- 无标签提示 -->
     {
-      tags.length === 0 && (
+      allTags.length === 0 && (
         <div class="my-12">
           <div class="rounded-xl border border-border/40 bg-muted/10 p-8 text-center">
             <div class="mb-4 text-5xl text-foreground/40">🏷️</div>
@@ -96,9 +106,50 @@ let tags = getUniqueTags(posts).sort(
 </Layout>
 
 <style>
+  .tags-section-header h2 {
+    margin-top: 0.4rem;
+    color: var(--foreground);
+    font-size: clamp(1.45rem, 3vw, 2rem);
+    font-weight: 650;
+    letter-spacing: -0.035em;
+  }
+
+  .tags-section-header > p {
+    max-width: 36rem;
+    margin-top: 0.45rem;
+    color: var(--foreground-muted);
+    font-size: 0.82rem;
+    line-height: 1.65;
+  }
+
+  .tags-section-number {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .tags-section + .tags-section {
+    margin-top: 3.5rem;
+  }
+
+  .tags-section-header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
   .tags-cloud {
     border-block: 1px solid color-mix(in oklab, var(--border) 64%, transparent);
     padding-block: 1.25rem;
+  }
+
+  .tags-cloud--popular {
+    background: color-mix(in oklab, var(--accent-soft) 24%, transparent);
   }
 
   .tags-cloud :global(li) {
@@ -117,5 +168,17 @@ let tags = getUniqueTags(posts).sort(
     border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
     background: var(--accent-softer);
     transform: translateY(-1px);
+  }
+
+  @media (max-width: 640px) {
+    .tags-section-header {
+      align-items: start;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .tags-section + .tags-section {
+      margin-top: 2.5rem;
+    }
   }
 </style>

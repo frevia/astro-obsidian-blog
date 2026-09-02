@@ -49,7 +49,13 @@ describe("shared reading navigation", () => {
     expect(source).toContain('doc.removeEventListener("scroll"');
     expect(source).toContain('view?.removeEventListener("resize"');
     expect(source).toContain('mobileSidebar?.removeEventListener("toggle"');
-    expect(source).toContain("if (!entries.length) return () => {}");
+    expect(source).toContain(
+      'querySelector<HTMLElement>("[data-article-hero]")'
+    );
+    expect(source).toContain('"is-mobile-reading-active"');
+    expect(source).toContain("getBoundingClientRect().bottom");
+    expect(source).toContain("mobileSidebar.open = false");
+    expect(source).toContain("root.classList.remove(mobileActiveClass)");
   });
 
   it("defines the shared compact visual geometry", () => {
@@ -67,6 +73,14 @@ describe("shared reading navigation", () => {
     expect(source).toContain("padding-inline: 0");
     expect(source).toContain("border-radius: var(--radius-card)");
     expect(source).toContain("background: var(--surface-glass)");
+    expect(source).toContain("visibility: hidden");
+    expect(source).toContain("pointer-events: none");
+    expect(source).toContain("width: min(11rem, calc(100vw - 2rem))");
+    expect(source).toContain(
+      ".reading-navigation-shell.is-mobile-reading-active"
+    );
+    expect(source).toContain("body:not(:has([data-article-hero]))");
+    expect(source).toContain("left: 1rem");
     expect(source).toContain("outline: 2px solid var(--focus-ring)");
     expect(source).toContain("body:has(.reading-navigation-desktop)");
     expect(source).toContain("min-height: 2.75rem");
