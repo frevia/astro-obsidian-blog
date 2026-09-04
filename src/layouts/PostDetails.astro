@@ -24,6 +24,8 @@ import {
 } from "@/components/article/pageAccent";
 import { estimateReadingMinutes } from "@/components/article/readingTime";
 import { buildWikilinkGraph } from "@/utils/wikilinkGraph";
+import { resolveArticleCoverUrl } from "@/utils/articleCover";
+import { optimizeImage } from "@/utils/optimizeImages";
 import { PUBLIC_TWIKOO_ENV_ID } from "astro:env/client";
 import { tplStr, useTranslations } from "@/i18n";
 import "@/styles/article-reading.css";
@@ -66,14 +68,19 @@ const articleAccent = getArticleAccent(articleAccentInput);
 const articleAccentStyle = getArticleAccentStyle(articleAccentInput);
 const readingMinutes = estimateReadingMinutes(post.body ?? "");
 
-let coverUrl: string | undefined;
-
-// Determine OG image source
-if (typeof initOgImage === "string") {
-  coverUrl = initOgImage; // Remote OG image (absolute URL)
-} else if (initOgImage?.src) {
-  coverUrl = initOgImage.src; // Local asset
-}
+let coverUrl = await resolveArticleCoverUrl(
+  initOgImage,
+  Astro.url.origin,
+  async relativeCover => {
+    const optimized = await optimizeImage(relativeCover, {
+      thumbnailSize: 1280,
+      quality: 82,
+    });
+    return optimized.thumbnail === relativeCover
+      ? undefined
+      : optimized.thumbnail;
+  }
+);
 
 // Use dynamic OG image if enabled and no remote|local cover
 if (!coverUrl && SITE.dynamicOgImage) {

@@ -42,6 +42,8 @@ describe("post reading mode", () => {
       "const coverTransitionName = `${titleTransitionName}-cover`;"
     );
     expect(content).toContain('estimateReadingMinutes(post.body ?? "")');
+    expect(content).toContain("resolveArticleCoverUrl(");
+    expect(content).toContain("await optimizeImage(relativeCover");
   });
 
   it("keeps shared navigation and code-toolbar hooks in the lifecycle", () => {

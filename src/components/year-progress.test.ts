@@ -11,6 +11,10 @@ describe("year progress presentation", () => {
     expect(content).toContain('aria-valuetext="正在计算年度进度"');
     expect(content).toContain('data-active="0"');
     expect(content).toContain("year-progress-bar::after");
+    expect(content).toMatch(/\.year-progress\s*\{[^}]*height:\s*2px;/s);
+    expect(content).toMatch(
+      /@media \(max-width: 639px\)[\s\S]*?\.year-progress\s*\{[^}]*height:\s*1px;/
+    );
     expect(content).toContain("prefers-reduced-motion: reduce");
     expect(content).toContain("const INTERVAL_FLAG");
     expect(content).toContain("updateToCurrent(false)");

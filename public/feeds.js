@@ -42,6 +42,15 @@ const getHostLabel = value => {
   }
 };
 
+const getSiteRoot = value => {
+  try {
+    const url = new URL(value);
+    return `${url.origin}/`;
+  } catch {
+    return "";
+  }
+};
+
 const formatPublishedDate = (value, siteTimezone) => {
   if (!value || value === "未知") return "未知日期";
 
@@ -53,6 +62,69 @@ const formatPublishedDate = (value, siteTimezone) => {
     : parsed.format("YYYY.MM.DD");
 };
 
+export const formatCardPublishedDate = (
+  value,
+  siteTimezone,
+  now = new Date()
+) => {
+  if (!value || value === "未知") return "未知日期";
+
+  const parsed = dayjs(value);
+  if (!parsed.isValid()) return value;
+
+  const published = siteTimezone ? parsed.tz(siteTimezone) : parsed;
+  const current = siteTimezone ? dayjs(now).tz(siteTimezone) : dayjs(now);
+  return published.year() === current.year()
+    ? published.format("MM.DD")
+    : published.format("YYYY.MM.DD");
+};
+
+export const formatFeedUpdatedStatus = (value, now = new Date()) => {
+  const exact = typeof value === "string" ? value.trim() : "";
+  const match = exact.match(
+    /^(\d{4})年(\d{1,2})月(\d{1,2})日(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?$/
+  );
+
+  if (!match) return { label: "等待同步", exact, stale: false };
+
+  const [, year, month, day, hour = "0", minute = "0", second = "0"] = match;
+  const updatedAt = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second)
+  );
+  const elapsedDays = Math.max(
+    0,
+    Math.floor((now.getTime() - updatedAt.getTime()) / 86_400_000)
+  );
+
+  if (elapsedDays === 0) return { label: "今日同步", exact, stale: false };
+  if (elapsedDays === 1) return { label: "昨日同步", exact, stale: false };
+  if (elapsedDays < 30) {
+    return {
+      label: `${elapsedDays} 天前同步`,
+      exact,
+      stale: elapsedDays > 14,
+    };
+  }
+  if (elapsedDays < 365) {
+    return {
+      label: `${Math.floor(elapsedDays / 30)} 个月前同步`,
+      exact,
+      stale: true,
+    };
+  }
+
+  return {
+    label: `${Math.floor(elapsedDays / 365)} 年前同步`,
+    exact,
+    stale: true,
+  };
+};
+
 function createFeedCardHTML(item, fallbackOgImageGlobal, siteTimezone) {
   const blogName =
     typeof item.blog_name === "string" ? item.blog_name.trim() : "未命名站点";
@@ -61,6 +133,7 @@ function createFeedCardHTML(item, fallbackOgImageGlobal, siteTimezone) {
   const publishedDate =
     typeof item.published === "string" ? item.published.trim() : "";
   const postLink = safeUrl(item.link, "#");
+  const siteLink = safeUrl(item.site_link, getSiteRoot(postLink));
   const avatarUrl = safeUrl(item.avatar, safeUrl(fallbackOgImageGlobal));
   const sourceLabel = getHostLabel(postLink);
   const accessibleLabel = latestPostTitle
@@ -69,38 +142,67 @@ function createFeedCardHTML(item, fallbackOgImageGlobal, siteTimezone) {
 
   return `
     <li class="feeds-card" data-feed-item data-feed-source="${escapeHtml(blogName)}">
-      <a
-        class="feeds-card-link"
-        href="${escapeHtml(postLink)}"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="${escapeHtml(accessibleLabel)}"
-      >
-        <span class="feeds-card-avatar" aria-hidden="true">
-          ${
-            avatarUrl
-              ? `<img src="${escapeHtml(avatarUrl)}" alt="" loading="lazy" />`
-              : escapeHtml(blogName.charAt(0))
-          }
-        </span>
+      <div class="feeds-card-body">
+        <a
+          class="feeds-card-site-link feeds-card-avatar-link"
+          href="${escapeHtml(siteLink)}"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="${escapeHtml(`访问 ${blogName} 官网`)}"
+        >
+          <span class="feeds-card-avatar" aria-hidden="true">
+            ${
+              avatarUrl
+                ? `<img src="${escapeHtml(avatarUrl)}" alt="" loading="lazy" />`
+                : escapeHtml(blogName.charAt(0))
+            }
+          </span>
+        </a>
         <span class="feeds-card-main">
           <span class="feeds-card-meta">
-            <span class="feeds-card-source">${escapeHtml(blogName)}</span>
-            <time class="feeds-card-date" datetime="${escapeHtml(publishedDate)}">
-              ${escapeHtml(formatPublishedDate(publishedDate, siteTimezone))}
+            <a
+              class="feeds-card-site-link feeds-card-source"
+              href="${escapeHtml(siteLink)}"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="${escapeHtml(`访问 ${blogName} 官网`)}"
+            >${escapeHtml(blogName)}</a>
+            <time
+              class="feeds-card-date"
+              datetime="${escapeHtml(publishedDate)}"
+              title="${escapeHtml(`发布于 ${formatPublishedDate(publishedDate, siteTimezone)}`)}"
+            >
+              ${escapeHtml(formatCardPublishedDate(publishedDate, siteTimezone))}
             </time>
           </span>
-          <span class="feeds-card-title">
-            ${escapeHtml(latestPostTitle || "打开站点阅读最新内容")}
+          <span class="feeds-card-article-row">
+            <span class="feeds-card-latest-label">最新</span>
+            <a
+              class="feeds-card-article-link feeds-card-title"
+              href="${escapeHtml(postLink)}"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="${escapeHtml(accessibleLabel)}"
+            >
+              ${escapeHtml(latestPostTitle || "暂未获取到最新文章")}
+            </a>
+            <a
+              class="feeds-card-article-link feeds-card-arrow"
+              href="${escapeHtml(postLink)}"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="${escapeHtml(`阅读：${latestPostTitle || blogName}`)}"
+            >↗</a>
+          </span>
+          <span class="feeds-card-foot">
+            ${
+              sourceLabel
+                ? `<a class="feeds-card-site-link feeds-card-domain" href="${escapeHtml(siteLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(sourceLabel)}</a>`
+                : ""
+            }
           </span>
         </span>
-        <span class="feeds-card-arrow" aria-hidden="true">↗</span>
-      </a>
-      ${
-        sourceLabel
-          ? `<p class="feeds-card-note">${escapeHtml(sourceLabel)}</p>`
-          : ""
-      }
+      </div>
     </li>
   `;
 }
@@ -119,6 +221,7 @@ export async function initFeeds(
   const errorContainer = document.getElementById("feeds-error");
   const noContentContainer = document.getElementById("feeds-no-content");
   const countElement = document.getElementById("feeds-count");
+  const latestElement = document.getElementById("feeds-latest");
   const updatedElement = document.getElementById("feeds-updated");
 
   if (
@@ -136,11 +239,19 @@ export async function initFeeds(
   let observer;
 
   const updateFeedSummary = data => {
-    if (countElement) countElement.textContent = `${allFeeds.length} 条订阅`;
+    if (countElement) countElement.textContent = `${allFeeds.length} 位邻居`;
+    if (latestElement) {
+      latestElement.textContent = allFeeds[0]?.published
+        ? formatPublishedDate(allFeeds[0].published, siteTimezone)
+        : "暂无来信";
+    }
     if (updatedElement) {
-      updatedElement.textContent = data.updated
-        ? `更新于 ${data.updated}`
-        : "RSS network";
+      const status = formatFeedUpdatedStatus(data.updated);
+      updatedElement.textContent = status.stale
+        ? `同步较早 · ${status.label.replace(/同步$/, "")}`
+        : status.label;
+      updatedElement.title = status.exact ? `上次同步：${status.exact}` : "";
+      updatedElement.classList.toggle("is-stale", status.stale);
     }
   };
 
@@ -191,7 +302,8 @@ export async function initFeeds(
     updateFeedSummary(data);
 
     if (allFeeds.length === 0) {
-      if (countElement) countElement.textContent = "0 条订阅";
+      if (countElement) countElement.textContent = "0 位邻居";
+      if (latestElement) latestElement.textContent = "暂无来信";
       noContentContainer.classList.remove("hidden");
       if (loadMoreTrigger) loadMoreTrigger.style.display = "none";
       return;

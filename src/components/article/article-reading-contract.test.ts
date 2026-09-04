@@ -53,6 +53,9 @@ describe("article reading presentation contracts", () => {
     );
 
     expect(articleCss).toContain(".article-page");
+    expect(articleCss).toMatch(
+      /\.article-page\.page-shell::before\s*\{[^}]*inset-block-start:\s*0;/s
+    );
     expect(articleCss).toContain("var(--page-accent)");
     expect(articleCss).toContain("var(--page-accent-soft)");
     expect(articleCss).toContain(".article-hero-cover");

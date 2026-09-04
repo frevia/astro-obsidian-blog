@@ -70,6 +70,7 @@ async function fetchRssFeed(subscription) {
       title: latestItem ? latestItem.title : '',
       published: latestItem ? formatDate(latestItem.pubDate) : '',
       link: latestItem ? latestItem.link : (feed.link || subscription.url),
+      site_link: feed.link || new URL(subscription.url).origin,
       avatar: subscription.avatar,
     };
   } catch (error) {
@@ -80,6 +81,7 @@ async function fetchRssFeed(subscription) {
       title: '',
       published: '',
       link: subscription.url,
+      site_link: new URL(subscription.url).origin,
       avatar: subscription.avatar,
     };
   }
