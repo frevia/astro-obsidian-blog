@@ -44,11 +44,13 @@ describe("neighbor and about page presentation", () => {
     const feeds = readFileSync("src/pages/feeds/index.astro", "utf-8");
     const feedsClient = readFileSync("public/feeds.js", "utf-8");
 
-    expect(feeds).toContain("feeds-stage-status");
+    expect(feeds).toContain("feeds-overview");
+    expect(feeds).toContain('id="feeds-latest"');
     expect(feeds).toContain("document.readyState");
     expect(feeds).toContain("DOMContentLoaded");
     expect(feedsClient).toContain("data-feed-item");
-    expect(feedsClient).toContain("feeds-card-link");
+    expect(feedsClient).toContain("feeds-card-site-link");
+    expect(feedsClient).toContain("feeds-card-article-link");
   });
 
   it("renders a structured about hero and metrics section", () => {

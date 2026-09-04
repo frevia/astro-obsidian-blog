@@ -7,6 +7,10 @@
     );
   }
 
+  .article-page.page-shell::before {
+    inset-block-start: 0;
+  }
+
   .article-hero {
     display: grid;
     gap: 1.25rem;

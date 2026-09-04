@@ -68,19 +68,30 @@ const hasTwikooEnv =
   <Header />
   <Main
     pageTitle="邻居"
-    pageDesc="这里放着一些我常去看的博客。"
+    pageDesc="我常去拜访的个人博客，也是互联网仍然有趣的证明。"
     pageDescClass="max-w-2xl"
   >
     <section id="feeds-list-section" class="feeds-page-stage">
+      <div class="feeds-overview" aria-label="邻居动态概览">
+        <div class="feeds-overview-item">
+          <span>邻居</span>
+          <strong id="feeds-count">正在同步</strong>
+        </div>
+        <div class="feeds-overview-item">
+          <span>最新来信</span>
+          <strong id="feeds-latest">读取中</strong>
+        </div>
+        <div class="feeds-overview-item feeds-overview-item--sync">
+          <span>同步状态</span>
+          <strong id="feeds-updated">连接 RSS 网络</strong>
+        </div>
+      </div>
+
       <header class="feeds-stage-head">
         <div>
-          <span class="feeds-eyebrow">最近更新</span>
-          <h2>最近更新</h2>
-        </div>
-        <div class="feeds-stage-status" aria-live="polite">
-          <span id="feeds-count">正在同步</span>
-          <span aria-hidden="true">·</span>
-          <span id="feeds-updated">RSS 网络</span>
+          <span class="feeds-eyebrow">邻里动态</span>
+          <h2>最近来信</h2>
+          <p>按发布时间排列，看看邻居们最近写了什么。</p>
         </div>
       </header>
 
@@ -143,8 +154,8 @@ const hasTwikooEnv =
         <section class="feeds-comments">
           <div class="feeds-comments-head">
             <span class="feeds-eyebrow">开放讨论</span>
-            <h2>留言</h2>
-            <p>如果有想推荐的站点，也可以在这里留言。</p>
+            <h2>推荐新邻居</h2>
+            <p>如果你也在认真记录，或者有喜欢的个人博客，欢迎留下地址。</p>
           </div>
 
           {commentsEnabled && hasTwikooEnv && <Twikoo />}
@@ -254,12 +265,51 @@ const hasTwikooEnv =
     padding-inline: 0;
   }
 
+  #main-content:has(.feeds-page-stage)::before {
+    inset-inline: 0;
+  }
+
+  .feeds-overview {
+    display: grid;
+    grid-template-columns: 0.8fr 1fr 1.45fr;
+    margin-top: 1.2rem;
+    border-block: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+  }
+
+  .feeds-overview-item {
+    display: grid;
+    gap: 0.4rem;
+    min-width: 0;
+    padding: 1rem 1.15rem;
+  }
+
+  .feeds-overview-item + .feeds-overview-item {
+    border-inline-start: 1px solid
+      color-mix(in oklab, var(--border) 72%, transparent);
+  }
+
+  .feeds-overview-item > span {
+    color: var(--foreground-subtle);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+  }
+
+  .feeds-overview-item > strong {
+    overflow: hidden;
+    color: var(--foreground);
+    font-size: 0.9rem;
+    font-weight: 650;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .feeds-overview-item > strong.is-stale {
+    color: color-mix(in oklab, #d97706 78%, var(--foreground));
+  }
+
   .feeds-stage-head {
-    display: flex;
-    align-items: end;
-    justify-content: space-between;
-    gap: 1rem;
-    margin: 2.25rem 0 1.15rem;
+    margin: 1.8rem 0 0.85rem;
   }
 
   .feeds-stage-head h2 {
@@ -270,25 +320,17 @@ const hasTwikooEnv =
     letter-spacing: -0.04em;
   }
 
-  .feeds-stage-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
+  .feeds-stage-head p {
+    margin-top: 0.35rem;
     color: var(--foreground-muted);
-    font-size: 0.68rem;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-
-  .feeds-stage-status #feeds-count {
-    color: var(--accent);
-    font-weight: 700;
+    font-size: 0.78rem;
+    line-height: 1.6;
   }
 
   .feeds-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
+    gap: 0.85rem;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -298,44 +340,54 @@ const hasTwikooEnv =
     position: relative;
     min-width: 0;
     overflow: hidden;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-card);
-    background: var(--surface);
-    box-shadow: var(--shadow-sm);
+    border: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
+    border-radius: 1rem;
+    background: color-mix(in oklab, var(--surface) 96%, transparent);
     transition:
-      border-color 180ms ease,
       background-color 180ms ease,
-      box-shadow 180ms ease,
-      transform 180ms ease;
+      border-color 180ms ease;
   }
 
   .feeds-card:hover,
   .feeds-card:focus-within {
-    border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
-    background: color-mix(in oklab, var(--accent) 3%, var(--surface));
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+    border-color: color-mix(in oklab, var(--accent) 32%, var(--border));
+    background: color-mix(in oklab, var(--accent) 3.5%, var(--surface));
   }
 
-  .feeds-card-link {
-    display: flex;
+  .feeds-card-body {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
     min-width: 0;
-    align-items: flex-start;
-    gap: 0.85rem;
-    padding: 1rem 1rem 0.85rem;
+    align-items: start;
+    gap: 0.6rem;
+    min-height: 5.7rem;
+    padding: 0.6rem;
     color: inherit;
     text-decoration: none;
   }
 
+  .feeds-card-site-link,
+  .feeds-card-article-link {
+    text-decoration: none;
+  }
+
+  .feeds-card-site-link:focus-visible,
+  .feeds-card-article-link:focus-visible {
+    border-radius: 0.35rem;
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
   .feeds-card-avatar {
     display: grid;
-    width: 2.75rem;
-    height: 2.75rem;
+    margin-top: 0.05rem;
+    width: 2.25rem;
+    height: 2.25rem;
     flex: none;
     place-items: center;
     overflow: hidden;
     border: 1px solid color-mix(in oklab, var(--accent) 24%, var(--border));
-    border-radius: var(--radius-control);
+    border-radius: 0.9rem;
     color: var(--accent);
     background: var(--accent-softer);
     font-size: 1rem;
@@ -350,21 +402,36 @@ const hasTwikooEnv =
 
   .feeds-card-main {
     min-width: 0;
-    flex: 1;
+    display: grid;
+    align-self: stretch;
+    grid-template-rows: auto minmax(1.7rem, auto) auto;
+    gap: 0.12rem;
   }
 
-  .feeds-card-meta {
+  .feeds-card-meta,
+  .feeds-card-foot {
     display: flex;
     min-width: 0;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: 0.65rem;
+  }
+
+  .feeds-card-foot {
+    justify-content: flex-start;
+  }
+
+  .feeds-card-article-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.38rem;
   }
 
   .feeds-card-source {
     overflow: hidden;
     color: var(--accent);
-    font-size: 0.68rem;
+    font-size: 0.76rem;
     font-weight: 750;
     letter-spacing: 0.04em;
     text-overflow: ellipsis;
@@ -374,58 +441,80 @@ const hasTwikooEnv =
   .feeds-card-date {
     flex: none;
     color: var(--foreground-subtle);
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   .feeds-card-title {
-    display: block;
+    display: -webkit-box;
     overflow: hidden;
-    margin-top: 0.38rem;
-    color: color-mix(in oklab, var(--foreground) 86%, transparent);
-    font-size: 0.84rem;
-    line-height: 1.55;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: color-mix(in oklab, var(--foreground) 92%, transparent);
+    font-size: clamp(0.94rem, 1.5vw, 1.04rem);
+    font-weight: 620;
+    line-height: 1.45;
+    align-self: center;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     transition: color 160ms ease;
   }
 
-  .feeds-card:hover .feeds-card-title,
-  .feeds-card:focus-within .feeds-card-title {
+  .feeds-card-latest-label {
+    align-self: center;
+    border-radius: 999px;
+    padding: 0.08rem 0.3rem;
+    color: color-mix(in oklab, var(--foreground) 68%, transparent);
+    background: var(--accent-softer);
+    font-size: 0.6rem;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: 0.04em;
+  }
+
+  .feeds-card-title:hover,
+  .feeds-card-title:focus-visible {
     color: var(--accent);
   }
 
+  .feeds-card-article-row:has(.feeds-card-title:hover) .feeds-card-arrow,
+  .feeds-card-article-row:has(.feeds-card-title:focus-visible)
+    .feeds-card-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .feeds-card-source:hover,
+  .feeds-card-domain:hover {
+    color: color-mix(in oklab, var(--accent) 74%, var(--foreground));
+  }
+
+  .feeds-card-domain {
+    overflow: hidden;
+    color: var(--foreground-subtle);
+    font-size: 0.7rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .feeds-card-arrow {
-    flex: none;
-    margin-top: 0.1rem;
     color: var(--accent);
     font-size: 1rem;
-    opacity: 0;
-    transform: translate(-0.2rem, 0.2rem);
+    opacity: 0.38;
+    transform: translateX(-0.1rem);
     transition:
       opacity 160ms ease,
       transform 160ms ease;
   }
 
-  .feeds-card:hover .feeds-card-arrow,
-  .feeds-card:focus-within .feeds-card-arrow {
+  .feeds-card-arrow:hover,
+  .feeds-card-arrow:focus-visible {
     opacity: 1;
     transform: translate(0, 0);
   }
 
-  .feeds-card-note {
-    margin: 0 1rem 0.9rem 4.6rem;
-    overflow: hidden;
-    color: color-mix(in oklab, var(--foreground) 52%, transparent);
-    font-size: 0.72rem;
-    line-height: 1.55;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   .feeds-skeleton-card {
     display: flex;
-    min-height: 7.4rem;
+    min-height: 6.25rem;
     align-items: flex-start;
     gap: 0.85rem;
     border: 1px solid var(--border);
@@ -568,9 +657,15 @@ const hasTwikooEnv =
   }
 
   .feeds-comments {
-    margin-top: 4rem;
+    min-width: 0;
+    margin-top: 4.5rem;
+    overflow-x: clip;
     border-top: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
-    padding-top: 2rem;
+    padding-top: 2.4rem;
+  }
+
+  .feeds-comments-head {
+    margin-bottom: 1.4rem;
   }
 
   .feeds-comments-head h2 {
@@ -608,25 +703,42 @@ const hasTwikooEnv =
     }
   }
 
-  @media (max-width: 700px) {
-    .feeds-list {
-      grid-template-columns: 1fr;
+  @media (max-width: 480px) {
+    .feeds-overview {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .feeds-overview-item {
+      gap: 0.2rem;
+      padding: 0.55rem 0.65rem;
+    }
+
+    .feeds-overview-item--sync {
+      grid-column: 1 / -1;
+      border-top: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+      border-inline-start: 0 !important;
+    }
+
+    .feeds-card-body {
+      gap: 0.55rem;
+      min-height: 5.6rem;
+      padding: 0.55rem;
+    }
+
+    .feeds-card-avatar {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.75rem;
+    }
+
+    .feeds-card-title {
+      font-size: 0.94rem;
     }
   }
 
-  @media (max-width: 480px) {
-    .feeds-stage-head {
-      align-items: start;
-      flex-direction: column;
-      gap: 0.55rem;
-    }
-
-    .feeds-card-link {
-      padding: 0.9rem;
-    }
-
-    .feeds-card-note {
-      margin-left: 4.45rem;
+  @media (max-width: 700px) {
+    .feeds-list {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 
