@@ -152,12 +152,12 @@ describe("AstroPaper config", () => {
   it("resolves upstream defaults around the local site values", () => {
     const { config } = moduleExports;
     expect(config.site).toMatchObject({
-      url: "https://frevia.site/",
+      url: "https://www.frevia.me/",
       base: "/",
       title: "Frevia's Blog!",
       description: "记录日常、技术、阅读和路上的见闻。",
       author: "Frevia",
-      profile: "https://frevia.site/",
+      profile: "https://www.frevia.me/",
       ogImage: "og.png",
       lang: "zh-CN",
       timezone: "Asia/Shanghai",

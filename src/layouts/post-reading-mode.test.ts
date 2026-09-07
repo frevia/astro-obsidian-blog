@@ -44,6 +44,8 @@ describe("post reading mode", () => {
     expect(content).toContain('estimateReadingMinutes(post.body ?? "")');
     expect(content).toContain("resolveArticleCoverUrl(");
     expect(content).toContain("await optimizeImage(relativeCover");
+    expect(content).toContain("cover={displayCover}");
+    expect(content).toContain("new URL(displayCover, Astro.site ?? Astro.url)");
   });
 
   it("keeps shared navigation and code-toolbar hooks in the lifecycle", () => {

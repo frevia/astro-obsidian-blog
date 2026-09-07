@@ -2,7 +2,7 @@
 
 一个基于 [Astro](https://astro.build/)、[Astro Paper](https://github.com/satnaing/astro-paper) 和 Obsidian 内容工作流构建的个人网站，用来记录文章、碎片、知识、足迹与订阅。
 
-线上站点：[frevia.site](https://frevia.site/)
+线上站点：[www.frevia.me](https://www.frevia.me/)
 
 ## ✨ 当前特性
 

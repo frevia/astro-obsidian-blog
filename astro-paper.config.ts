@@ -2,11 +2,11 @@ import { defineAstroPaperConfig } from "./src/types/config";
 
 export default defineAstroPaperConfig({
   site: {
-    url: "https://frevia.site/",
+    url: "https://www.frevia.me/",
     title: "Frevia's Blog!",
     description: "记录日常、技术、阅读和路上的见闻。",
     author: "Frevia",
-    profile: "https://frevia.site/",
+    profile: "https://www.frevia.me/",
     ogImage: "og.png",
     lang: "zh-CN",
     timezone: "Asia/Shanghai",
