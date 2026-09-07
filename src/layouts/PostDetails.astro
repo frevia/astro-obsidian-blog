@@ -68,9 +68,8 @@ const articleAccent = getArticleAccent(articleAccentInput);
 const articleAccentStyle = getArticleAccentStyle(articleAccentInput);
 const readingMinutes = estimateReadingMinutes(post.body ?? "");
 
-let coverUrl = await resolveArticleCoverUrl(
+let displayCover = await resolveArticleCoverUrl(
   initOgImage,
-  Astro.url.origin,
   async relativeCover => {
     const optimized = await optimizeImage(relativeCover, {
       thumbnailSize: 1280,
@@ -83,12 +82,14 @@ let coverUrl = await resolveArticleCoverUrl(
 );
 
 // Use dynamic OG image if enabled and no remote|local cover
-if (!coverUrl && SITE.dynamicOgImage) {
-  coverUrl = `${getPath(post.id, post.filePath)}/index.png`;
+if (!displayCover && SITE.dynamicOgImage) {
+  displayCover = `${getPath(post.id, post.filePath)}/index.png`;
 }
 
 // Resolve OG image URL (or fallback to SITE.cover / default `og.png`)
-const cover = coverUrl ? new URL(coverUrl, Astro.url.origin).href : undefined;
+const socialCover = displayCover
+  ? new URL(displayCover, Astro.site ?? Astro.url).href
+  : undefined;
 
 const layoutProps = {
   title: `${title} | ${SITE.title}`,
@@ -96,7 +97,7 @@ const layoutProps = {
   description,
   published,
   canonicalURL,
-  cover,
+  cover: socialCover,
   scrollSmooth: true,
 };
 
@@ -163,7 +164,7 @@ const hasReadingNavigation =
       {published}
       {timezone}
       readingMinutes={readingMinutes}
-      cover={cover}
+      cover={displayCover}
       {titleTransitionName}
       {coverTransitionName}
     />
