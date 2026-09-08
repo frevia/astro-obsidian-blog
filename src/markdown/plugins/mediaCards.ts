@@ -290,7 +290,7 @@ function resolvePosterPath(
   const sourceDirectory = path.dirname(sourcePath);
   const sourceParts = sourceDirectory.split(path.sep);
   const dataIndex = sourceParts.lastIndexOf("data");
-  const fixtureMarker = ["blog", "posts", "snippets"]
+  const fixtureMarker = ["blog", "posts", "notes", "snippets"]
     .map(marker => ({ marker, index: sourceParts.lastIndexOf(marker) }))
     .filter(({ index }) => index >= 0)
     .sort((left, right) => right.index - left.index)[0];

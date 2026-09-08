@@ -40,7 +40,7 @@ export default defineAstroPaperConfig({
   local: {
     content: {
       blogPath: "src/data/blog",
-      diaryPath: "src/data/snippets",
+      diaryPath: "src/data/notes",
       wikiPath: "src/data/wiki",
     },
     showCalendar: true,
