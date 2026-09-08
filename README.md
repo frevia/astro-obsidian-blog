@@ -46,7 +46,7 @@
 ├── src/
 │   ├── data/                   # 独立 blog-data Git 子模块
 │   │   ├── blog/               # 博客文章
-│   │   ├── snippets/           # 日常碎片时间线
+│   │   ├── notes/              # 日常碎片时间线
 │   │   ├── wiki/               # 白名单生成的公开知识页
 │   │   └── attachments/        # 内容附件
 │   ├── components/             # Astro、React 和 Preact 组件
@@ -227,7 +227,7 @@ export default defineAstroPaperConfig({
   local: {
     content: {
       blogPath: "src/data/blog",
-      diaryPath: "src/data/snippets",
+      diaryPath: "src/data/notes",
       wikiPath: "src/data/wiki",
     },
     showCalendar: true,
@@ -293,7 +293,7 @@ canonicalURL: "https://example.com/original" # 可选
 
 ### 碎片
 
-碎片放在 `src/data/snippets/`，按年份和月份组织，例如 `2026/04/2026-04-13.md`。原始收藏保留在私有 Obsidian Vault 的 `site/clip/`，不作为网站内容集合发布；整理后的公开知识进入 `src/data/wiki/`。
+Notes 放在 `src/data/notes/`，按年份和月份组织，例如 `2026/04/2026-04-13.md`。原始收藏保留在私有 Obsidian Vault 的 `site/clip/`，不作为网站内容集合发布；整理后的公开知识进入 `src/data/wiki/`。
 
 媒体卡片使用 Obsidian 风格的 fenced block：
 

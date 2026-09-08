@@ -503,7 +503,7 @@ describe("processor contract", () => {
       fileURL: new URL("file:///vault/src/data/blog/阅读/文章.mdx"),
     });
     const snippet = await renderer.render(source, {
-      fileURL: new URL("file:///vault/src/data/snippets/2026/08/今天.md"),
+      fileURL: new URL("file:///vault/src/data/notes/2026/08/今天.md"),
     });
     const fixture = await renderer.render(source, {
       fileURL: postFixtureUrl,

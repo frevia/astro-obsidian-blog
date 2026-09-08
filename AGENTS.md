@@ -4,7 +4,7 @@
 
 This is an Astro 7 blog with React/Preact islands and TypeScript. Application code lives in `src/`: routes and API endpoints are under `src/pages/`, reusable UI in `src/components/`, page shells in `src/layouts/`, Markdown processing in `src/markdown/`, and shared helpers in `src/utils/` and `src/lib/`. Global styles and theme tokens live in `src/styles/`. Static files and generated feed/map data belong in `public/`; repository automation belongs in `scripts/`.
 
-`src/data/` is the separate `blog-data` Git submodule containing posts, snippets, attachments, and the generated public Wiki projection. Initialize it with `git submodule update --init --recursive` before changing content. Raw clips and Wiki source files remain in the private Obsidian Vault. Only allowlisted Wiki concepts reach `src/data/wiki/` through the export workflow; never restore `src/data/clip/` as a public content collection.
+`src/data/` is the separate `blog-data` Git submodule containing posts, Notes, attachments, and the generated public Wiki projection. Initialize it with `git submodule update --init --recursive` before changing content. Raw clips and Wiki source files remain in the private Obsidian Vault. Only allowlisted Wiki concepts reach `src/data/wiki/` through the export workflow; never restore `src/data/clip/` as a public content collection.
 
 ## Build, Test, and Development Commands
 

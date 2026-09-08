@@ -182,7 +182,7 @@ describe("AstroPaper config", () => {
     expect(config.local).toEqual({
       content: {
         blogPath: "src/data/blog",
-        diaryPath: "src/data/snippets",
+        diaryPath: "src/data/notes",
         wikiPath: "src/data/wiki",
       },
       showCalendar: true,
