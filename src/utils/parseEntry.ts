@@ -155,12 +155,37 @@ export async function parseEntry(
 
     const cardBlockRegex = /```card-(movie|tv|book|music)[^\n]*\n?[\s\S]*?```/;
     const cardBlockMatch = cardBlockRegex.exec(blockContent);
-    const rawTextBeforeCard = cardBlockMatch
+    let rawTextBeforeCard = cardBlockMatch
       ? blockContent.slice(0, cardBlockMatch.index)
       : blockContent;
-    const rawTextAfterCard = cardBlockMatch
+    let rawTextAfterCard = cardBlockMatch
       ? blockContent.slice(cardBlockMatch.index + cardBlockMatch[0].length)
       : "";
+
+    const relatedLinkSource = cardBlockMatch
+      ? rawTextAfterCard
+      : rawTextBeforeCard;
+    const trailingPostLinkMatch = relatedLinkSource.match(
+      /(?:^|\n)[ \t]*(?:[-*_]{3,}[ \t]*\n(?:[ \t]*\n)*[ \t]*)?\[([^\]\n]+)\]\(([^)\n]+)\)[ \t]*$/
+    );
+    const trailingPostHref = trailingPostLinkMatch
+      ? processLink(trailingPostLinkMatch[2].trim(), currentFilePath)
+      : "";
+    const relatedPostLink =
+      trailingPostLinkMatch && trailingPostHref.startsWith("/posts/")
+        ? {
+            href: withBase(trailingPostHref, base),
+            title: trailingPostLinkMatch[1].trim(),
+          }
+        : undefined;
+
+    if (relatedPostLink && trailingPostLinkMatch?.index !== undefined) {
+      const textWithoutRelatedLink = relatedLinkSource
+        .slice(0, trailingPostLinkMatch.index)
+        .trim();
+      if (cardBlockMatch) rawTextAfterCard = textWithoutRelatedLink;
+      else rawTextBeforeCard = textWithoutRelatedLink;
+    }
 
     const originalBlockContent = blockContent;
 
@@ -698,6 +723,7 @@ export async function parseEntry(
     if (
       text ||
       postText ||
+      relatedPostLink ||
       images.length > 0 ||
       htmlContent ||
       movieData ||
@@ -709,6 +735,7 @@ export async function parseEntry(
         time,
         text,
         postText,
+        relatedPostLink,
         images,
         htmlContent,
         movieData,

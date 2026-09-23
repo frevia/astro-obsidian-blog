@@ -10,11 +10,18 @@ export interface DiaryImage {
   height: number;
 }
 
+/** A single blog article linked after a media card. */
+export interface RelatedPostLink {
+  href: string;
+  title: string;
+}
+
 /** The normalized content that can appear under one diary timestamp. */
 export interface TimeBlock {
   time: string;
   text?: string;
   postText?: string;
+  relatedPostLink?: RelatedPostLink;
   images?: DiaryImage[];
   htmlContent?: string;
   movieData?: MediaCardData;

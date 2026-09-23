@@ -3,6 +3,8 @@ import MediaCard from "./MediaCard";
 import type { MediaCardData } from "../types/media";
 import DiaryImageGallery from "./diary/DiaryImageGallery";
 import type { DiaryImage } from "./diary/types";
+import type { RelatedPostLink as RelatedPostLinkData } from "./diary/types";
+import RelatedPostLink from "./diary/RelatedPostLink";
 
 // DiaryImageGallery owns the optional lightbox enhancement (including
 // `await import("lightgallery")`) so this compatibility renderer has no
@@ -13,6 +15,7 @@ export interface TimelineItemProps {
   date?: string;
   text?: string;
   postText?: string;
+  relatedPostLink?: RelatedPostLinkData;
   images?: DiaryImage[];
   htmlContent?: string;
   movieData?: MediaCardData;
@@ -27,6 +30,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
   date,
   text,
   postText,
+  relatedPostLink,
   images,
   htmlContent,
   movieData,
@@ -35,6 +39,8 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
   musicData,
   footnoteHtml,
 }) => {
+  const mediaSpacing = relatedPostLink ? "mb-2" : "mb-4";
+
   return (
     <article
       className="mb-1 pb-6 last:pb-0"
@@ -112,7 +118,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
 
               {movieData && (
                 <section
-                  className="movie-card-container mb-4 px-0"
+                  className={`movie-card-container px-0 ${mediaSpacing}`}
                   aria-label="电影信息"
                 >
                   <MediaCard mediaData={movieData} cardType="movie" />
@@ -121,7 +127,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
 
               {tvData && (
                 <section
-                  className="tv-card-container mb-4 px-0"
+                  className={`tv-card-container px-0 ${mediaSpacing}`}
                   aria-label="电视剧信息"
                 >
                   <MediaCard mediaData={tvData} cardType="tv" />
@@ -130,7 +136,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
 
               {bookData && (
                 <section
-                  className="book-card-container mb-4 px-0"
+                  className={`book-card-container px-0 ${mediaSpacing}`}
                   aria-label="书籍信息"
                 >
                   <MediaCard mediaData={bookData} cardType="book" />
@@ -139,12 +145,14 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
 
               {musicData && (
                 <section
-                  className="music-card-container mb-4 px-0"
+                  className={`music-card-container px-0 ${mediaSpacing}`}
                   aria-label="音乐信息"
                 >
                   <MediaCard mediaData={musicData} cardType="music" />
                 </section>
               )}
+
+              {relatedPostLink && <RelatedPostLink {...relatedPostLink} />}
 
               {postText && (
                 <div

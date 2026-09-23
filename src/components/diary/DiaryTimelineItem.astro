@@ -1,7 +1,11 @@
 ---
 import MediaCard from "@/components/MediaCard.astro";
 import DiaryImageGallery from "./DiaryImageGallery";
-import type { DiaryImage } from "./types";
+import RelatedPostLink from "./RelatedPostLink";
+import type {
+  DiaryImage,
+  RelatedPostLink as RelatedPostLinkData,
+} from "./types";
 import type { MediaCardData } from "@/types/media";
 import { withBase } from "@/utils/withBase";
 
@@ -10,6 +14,7 @@ interface Props {
   date: string;
   text?: string;
   postText?: string;
+  relatedPostLink?: RelatedPostLinkData;
   images?: DiaryImage[];
   htmlContent?: string;
   movieData?: MediaCardData;
@@ -24,6 +29,7 @@ const {
   date,
   text,
   postText,
+  relatedPostLink,
   images,
   htmlContent,
   movieData,
@@ -46,6 +52,7 @@ const lightGalleryLicenseKey =
 const hasGalleryEnhancement =
   Boolean(lightGalleryLicenseKey) &&
   lightGalleryLicenseKey !== "0000-0000-000-0000";
+const mediaSpacing = relatedPostLink ? "mb-2" : "mb-4";
 ---
 
 <article
@@ -136,7 +143,7 @@ const hasGalleryEnhancement =
           {
             movieData && (
               <section
-                class="movie-card-container mb-4 px-0"
+                class:list={["movie-card-container px-0", mediaSpacing]}
                 aria-label="电影信息"
               >
                 <MediaCard mediaData={movieData} cardType="movie" />
@@ -147,7 +154,7 @@ const hasGalleryEnhancement =
           {
             tvData && (
               <section
-                class="tv-card-container mb-4 px-0"
+                class:list={["tv-card-container px-0", mediaSpacing]}
                 aria-label="电视剧信息"
               >
                 <MediaCard mediaData={tvData} cardType="tv" />
@@ -158,7 +165,7 @@ const hasGalleryEnhancement =
           {
             bookData && (
               <section
-                class="book-card-container mb-4 px-0"
+                class:list={["book-card-container px-0", mediaSpacing]}
                 aria-label="书籍信息"
               >
                 <MediaCard mediaData={bookData} cardType="book" />
@@ -169,13 +176,15 @@ const hasGalleryEnhancement =
           {
             musicData && (
               <section
-                class="music-card-container mb-4 px-0"
+                class:list={["music-card-container px-0", mediaSpacing]}
                 aria-label="音乐信息"
               >
                 <MediaCard mediaData={musicData} cardType="music" />
               </section>
             )
           }
+
+          {relatedPostLink && <RelatedPostLink {...relatedPostLink} />}
 
           {
             postText && (
