@@ -49,7 +49,9 @@ describe("wiki reading UI", () => {
     expect(indexSource).not.toContain("BackButton");
     expect(detailsSource).not.toContain("BackButton");
     expect(indexSource).toContain('import "@/styles/wiki-index.css"');
-    expect(indexStyles).toContain(".wiki-hero-copy::before");
+    expect(indexSource).toContain('class="page-intro"');
+    expect(indexSource).toContain("page-title text-2xl");
+    expect(indexStyles).not.toContain(".wiki-hero h1");
     expect(detailsSource).toContain(".wiki-entry-heading::before");
   });
 });
