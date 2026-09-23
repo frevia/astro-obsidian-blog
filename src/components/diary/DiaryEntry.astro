@@ -25,8 +25,6 @@ const yearLabel = formatSiteDate(entryDateUTC, "zh-CN", {
 });
 const threadKey = `twikoo-diary-${date}`;
 const threadPath = withBase(`/diary/${date}`);
-const alignsCommentsWithRelatedLink =
-  timeBlocks.length === 1 && Boolean(timeBlocks[0]?.relatedPostLink);
 ---
 
 <div class="date-group mb-4 pb-4" data-pagefind-weight="2">
@@ -72,12 +70,7 @@ const alignsCommentsWithRelatedLink =
     {timeBlocks.map(block => <DiaryTimelineItem {...block} date={date} />)}
   </div>
 
-  <div
-    class:list={[
-      "flex flex-col sm:flex-row sm:items-start sm:gap-3",
-      alignsCommentsWithRelatedLink && "sm:-mt-10",
-    ]}
-  >
+  <div class="flex flex-col sm:flex-row sm:items-start sm:gap-3">
     <div class="hidden sm:block sm:w-0 sm:flex-shrink-0" aria-hidden="true">
     </div>
     <div class="w-full min-w-0 flex-1">

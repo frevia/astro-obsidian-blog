@@ -72,8 +72,9 @@ describe("Astro diary rendering contracts", () => {
     expect(entry).toContain("collapsedWhenEmpty");
     expect(entry).toContain("data-diary-date");
     expect(entry).toContain("diary-date-accent");
-    expect(entry).toContain("alignsCommentsWithRelatedLink");
-    expect(entry).toContain("sm:-mt-10");
+    for (const renderer of [entry, source("../DiaryEntryReact.tsx")]) {
+      expect(renderer).not.toContain("sm:-mt-10");
+    }
     expect(entry).toContain('class="date-group mb-4 pb-4"');
     expect(entry).not.toContain("date-group mb-4 border-b");
     expect(entry).not.toContain("font-bold text-skin-accent");
