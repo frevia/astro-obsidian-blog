@@ -72,7 +72,7 @@ describe("editorial home and post list contracts", () => {
     const card = source("components/Card.astro");
 
     expect(card).toContain("data-content-kind={contentKind}");
-    expect(card).toContain("data-cover-orientation={isEditorial");
+    expect(card).toContain("data-cover-orientation={!isStandard");
     expect(card).toContain("data-transition-title={titleTransitionName}");
     expect(card).toContain("data-transition-cover={coverTransitionName}");
     expect(card).toContain("transition:name={titleTransitionName}");
@@ -114,7 +114,9 @@ describe("editorial home and post list contracts", () => {
     expect(card).toContain('fit="contain"');
     expect(card.match(/fit="cover"/g)).toHaveLength(1);
     expect(card.match(/style="height: 100%;"/g)).toHaveLength(1);
-    expect(card).toContain('style={isEditorial ? undefined : "height: 100%;"}');
+    expect(card).toMatch(
+      /style=\{\s*isEditorial \|\| coverOrientation === "portrait"\s*\? undefined\s*: "height: 100%;"/
+    );
     expect(card).not.toContain("blur-md");
     expect(card).toContain("post-card-cover-frame");
     expect(card).not.toContain("!isEditorial && (");

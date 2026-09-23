@@ -20,38 +20,34 @@ describe("content hub presentation contracts", () => {
     expect(source).not.toContain('type="search"');
   });
 
-  it("presents the wiki as an editorial directory", () => {
+  it("keeps the wiki browse-first without repeating concept descriptions", () => {
     const source = read("src/pages/wiki/index.astro");
 
-    expect(source.indexOf('class="wiki-recommendations"')).toBeLessThan(
+    expect(source.indexOf('class="wiki-domains"')).toBeLessThan(
       source.indexOf('class="wiki-explorer"')
     );
-    expect(source).toContain("01 / SELECTED");
-    expect(source).toContain("02 / BROWSE");
-    expect(source).toContain("wiki-recommendation-feature");
-    expect(source).toContain("wiki-recommendation-extensions");
     expect(source).toContain("wiki-directory-list");
     expect(source).toContain('id="wiki-search-input"');
     expect(source).toContain('data-wiki-filter="all"');
-    expect(source).toContain('import "@/styles/wiki-index.css"');
     expect(source).toContain("data-wiki-filter={domain.key}");
+    expect(source).toContain('aria-pressed="false"');
     expect(source).toContain("data-wiki-entry");
-    expect(source).not.toContain("wiki-metrics");
-    expect(source).not.toContain("wiki-process");
-    expect(source).not.toContain("wiki-highlight-grid");
-    expect(source).not.toContain("wiki-card-grid");
+    // Descriptions remain searchable, but no longer fill the browse surface.
+    expect(source).toContain("${item.title} ${item.description}");
+    expect(source).not.toContain("<span>{item.description}</span>");
+    expect(source).not.toContain("wiki-recommendations");
+    expect(source).not.toContain("domain.description");
     expect(source).toContain("max-w-app");
-    expect(source).not.toContain("recent");
   });
 
-  it("keeps home fragment cards aligned without stagger offsets", () => {
+  it("lets short home fragments keep their natural height", () => {
     const fragmentCard = read("src/components/home/FragmentPreviewCard.astro");
     const homeEditorial = read("src/components/home/HomeEditorial.astro");
 
     expect(fragmentCard).not.toContain("sm:mt-8");
     expect(fragmentCard).not.toContain("sm:mb-8");
-    expect(fragmentCard).toContain("min-h-72");
-    expect(fragmentCard).toContain("sm:min-h-80");
+    expect(fragmentCard).not.toMatch(/min-h-|h-full.*flex-col|mt-auto/);
+    expect(homeEditorial).toContain("grid items-start gap-4");
     expect(fragmentCard).toContain("line-clamp-4");
     expect(fragmentCard).toContain("home-lift-card");
     expect(fragmentCard).toContain("Notes");

@@ -3,11 +3,7 @@ import { getCollection } from "astro:content";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
-import {
-  buildWikiCatalog,
-  selectWikiHighlights,
-  WIKI_DOMAINS,
-} from "@/utils/wikiCatalog";
+import { buildWikiCatalog, WIKI_DOMAINS } from "@/utils/wikiCatalog";
 import { getWikiTitle } from "@/utils/wikiPath";
 import { buildWikilinkGraph } from "@/utils/wikilinkGraph";
 import { SITE } from "@/config";
@@ -26,7 +22,13 @@ const graphEntries = entries.map(entry => ({
 }));
 const graph = buildWikilinkGraph(graphEntries);
 const catalog = buildWikiCatalog(entries, graph);
-const highlights = selectWikiHighlights(catalog, 3);
+const domainIcons = {
+  trust: "M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6l-8-3Z M8 12l3 3 5-6",
+  learning: "M4 19h16 M6 15v-4 M12 15V7 M18 15V3",
+  thinking: "M9 18h6 M10 21h4 M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 2H9s0-1-1-2Z",
+  living:
+    "M12 21v-9 M12 16C5 16 3 12 3 6c6 0 9 3 9 8 M12 12c0-6 4-9 9-9 0 6-3 10-9 10",
+};
 const layoutProps = {
   title: `知识库 | ${SITE.title}`,
   description: "把收藏、文章和实践沉淀成持续更新的知识网络。",
@@ -42,7 +44,7 @@ const layoutProps = {
   <Header />
   <main
     id="main-content"
-    class="wiki-library page-shell mx-auto mt-4 w-full max-w-app px-4 pb-16"
+    class="wiki-library page-shell mx-auto mt-6 w-full max-w-app px-4 pb-16"
     data-content-kind="wiki"
     data-pagefind-body
     data-pagefind-weight="4"
@@ -50,11 +52,17 @@ const layoutProps = {
     <span class="sr-only" data-pagefind-meta="type">wiki</span>
 
     <header class="wiki-hero">
-      <div class="wiki-hero-copy">
-        <p class="wiki-kicker">Knowledge Base · 持续整理</p>
-        <h1 data-pagefind-meta="title">知识库</h1>
-        <p class="wiki-intro">
-          把值得反复使用的概念整理出来，连接来源、实践与新的问题。这里记录的不是结论清单，而是一张可以继续生长的理解网络。
+      <div class="page-intro">
+        <h1
+          class="page-title text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+          data-pagefind-meta="title"
+        >
+          知识库
+        </h1>
+        <p
+          class="page-desc mt-2 text-sm leading-7 text-foreground/75 sm:text-base"
+        >
+          从一个概念出发，找到新的连接。
         </p>
       </div>
       <label class="wiki-search">
@@ -66,125 +74,71 @@ const layoutProps = {
         <input
           id="wiki-search-input"
           type="search"
-          placeholder="搜索概念或描述…"
+          placeholder="搜索概念、关键词…"
           autocomplete="off"
         />
-        <kbd>⌘ K</kbd>
       </label>
     </header>
 
-    <section
-      class="wiki-recommendations"
-      aria-labelledby="wiki-recommendations-title"
-      data-pagefind-ignore
-    >
-      <header class="wiki-section-heading">
-        <div>
-          <p class="wiki-section-number">01 / SELECTED</p>
-          <h2 id="wiki-recommendations-title">推荐阅读</h2>
-        </div>
-        <p>按知识连接数挑选，作为进入知识网络的几个入口。</p>
-      </header>
-
-      {
-        highlights.length > 0 ? (
-          <div class="wiki-recommendation-layout">
-            {highlights[0] && (
-              <article
-                class="wiki-recommendation-feature"
-                data-wiki-domain={highlights[0].domain.key}
-              >
-                <a href={highlights[0].href} data-astro-prefetch="hover">
-                  <div class="wiki-recommendation-meta">
-                    <span>{highlights[0].domain.label}</span>
-                    <span>{highlights[0].relations} 个知识连接</span>
-                  </div>
-                  <h3>{highlights[0].title}</h3>
-                  <p>{highlights[0].description}</p>
-                  <span class="wiki-recommendation-link">
-                    打开概念 <b aria-hidden="true">↗</b>
-                  </span>
-                </a>
-              </article>
-            )}
-
-            {highlights.length > 1 && (
-              <ol class="wiki-recommendation-extensions" aria-label="延伸阅读">
-                {highlights.slice(1).map(item => (
-                  <li
-                    class="wiki-recommendation-extension"
-                    data-wiki-domain={item.domain.key}
-                  >
-                    <a href={item.href} data-astro-prefetch="hover">
-                      <span class="wiki-recommendation-domain">
-                        {item.domain.label}
-                      </span>
-                      <h3>{item.title}</h3>
-                      <p>{item.description}</p>
-                      <span class="wiki-recommendation-link">
-                        {item.relations} 个知识连接 <b aria-hidden="true">↗</b>
-                      </span>
-                    </a>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
-        ) : (
-          <p class="wiki-recommendation-empty">知识网络正在整理中。</p>
-        )
-      }
-    </section>
-
-    <section class="wiki-explorer" aria-labelledby="wiki-explorer-title">
-      <header class="wiki-explorer-head">
-        <div>
-          <p class="wiki-section-number">02 / BROWSE</p>
-          <h2 id="wiki-explorer-title">知识目录</h2>
-        </div>
-        <p>按领域浏览全部 {catalog.length} 个概念，或使用上方搜索快速定位。</p>
-      </header>
-
-      <div
-        class="wiki-domain-tabs"
-        role="group"
-        aria-label="知识领域筛选"
-        data-pagefind-ignore
-      >
-        <button
-          type="button"
-          class="is-active"
-          data-wiki-filter="all"
-          aria-pressed="true"
-        >
-          全部 <span>{catalog.length}</span>
-        </button>
+    <section class="wiki-domains" aria-label="知识领域" data-pagefind-ignore>
+      <div class="wiki-domain-grid" role="group" aria-label="知识领域筛选">
         {
           WIKI_DOMAINS.map(domain => (
             <button
               type="button"
+              class="wiki-domain-card"
+              data-wiki-domain={domain.key}
               data-wiki-filter={domain.key}
               aria-pressed="false"
+              aria-controls="wiki-directory"
             >
-              {domain.label}{" "}
-              <span>
-                {catalog.filter(item => item.domain.key === domain.key).length}
+              <span class="wiki-domain-top">
+                <span>{domain.index}</span>
+                <span>
+                  {
+                    catalog.filter(item => item.domain.key === domain.key)
+                      .length
+                  }{" "}
+                  个概念
+                </span>
+              </span>
+              <svg
+                class="wiki-domain-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d={domainIcons[domain.key]} />
+              </svg>
+              <span class="wiki-domain-bottom">
+                <strong>{domain.label}</strong>
+                <span class="wiki-domain-arrow" aria-hidden="true">
+                  ↗
+                </span>
               </span>
             </button>
           ))
         }
       </div>
+    </section>
 
-      <p
-        id="wiki-filter-status"
-        class="sr-only"
-        role="status"
-        aria-live="polite"
-      >
-        共 {catalog.length} 个知识页
-      </p>
+    <section class="wiki-explorer" aria-labelledby="wiki-explorer-title">
+      <header class="wiki-explorer-head">
+        <h2 id="wiki-explorer-title">概念目录</h2>
+        <div class="wiki-explorer-tools">
+          <p id="wiki-filter-status" role="status" aria-live="polite">
+            共 {catalog.length} 个概念
+          </p>
+          <button
+            type="button"
+            class="wiki-all is-active"
+            data-wiki-filter="all"
+            aria-pressed="true"
+            aria-controls="wiki-directory">查看全部</button
+          >
+        </div>
+      </header>
 
-      <div class="wiki-directory">
+      <div id="wiki-directory" class="wiki-directory">
         {
           WIKI_DOMAINS.map(domain => {
             const items = catalog.filter(
@@ -197,39 +151,27 @@ const layoutProps = {
                 data-wiki-domain-section={domain.key}
               >
                 <header class="wiki-directory-heading">
-                  <span class="wiki-directory-index">{domain.index}</span>
-                  <div class="wiki-directory-title">
-                    <p>{domain.eyebrow}</p>
-                    <h3>{domain.label}</h3>
-                  </div>
-                  <span class="wiki-directory-count">
-                    {items.length} 个概念
-                  </span>
-                  <p class="wiki-directory-description">{domain.description}</p>
+                  <h3>{domain.label}</h3>
+                  <span class="wiki-directory-count">{items.length}</span>
                 </header>
                 <ul
                   class="wiki-directory-list"
                   aria-label={`${domain.label}知识目录`}
                 >
-                  {items.map((item, index) => (
+                  {items.map(item => (
                     <li
                       class="wiki-directory-row"
                       data-wiki-entry
                       data-wiki-domain={domain.key}
                       data-wiki-search={`${item.title} ${item.description}`.toLocaleLowerCase()}
                     >
-                      <a href={item.href} data-astro-prefetch="hover">
-                        <span class="wiki-directory-row-index">
-                          {domain.index}.{String(index + 1).padStart(2, "0")}
-                        </span>
-                        <span class="wiki-directory-row-copy">
-                          <strong>{item.title}</strong>
-                          <span>{item.description}</span>
-                        </span>
-                        <span class="wiki-directory-row-meta">
-                          <span>{item.relations} 个知识连接</span>
-                          <b aria-hidden="true">↗</b>
-                        </span>
+                      <a
+                        class="app-hover-row"
+                        href={item.href}
+                        data-astro-prefetch="hover"
+                      >
+                        <strong>{item.title}</strong>
+                        <span aria-hidden="true">↗</span>
                       </a>
                     </li>
                   ))}
@@ -295,7 +237,7 @@ const layoutProps = {
       });
 
       empty.hidden = visible > 0;
-      status.textContent = `找到 ${visible} 个知识页`;
+      status.textContent = `${visible} 个概念`;
     };
 
     const cleanups: Array<() => void> = [];
@@ -317,14 +259,6 @@ const layoutProps = {
       cleanups.push(() => button.removeEventListener("click", onClick));
     });
 
-    const onKeydown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        input.focus();
-      }
-    };
-    document.addEventListener("keydown", onKeydown);
-    cleanups.push(() => document.removeEventListener("keydown", onKeydown));
     window.__wikiExplorerCleanup = () => cleanups.forEach(cleanup => cleanup());
     apply();
   }
