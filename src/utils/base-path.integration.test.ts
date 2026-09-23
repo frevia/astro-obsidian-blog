@@ -35,7 +35,7 @@ describe("base path integration", () => {
 
     const header = source("src/components/Header.astro");
     expect(header).toContain("stripBase(Astro.url.pathname)");
-    expect(header).toContain('withBase("/favicon.png")');
+    expect(header).toContain('withBase("/header-logo.png")');
     expect(header).toContain("href={withBase(item.href)}");
     expect(header).toContain('href={withBase("/rss.xml")}');
 
