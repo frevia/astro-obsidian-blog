@@ -20,6 +20,8 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
 }) => {
   const threadKey = `twikoo-diary-${date}`;
   const threadPath = withBase(`/diary/${date}`);
+  const alignsCommentsWithRelatedLink =
+    timeBlocks.length === 1 && Boolean(timeBlocks[0]?.relatedPostLink);
 
   const entryDateUTC = parseYMDAsUTC(date);
 
@@ -56,10 +58,7 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
   }, [date]);
 
   return (
-    <div
-      className="date-group mb-5 border-b border-border/25 pb-5"
-      data-pagefind-weight="2"
-    >
+    <div className="date-group mb-4 pb-4" data-pagefind-weight="2">
       <header className="mb-8">
         <div className="flex items-baseline gap-3">
           <h2
@@ -102,6 +101,7 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
             date={date}
             text={block.text}
             postText={block.postText}
+            relatedPostLink={block.relatedPostLink}
             images={block.images}
             htmlContent={block.htmlContent}
             movieData={block.movieData}
@@ -113,7 +113,9 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
         ))}
       </div>
       {/* 评论与正文对齐：与时间线同结构，sm 下左侧留出与时间标签等宽的空位 */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:gap-3">
+      <div
+        className={`flex flex-col sm:flex-row sm:items-start sm:gap-3 ${alignsCommentsWithRelatedLink ? "sm:-mt-10" : ""}`}
+      >
         <div
           className="hidden sm:block sm:w-0 sm:flex-shrink-0"
           aria-hidden="true"

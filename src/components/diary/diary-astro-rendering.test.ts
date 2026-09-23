@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import DiaryImageGallery from "./DiaryImageGallery";
+import RelatedPostLink from "./RelatedPostLink";
 
 const source = (file: string) =>
   readFileSync(resolve(import.meta.dirname, file), "utf-8");
@@ -41,7 +42,27 @@ describe("Astro diary rendering contracts", () => {
     expect(item).toContain("hasGalleryEnhancement");
     expect(item).toContain("set:html={text}");
     expect(item).toContain("set:html={postText}");
+    expect(item).toContain("<RelatedPostLink {...relatedPostLink} />");
     expect(item).toContain("withBase(path)");
+    expect(item).toContain("border-dashed border-border/40");
+  });
+
+  it("renders related post links as a compact, borderless action", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(RelatedPostLink, {
+        href: "/posts/example",
+        title: "山里的来信",
+      })
+    );
+
+    expect(html).toContain('aria-label="关联文章"');
+    expect(html).toContain('href="/posts/example"');
+    expect(html).toContain("关联文章");
+    expect(html).toContain("山里的来信");
+    expect(html).toContain("no-underline");
+    expect(html).toContain("mb-1");
+    expect(html).not.toContain("shadow");
+    expect(html).not.toContain("border-");
   });
 
   it("hydrates comments only when their static entry reaches the viewport", () => {
@@ -51,6 +72,10 @@ describe("Astro diary rendering contracts", () => {
     expect(entry).toContain("collapsedWhenEmpty");
     expect(entry).toContain("data-diary-date");
     expect(entry).toContain("diary-date-accent");
+    expect(entry).toContain("alignsCommentsWithRelatedLink");
+    expect(entry).toContain("sm:-mt-10");
+    expect(entry).toContain('class="date-group mb-4 pb-4"');
+    expect(entry).not.toContain("date-group mb-4 border-b");
     expect(entry).not.toContain("font-bold text-skin-accent");
     expect(entry).not.toContain("<script");
 
