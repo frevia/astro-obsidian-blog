@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { lockBodyScroll } from "../article-lightbox";
 import type { DiaryImage } from "./types";
 
 import "lightgallery/css/lightgallery.css";
@@ -40,6 +41,14 @@ export default function DiaryImageGallery({
   images = [],
   htmlContent,
 }: DiaryImageGalleryProps) {
+  const previewRef = useRef<HTMLDialogElement>(null);
+  const [preview, setPreview] = useState<{ src: string; alt: string } | null>(
+    null
+  );
+  useEffect(() => {
+    if (preview) return lockBodyScroll(document.body);
+  }, [preview]);
+
   const galleryRef = useRef<HTMLElement>(null);
   const lightGalleryRef = useRef<{ destroy: () => void } | null>(null);
   const optimizedImages: OptimizedDiaryImage[] = images.map(image => ({
@@ -141,6 +150,22 @@ export default function DiaryImageGallery({
               data-lg-size={`${optimizedImage.width}-${optimizedImage.height}`}
               data-sub-html={lightboxCaption}
               href={optimizedImage.original}
+              onClick={event => {
+                if (
+                  lightGalleryRef.current ||
+                  event.ctrlKey ||
+                  event.metaKey ||
+                  event.shiftKey ||
+                  event.altKey
+                )
+                  return;
+                event.preventDefault();
+                setPreview({
+                  src: optimizedImage.original,
+                  alt: image.alt || "图片预览",
+                });
+                previewRef.current?.showModal();
+              }}
               aria-label={`查看大图：${image.alt}${image.title ? ` - ${image.title}` : ""}`}
             >
               <img
@@ -166,6 +191,32 @@ export default function DiaryImageGallery({
           );
         })}
       </div>
+      <dialog
+        ref={previewRef}
+        aria-label="图片预览"
+        className="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none border-0 bg-black/90 p-4 text-white backdrop:bg-black/90 open:flex open:items-center open:justify-center"
+        onClose={() => setPreview(null)}
+        onClick={event => {
+          if (event.target === event.currentTarget) previewRef.current?.close();
+        }}
+      >
+        <button
+          type="button"
+          autoFocus
+          aria-label="关闭图片预览"
+          className="absolute top-4 right-4 z-10 rounded-full bg-white/15 px-4 py-2 text-2xl focus-visible:outline-2 focus-visible:outline-white"
+          onClick={() => previewRef.current?.close()}
+        >
+          ×
+        </button>
+        {preview && (
+          <img
+            src={preview.src}
+            alt={preview.alt}
+            className="max-h-[85dvh] max-w-full object-contain"
+          />
+        )}
+      </dialog>
       {optimizedImages.length > 1 && (
         <figcaption className="sr-only">
           图片集合包含 {optimizedImages.length} 张图片，点击任意图片可查看大图

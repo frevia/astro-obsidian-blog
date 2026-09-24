@@ -29,6 +29,9 @@ describe("Astro diary rendering contracts", () => {
     expect(html).toContain('href="/blog/attachments/lake.webp"');
     expect(html).toContain('src="/blog/_astro/lake-thumb.webp"');
     expect(html).toContain('alt="湖边"');
+    expect(html).toContain("<dialog");
+    expect(html).toContain('aria-label="关闭图片预览"');
+    expect(html).not.toMatch(/<dialog[^>]* open(?:=|\s|>)/);
     expect(html).not.toContain("isImagesLoaded");
     expect(html).not.toContain("等待 effect");
   });
@@ -39,7 +42,7 @@ describe("Astro diary rendering contracts", () => {
     expect(item).toContain('MediaCard from "@/components/MediaCard.astro"');
     expect(item).toContain("DiaryImageGallery");
     expect(item).toContain('client:visible={{ rootMargin: "300px" }}');
-    expect(item).toContain("hasGalleryEnhancement");
+    expect(item).not.toContain("hasGalleryEnhancement");
     expect(item).toContain("set:html={text}");
     expect(item).toContain("set:html={postText}");
     expect(item).toContain("<RelatedPostLink {...relatedPostLink} />");
