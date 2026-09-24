@@ -1,13 +1,36 @@
-set -e
-if [ -n "$GH_TOKEN" ]; then
-  rm -rf src/data
-  # 从 .gitmodules 读取 URL 并转换为 HTTPS 格式
-  REPO_URL=$(git config -f .gitmodules --get submodule.src/data.url)
-  # 优先使用 .gitmodules 中配置的分支，未配置时默认 main
-  REPO_BRANCH=$(git config -f .gitmodules --get submodule.src/data.branch || echo "main")
-  # 将 SSH 格式转换为 HTTPS 格式
-  HTTPS_URL=$(echo "$REPO_URL" | sed 's|git@github.com:|https://github.com/|')
-  git clone --depth=1 --single-branch --branch "$REPO_BRANCH" "https://${GH_TOKEN}@$(echo "$HTTPS_URL" | sed 's|https://||')" src/data
-else
-  echo "GH_TOKEN missing"; exit 1
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ -z "${GH_TOKEN:-}" ]; then
+  echo "GH_TOKEN missing" >&2
+  exit 1
 fi
+export GH_TOKEN
+
+REPO_URL=$(git config -f .gitmodules --get submodule.src/data.url)
+REPO_BRANCH=$(git config -f .gitmodules --get submodule.src/data.branch || echo main)
+HTTPS_URL="${REPO_URL/git@github.com:/https://github.com/}"
+
+FETCH_TMP=$(mktemp -d)
+trap 'rm -rf "$FETCH_TMP"' EXIT
+cat > "$FETCH_TMP/askpass" <<'ASKPASS'
+#!/usr/bin/env bash
+case "$1" in
+  *Username*) printf '%s\n' 'x-access-token' ;;
+  *Password*) printf '%s\n' "$GH_TOKEN" ;;
+  *) exit 1 ;;
+esac
+ASKPASS
+chmod 700 "$FETCH_TMP/askpass"
+
+# Keep credentials out of the clone URL, process arguments and saved remote.
+if ! GIT_ASKPASS="$FETCH_TMP/askpass" GIT_TERMINAL_PROMPT=0 \
+  git -c credential.helper= clone --depth=1 --single-branch \
+  --branch "$REPO_BRANCH" "$HTTPS_URL" "$FETCH_TMP/data"; then
+  echo "Failed to fetch blog-data. Check Vercel GH_TOKEN validity and repository read access." >&2
+  exit 1
+fi
+
+rm -rf src/data
+mkdir -p src
+mv "$FETCH_TMP/data" src/data
