@@ -7,7 +7,7 @@ const labels = useTranslations(SITE.lang).lightbox;
 
 <div
   id="article-lightbox"
-  class="fixed inset-0 z-50 hidden items-center justify-center bg-black/90 p-4 text-white"
+  class="fixed inset-0 z-[100] hidden items-center justify-center overflow-hidden bg-black/90 p-4 text-white"
   role="dialog"
   aria-modal="true"
   aria-hidden="true"
@@ -18,7 +18,7 @@ const labels = useTranslations(SITE.lang).lightbox;
 >
   <button
     type="button"
-    class="absolute top-4 right-4 rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+    class="absolute top-4 right-4 z-10 rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
     data-lightbox-close
     aria-label={labels.close}
   >
@@ -26,7 +26,7 @@ const labels = useTranslations(SITE.lang).lightbox;
   </button>
   <button
     type="button"
-    class="absolute top-1/2 left-4 hidden -translate-y-1/2 rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+    class="absolute top-1/2 left-4 z-10 hidden -translate-y-1/2 rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
     data-lightbox-prev
     aria-label={labels.previous}
     hidden
@@ -49,14 +49,14 @@ const labels = useTranslations(SITE.lang).lightbox;
   </figure>
   <button
     type="button"
-    class="absolute top-1/2 right-4 hidden -translate-y-1/2 rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+    class="absolute top-1/2 right-4 z-10 hidden -translate-y-1/2 rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
     data-lightbox-next
     aria-label={labels.next}
     hidden
   >
     ›
   </button>
-  <div class="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+  <div class="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-2">
     <button
       type="button"
       class="rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"

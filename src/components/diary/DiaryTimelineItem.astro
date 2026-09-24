@@ -47,11 +47,6 @@ const diaryImages = images?.map(image => ({
   src: baseAwarePath(image.src),
   original: baseAwarePath(image.original),
 }));
-const lightGalleryLicenseKey =
-  import.meta.env.PUBLIC_LIGHTGALLERY_LICENSE_KEY?.trim();
-const hasGalleryEnhancement =
-  Boolean(lightGalleryLicenseKey) &&
-  lightGalleryLicenseKey !== "0000-0000-000-0000";
 const mediaSpacing = relatedPostLink ? "mb-2" : "mb-4";
 ---
 
@@ -113,20 +108,13 @@ const mediaSpacing = relatedPostLink ? "mb-2" : "mb-4";
           }
 
           {
-            diaryImages &&
-              diaryImages.length > 0 &&
-              (hasGalleryEnhancement ? (
-                <DiaryImageGallery
-                  client:visible={{ rootMargin: "300px" }}
-                  images={diaryImages}
-                  htmlContent={htmlContent}
-                />
-              ) : (
-                <DiaryImageGallery
-                  images={diaryImages}
-                  htmlContent={htmlContent}
-                />
-              ))
+            diaryImages && diaryImages.length > 0 && (
+              <DiaryImageGallery
+                client:visible={{ rootMargin: "300px" }}
+                images={diaryImages}
+                htmlContent={htmlContent}
+              />
+            )
           }
 
           {

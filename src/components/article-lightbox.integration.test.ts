@@ -11,7 +11,9 @@ describe("ArticleLightbox integration", () => {
     expect(postDetails).toContain(
       'import ArticleLightbox from "@/components/ArticleLightbox.astro"'
     );
-    expect(postDetails).toContain("<ArticleLightbox />");
+    expect(postDetails.indexOf("<ArticleLightbox />")).toBeGreaterThan(
+      postDetails.indexOf("</main>")
+    );
   });
 
   it("removes photosuite without changing diary lightgallery support", () => {
