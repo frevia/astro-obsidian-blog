@@ -55,6 +55,34 @@
       @apply text-center leading-6;
     }
 
+    .rehype-figure .photo-frame {
+      @apply relative mx-auto w-fit max-w-full overflow-hidden rounded-md;
+    }
+
+    .rehype-figure .photo-exif {
+      @apply pointer-events-none absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 px-3 pt-6 pb-2 text-center font-sans text-xs leading-5 text-white sm:text-[13px];
+      background: linear-gradient(transparent, rgb(0 0 0 / 72%));
+      text-shadow: 0 1px 3px rgb(0 0 0 / 80%);
+    }
+
+    .rehype-figure .photo-frame--portrait .photo-exif {
+      @apply grid grid-cols-2 gap-x-3 gap-y-0.5 px-3 pt-7 pb-2 text-left text-xs leading-5;
+    }
+
+    .photo-frame--portrait .photo-exif span + span::before {
+      content: none;
+    }
+
+    .photo-exif span {
+      overflow-wrap: anywhere;
+    }
+
+    .photo-exif span + span::before {
+      content: "·";
+      margin-inline-end: 0.5rem;
+      opacity: 0.6;
+    }
+
     a {
       @apply break-words text-foreground decoration-dashed underline-offset-4 hover:text-accent focus-visible:no-underline;
     }

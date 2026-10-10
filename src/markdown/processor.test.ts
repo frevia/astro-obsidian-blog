@@ -286,13 +286,25 @@ describe("processor contract", () => {
 
   it("keeps figure behavior scoped to image-only paragraphs", async () => {
     const html = await renderRssMarkdown(
-      '![alt caption](assets/1.png "title text")\n\ntext ![alt](assets/2.png)'
+      '![alt caption](assets/1.png "title text")\n\n![](assets/2.png)\n\ntext ![alt](assets/3.png)'
     );
 
     expect(html).toContain('<figure class="rehype-figure">');
     expect(html).toContain("<figcaption>alt caption</figcaption>");
     expect(html).toContain('title="title text"');
+    expect(html).not.toContain("<figcaption>2</figcaption>");
     expect(html).toContain("<p>text <img");
+  });
+
+  it("escapes retained image captions as text", async () => {
+    const html = await renderRssMarkdown(
+      "![<script>alert(1)</script>](assets/3.png)"
+    );
+
+    expect(html).toContain(
+      "<figcaption>&lt;script&gt;alert(1)&lt;/script&gt;</figcaption>"
+    );
+    expect(html).not.toContain("<figcaption><script>");
   });
 
   it("renders RSS media cards as plain links without JSX or heading anchors", async () => {
