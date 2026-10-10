@@ -4,8 +4,12 @@ import type {
   Map as LeafletMap,
   Marker as LeafletMarker,
 } from "leaflet";
+import type { Map as MapLibreMap, StyleSpecification } from "maplibre-gl";
 import "leaflet/dist/leaflet.css";
+import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
+import "maplibre-gl/dist/maplibre-gl.css";
 import "@/styles/footprint-leaflet.css";
+import { prepareFootprintStyle } from "./footprint/vectorStyle";
 
 export interface FootprintPlace {
   name: string;
@@ -32,6 +36,9 @@ export interface FootprintMapProps {
 }
 
 type LeafletApi = typeof import("leaflet");
+type MaplibreLayer = ReturnType<
+  typeof import("@maplibre/maplibre-gl-leaflet").maplibreGL
+>;
 
 type PlaceItem = FootprintPlace & {
   key: string;
@@ -66,12 +73,38 @@ function MapPinGlyph({ selected = false }: { selected?: boolean }) {
 
 const DEFAULT_CENTER: [number, number] = [25, 105];
 const DEFAULT_ZOOM = 3;
-const TILE_URL =
-  import.meta.env.PUBLIC_FOOTPRINT_TILE_URL ??
-  "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-const TILE_ATTRIBUTION =
+const VECTOR_STYLE_URLS = {
+  light: "https://tiles.openfreemap.org/styles/liberty",
+  dark: "https://tiles.openfreemap.org/styles/dark",
+} as const;
+const VECTOR_ATTRIBUTION =
+  '&copy; <a href="https://openfreemap.org/" target="_blank" rel="noreferrer">OpenFreeMap</a>, <a href="https://openmaptiles.org/" target="_blank" rel="noreferrer">OpenMapTiles</a>, <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors';
+const RASTER_TILE_URL = import.meta.env.PUBLIC_FOOTPRINT_TILE_URL;
+const RASTER_TILE_ATTRIBUTION =
   import.meta.env.PUBLIC_FOOTPRINT_TILE_ATTRIBUTION ??
   '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors';
+
+type FootprintTheme = keyof typeof VECTOR_STYLE_URLS;
+
+function currentFootprintTheme(): FootprintTheme {
+  return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+}
+
+async function fetchFootprintStyle(
+  theme: FootprintTheme,
+  signal: AbortSignal
+): Promise<StyleSpecification> {
+  const response = await fetch(VECTOR_STYLE_URLS[theme], { signal });
+  if (!response.ok) {
+    throw new Error(`OpenFreeMap style request failed: ${response.status}`);
+  }
+
+  const style = (await response.json()) as StyleSpecification;
+  if (!Array.isArray(style.layers)) {
+    throw new Error("OpenFreeMap style has no layers");
+  }
+  return prepareFootprintStyle(style, theme === "dark");
+}
 
 const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
   year: "numeric",
@@ -96,8 +129,8 @@ function recordsAtPlace(
     .sort((a, b) => recordTime(b) - recordTime(a));
 }
 
-function recordTime(record: FootprintRecord): number {
-  if (!record.date) return 0;
+function recordTime(record?: FootprintRecord): number {
+  if (!record?.date) return 0;
   const parsed = Date.parse(record.date);
   return Number.isFinite(parsed) ? parsed : 0;
 }
@@ -146,7 +179,7 @@ function createPopupContent(item: PlaceItem): HTMLElement {
   if (item.posts.length > 0) {
     const list = document.createElement("ul");
     list.className = "footprint-popup-posts";
-    item.posts.slice(0, 3).forEach(post => {
+    item.posts.forEach(post => {
       const listItem = document.createElement("li");
       const link = document.createElement("a");
       link.href = post.url;
@@ -185,13 +218,6 @@ function createPopupContent(item: PlaceItem): HTMLElement {
     root.append(list);
   }
 
-  if (item.posts.length > 3) {
-    const more = document.createElement("p");
-    more.className = "footprint-popup-more";
-    more.textContent = `还有 ${item.posts.length - 3} 篇文章`;
-    root.append(more);
-  }
-
   return root;
 }
 
@@ -202,6 +228,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
   const mapElementRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const leafletRef = useRef<LeafletApi | null>(null);
+  const maplibreMapRef = useRef<MapLibreMap | null>(null);
   const markerLayerRef = useRef<LayerGroup<LeafletMarker> | null>(null);
   const markersRef = useRef(new Map<string, LeafletMarker>());
 
@@ -225,7 +252,6 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
     [places, records]
   );
 
-  const selectedItem = placeItems.find(item => item.key === selectedKey);
   const articleCount = new Set(records.map(record => record.url)).size;
   const latestDate = records.reduce<string | undefined>((latest, record) => {
     if (!record.date) return latest;
@@ -272,6 +298,55 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
 
     let cancelled = false;
     let resizeObserver: ResizeObserver | undefined;
+    let themeObserver: MutationObserver | undefined;
+    let invalidateTimer: number | undefined;
+    let styleAbortController: AbortController | undefined;
+    let styleRequestId = 0;
+    let styleLoading = true;
+    let activeTheme = currentFootprintTheme();
+    let pendingTheme: FootprintTheme | null = null;
+    let localMap: LeafletMap | null = null;
+    let localVectorLayer: MaplibreLayer | null = null;
+
+    const markStyleReady = () => {
+      if (cancelled) return;
+      styleLoading = false;
+      pendingTheme = null;
+      setMapReady(true);
+      setMapError(null);
+    };
+
+    const applyVectorTheme = async (theme: FootprintTheme) => {
+      const maplibreMap = maplibreMapRef.current;
+      if (!maplibreMap || cancelled) return;
+
+      const requestId = ++styleRequestId;
+      styleAbortController?.abort();
+      const controller = new AbortController();
+      styleAbortController = controller;
+      pendingTheme = theme;
+
+      try {
+        const style = await fetchFootprintStyle(theme, controller.signal);
+        if (cancelled || requestId !== styleRequestId) return;
+
+        styleLoading = true;
+        maplibreMap.setStyle(style);
+        activeTheme = theme;
+        pendingTheme = null;
+      } catch {
+        if (
+          cancelled ||
+          controller.signal.aborted ||
+          requestId !== styleRequestId
+        ) {
+          return;
+        }
+        pendingTheme = null;
+        styleLoading = false;
+        setMapError("地图暂时无法加载，但仍可从下方文章链接查看足迹。");
+      }
+    };
 
     const initializeMap = async () => {
       try {
@@ -281,49 +356,125 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         if (cancelled) return;
 
         const L = module.default ?? module;
+        let maplibreModule: typeof import("maplibre-gl") | undefined;
+        let adapterModule:
+          | typeof import("@maplibre/maplibre-gl-leaflet")
+          | undefined;
+        let initialStyle: StyleSpecification | undefined;
+
+        if (!RASTER_TILE_URL) {
+          styleAbortController = new AbortController();
+          [maplibreModule, adapterModule, initialStyle] = await Promise.all([
+            import("maplibre-gl"),
+            import("@maplibre/maplibre-gl-leaflet"),
+            fetchFootprintStyle(activeTheme, styleAbortController.signal),
+          ]);
+          if (cancelled) return;
+          maplibreModule.setWorkerUrl(maplibreWorkerUrl);
+        }
+
         const prefersReducedMotion = window.matchMedia(
           "(prefers-reduced-motion: reduce)"
         ).matches;
         const map = L.map(element, {
           zoomControl: false,
-          minZoom: 2,
+          minZoom: 1,
+          maxBounds: [
+            [-85, -Infinity],
+            [85, Infinity],
+          ],
+          maxBoundsViscosity: 1,
           maxZoom: 18,
           scrollWheelZoom: false,
           zoomAnimation: !prefersReducedMotion,
           markerZoomAnimation: !prefersReducedMotion,
           attributionControl: false,
         });
+        localMap = map;
+        mapRef.current = map;
+        leafletRef.current = L;
+        map.setView(DEFAULT_CENTER, DEFAULT_ZOOM, { animate: false });
 
-        const tileLayer = L.tileLayer(TILE_URL, {
-          maxZoom: 19,
-          attribution: TILE_ATTRIBUTION,
-          crossOrigin: true,
-        });
-        tileLayer.on("tileerror", () => {
-          if (!cancelled) {
-            setMapError("地图图层暂时不可用，但仍可从下方地点列表查看足迹。");
-          }
-        });
-        tileLayer.addTo(map);
         L.control.zoom({ position: "topright" }).addTo(map);
         L.control.scale({ imperial: false, position: "bottomleft" }).addTo(map);
         const attributionControl = L.control.attribution({ prefix: false });
         attributionControl.addTo(map);
-        attributionControl.addAttribution(TILE_ATTRIBUTION);
+        if (RASTER_TILE_URL) {
+          const tileLayer = L.tileLayer(RASTER_TILE_URL, {
+            maxZoom: 19,
+            attribution: RASTER_TILE_ATTRIBUTION,
+            crossOrigin: true,
+          });
+          tileLayer.on("tileerror", () => {
+            if (!cancelled) {
+              setMapError("地图图层暂时不可用，但仍可从下方文章链接查看足迹。");
+            }
+          });
+          tileLayer.addTo(map);
+          attributionControl.addAttribution(RASTER_TILE_ATTRIBUTION);
+          markStyleReady();
+        } else if (adapterModule && initialStyle) {
+          attributionControl.addAttribution(VECTOR_ATTRIBUTION);
+          localVectorLayer = adapterModule.maplibreGL({
+            style: initialStyle,
+            localIdeographFontFamily: '"Noto Sans SC", system-ui, sans-serif',
+            attributionControl: false,
+          });
+          localVectorLayer.addTo(map);
+          const maplibreMap = localVectorLayer.getMaplibreMap();
+          if (!maplibreMap)
+            throw new Error("MapLibre layer did not initialize");
 
-        leafletRef.current = L;
-        mapRef.current = map;
+          maplibreMapRef.current = maplibreMap;
+          maplibreMap.on("load", markStyleReady);
+          maplibreMap.on("style.load", markStyleReady);
+          maplibreMap.on("error", () => {
+            if (!cancelled && styleLoading) {
+              setMapError("地图暂时无法加载，但仍可从下方文章链接查看足迹。");
+            }
+          });
+          if (maplibreMap.isStyleLoaded()) markStyleReady();
+
+          themeObserver = new MutationObserver(() => {
+            const theme = currentFootprintTheme();
+            if (theme === activeTheme) {
+              if (pendingTheme) {
+                styleRequestId += 1;
+                styleAbortController?.abort();
+                pendingTheme = null;
+              }
+              styleLoading = false;
+              setMapError(null);
+              return;
+            }
+            void applyVectorTheme(theme);
+          });
+          themeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["data-theme"],
+          });
+          if (currentFootprintTheme() !== activeTheme) {
+            void applyVectorTheme(currentFootprintTheme());
+          }
+        } else {
+          throw new Error("MapLibre dependencies did not load");
+        }
+
         markerLayerRef.current = L.layerGroup().addTo(map);
-        map.setView(DEFAULT_CENTER, DEFAULT_ZOOM, { animate: false });
         resizeObserver = new ResizeObserver(() => {
           map.invalidateSize({ pan: false });
         });
         resizeObserver.observe(element);
-        window.setTimeout(() => map.invalidateSize({ pan: false }), 0);
-        setMapReady(true);
-      } catch {
+        invalidateTimer = window.setTimeout(
+          () => map.invalidateSize({ pan: false }),
+          0
+        );
+      } catch (error) {
         if (!cancelled) {
-          setMapError("地图暂时无法加载，但仍可从下方地点列表查看足迹。");
+          console.error("Footprint map initialization failed", error);
+          styleLoading = false;
+          setMapReady(false);
+          setMapError("地图暂时无法加载，但仍可从下方文章链接查看足迹。");
         }
       }
     };
@@ -332,13 +483,34 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
 
     return () => {
       cancelled = true;
+      styleRequestId += 1;
+      styleAbortController?.abort();
+      themeObserver?.disconnect();
       resizeObserver?.disconnect();
+      if (invalidateTimer !== undefined) window.clearTimeout(invalidateTimer);
       markerLayerRef.current?.clearLayers();
       markerLayerRef.current = null;
       markersRef.current.clear();
-      mapRef.current?.remove();
+      const map = localMap ?? mapRef.current;
+      if (map && localVectorLayer) {
+        try {
+          if (map.hasLayer(localVectorLayer)) {
+            map.removeLayer(localVectorLayer);
+          } else {
+            localVectorLayer.getMaplibreMap()?.remove();
+          }
+        } catch {
+          try {
+            localVectorLayer.getMaplibreMap()?.remove();
+          } catch {
+            // The layer may have failed before MapLibre created its map.
+          }
+        }
+      }
+      map?.remove();
       mapRef.current = null;
       leafletRef.current = null;
+      maplibreMapRef.current = null;
     };
   }, []);
 
@@ -362,7 +534,8 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
       marker.bindPopup(createPopupContent(item), {
         className: "footprint-leaflet-popup",
         maxWidth: 320,
-        minWidth: 220,
+        minWidth: 200,
+        maxHeight: 240,
       });
       marker.on("click", () => selectPlace(item.key));
       marker.on("popupopen", () => selectPlace(item.key));
@@ -386,7 +559,10 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
     if (!item || !marker) return;
 
     const targetZoom = Math.max(map.getZoom(), 12);
-    map.flyTo([item.lat, item.lng], targetZoom, { duration: 0.55 });
+    map.flyTo([item.lat, item.lng], targetZoom, {
+      duration: 0.55,
+      animate: !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    });
     marker.openPopup();
   }, [mapReady, placeItems, selectedKey]);
 
@@ -400,22 +576,10 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
   return (
     <section
       className="footprint-explorer"
-      aria-labelledby="footprint-explorer-title"
+      aria-label="足迹地图与统计"
       data-footprint-explorer
     >
       <header className="footprint-overview">
-        <div className="footprint-overview-copy">
-          <p className="footprint-eyebrow">去过的地方</p>
-          <h2
-            id="footprint-explorer-title"
-            className="footprint-overview-title"
-          >
-            把去过的地方标出来。
-          </h2>
-          <p className="footprint-overview-desc">
-            点开标记，可以回到相关文章。
-          </p>
-        </div>
         <dl className="footprint-stats">
           <div>
             <dt>地点</dt>
@@ -450,7 +614,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
       >
         <header className="footprint-map-panel-head">
           <div>
-            <p className="footprint-eyebrow">地图</p>
+            <p className="footprint-eyebrow">TRAVEL JOURNAL</p>
             <h2 id="footprint-map-title">去过的地方</h2>
           </div>
           <div className="footprint-map-actions">
@@ -459,13 +623,17 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
               role="status"
               aria-live="polite"
             >
-              {mapError ? "列表模式" : mapReady ? "地图已就绪" : "地图载入中"}
+              {mapError
+                ? "地图暂不可用"
+                : mapReady
+                  ? "点击地点，展开回忆"
+                  : "地图载入中"}
             </span>
             <button
               type="button"
               className="footprint-map-reset"
               onClick={clearSelection}
-              disabled={!hasPlaces}
+              disabled={!hasPlaces || !mapReady}
             >
               适配全部地点
             </button>
@@ -484,155 +652,46 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
           <span className="footprint-map-legend-note">点标记查看文章</span>
         </div>
 
-        <div className="footprint-map-layout">
-          <div className="footprint-map-column">
-            <div className="footprint-map-frame">
+        <div className="footprint-map-body">
+          <div className="footprint-map-frame">
+            <div
+              ref={mapElementRef}
+              className="footprint-leaflet-map"
+              role="region"
+              aria-label="交互式足迹地图"
+              aria-describedby="footprint-map-help"
+            />
+            {!mapReady && !mapError ? (
               <div
-                ref={mapElementRef}
-                className="footprint-leaflet-map"
-                role="region"
-                aria-label="交互式足迹地图"
-              />
-              {!mapReady && !mapError ? (
-                <div
-                  className="footprint-map-loading app-loading-state"
-                  role="status"
-                >
-                  正在准备地图图层…
-                </div>
-              ) : null}
-              {mapError ? (
-                <div className="footprint-map-error" role="status">
-                  {mapError}
-                </div>
-              ) : null}
-            </div>
-            <p className="footprint-map-help">
-              拖动地图查看，点标记看文章；也可以从右侧列表选择。
-            </p>
+                className="footprint-map-loading app-loading-state"
+                role="status"
+              >
+                正在准备地图图层…
+              </div>
+            ) : null}
+            {mapError ? (
+              <div className="footprint-map-error" role="status">
+                {mapError}
+              </div>
+            ) : null}
           </div>
-
-          <aside
-            className="footprint-place-rail"
-            aria-label="足迹地点与文章"
-            data-footprint-place-rail
-          >
-            <div className="footprint-place-rail-head">
-              <div>
-                <p className="footprint-eyebrow">地点</p>
-                <h3>关联文章</h3>
-              </div>
-              <span className="footprint-place-count">{placeItems.length}</span>
-            </div>
-
-            {selectedItem ? (
-              <div
-                id="footprint-place-detail"
-                className="footprint-place-detail"
-                aria-live="polite"
-              >
-                <div className="footprint-place-detail-head">
-                  <div>
-                    <p className="footprint-place-detail-kicker">地点</p>
-                    <h4>{selectedItem.name}</h4>
-                  </div>
-                  <button
-                    type="button"
-                    className="footprint-place-clear"
-                    onClick={clearSelection}
-                    aria-label="清除当前地点"
-                  >
-                    ×
-                  </button>
-                </div>
-                <p className="footprint-place-coordinate">
-                  {formatCoordinate(selectedItem.lat)},{" "}
-                  {formatCoordinate(selectedItem.lng)}
-                </p>
-                <ul className="footprint-post-list">
-                  {selectedItem.posts.map(post => (
-                    <li key={`${post.url}-${post.title}`}>
-                      <a
-                        href={post.url}
-                        data-astro-prefetch="tap"
-                        title={post.title}
-                      >
-                        {post.thumbnail ? (
-                          <img
-                            className="footprint-post-thumbnail"
-                            src={post.thumbnail.src}
-                            alt={post.thumbnail.alt}
-                            width="112"
-                            height="70"
-                            loading="lazy"
-                            decoding="async"
-                          />
-                        ) : null}
-                        <span className="footprint-post-copy">
-                          <span>{post.title}</span>
-                          <time dateTime={post.date}>
-                            {formatDate(post.date)}
-                          </time>
-                        </span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <p className="footprint-place-prompt">
-                选一个地点，看看相关的文章。
-              </p>
-            )}
-
-            {placeItems.length > 0 ? (
-              <ul
-                className="footprint-place-list"
-                aria-label="地点列表"
-                id="footprint-place-list"
-              >
-                {placeItems.map(item => (
-                  <li key={item.key}>
-                    <button
-                      type="button"
-                      className={[
-                        "footprint-place-button",
-                        selectedKey === item.key ? "is-selected" : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                      aria-pressed={selectedKey === item.key}
-                      aria-controls="footprint-place-detail"
-                      onClick={() => selectPlace(item.key)}
-                    >
-                      <span className="footprint-place-button-main">
-                        <span
-                          className="footprint-place-button-dot"
-                          aria-hidden="true"
-                        />
-                        <span>
-                          <strong>{item.name}</strong>
-                          <small>
-                            {item.posts.length > 0
-                              ? `${item.posts.length} 篇文章`
-                              : "暂无关联文章"}
-                          </small>
-                        </span>
-                      </span>
-                      <span
-                        className="footprint-place-button-arrow"
-                        aria-hidden="true"
-                      >
-                        ↗
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="footprint-place-prompt">暂时还没有地点记录。</p>
-            )}
-          </aside>
+          <p className="footprint-map-help" id="footprint-map-help">
+            拖动探索地图，点击地点查看照片与文章。键盘可用 Tab 选择标记，Enter
+            打开。
+          </p>
+          {mapError ? (
+            <ul className="footprint-fallback-links" aria-label="足迹文章">
+              {Array.from(
+                new Map(records.map(post => [post.url, post])).values()
+              ).map(post => (
+                <li key={post.url}>
+                  <a href={post.url} data-astro-prefetch="tap">
+                    {post.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
       </section>
     </section>

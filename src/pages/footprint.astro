@@ -7,6 +7,7 @@ import FootprintMap from "@/components/FootprintMap.tsx";
 import { SITE } from "@/config";
 import { getCollection } from "astro:content";
 import { getImage } from "astro:assets";
+import { toPlaceRecords, type PlaceRecord } from "@/utils/footprintPlaces";
 import postFilter from "@/utils/postFilter";
 import { getPath } from "@/utils/getPath";
 import { optimizeImage } from "@/utils/optimizeImages";
@@ -14,37 +15,6 @@ import { firstContentImage } from "@/utils/footprintImage";
 
 const blogPosts = await getCollection("blog");
 const publishedPosts = blogPosts.filter(postFilter);
-
-type PlaceRecord = {
-  name: string;
-  lng: number;
-  lat: number;
-};
-
-function parseLocationText(text: string): PlaceRecord | null {
-  const parts = text.split(",").map(s => s.trim());
-  if (parts.length < 3) return null;
-
-  const name = parts.slice(0, -2).join(",").trim();
-  const lngRaw = parts.at(-2);
-  const latRaw = parts.at(-1);
-  if (!name || !lngRaw || !latRaw) return null;
-
-  const lng = Number(lngRaw);
-  const lat = Number(latRaw);
-  if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null;
-  if (lng < -180 || lng > 180 || lat < -90 || lat > 90) return null;
-  return { name, lng, lat };
-}
-
-function toPlaceRecords(post: (typeof publishedPosts)[number]): PlaceRecord[] {
-  const { locations } = post.data;
-  if (!locations?.length) return [];
-  return locations
-    .filter(Boolean)
-    .map(parseLocationText)
-    .filter(Boolean) as PlaceRecord[];
-}
 
 const footprintPosts = publishedPosts.filter(
   post => toPlaceRecords(post).length > 0
