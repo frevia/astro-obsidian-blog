@@ -4,6 +4,7 @@ import katex from "katex";
 import { defineHastPlugin } from "satteri";
 import type { Element, ElementContent, Parents, Root, RootContent } from "hast";
 import type { HastPluginDefinition } from "satteri";
+import { getImageCaption } from "@/utils/imageCaption";
 
 function classList(value: unknown): string[] {
   if (Array.isArray(value)) return value.map(String);
@@ -70,22 +71,49 @@ function splitHighlight(value: string): ElementContent[] | undefined {
 function figureFromImage(image: Element): Element {
   const alt =
     typeof image.properties.alt === "string" ? image.properties.alt : "";
+  const src =
+    typeof image.properties.src === "string" ? image.properties.src : "";
+  const caption = getImageCaption(alt, src);
+  const metadata =
+    image.properties.dataPhotoExif ?? image.properties["data-photo-exif"];
+  const exif = typeof metadata === "string" ? metadata.trim() : "";
+  const photo: Element = exif
+    ? {
+        type: "element",
+        tagName: "div",
+        properties: { className: ["photo-frame"] },
+        children: [
+          image,
+          {
+            type: "element",
+            tagName: "div",
+            properties: { className: ["photo-exif"], ariaLabel: "拍摄参数" },
+            children: exif.split(" · ").map(value => ({
+              type: "element",
+              tagName: "span",
+              properties: {},
+              children: [{ type: "text", value }],
+            })),
+          },
+        ],
+      }
+    : image;
 
   return {
     type: "element",
     tagName: "figure",
     properties: { className: ["rehype-figure"] },
-    children: alt
+    children: caption
       ? [
-          image,
+          photo,
           {
             type: "element",
             tagName: "figcaption",
             properties: {},
-            children: [{ type: "text", value: alt }],
+            children: [{ type: "text", value: caption }],
           },
         ]
-      : [image],
+      : [photo],
   };
 }
 

@@ -1,3 +1,5 @@
+import { getImageCaption } from "@/utils/imageCaption";
+
 export type ArticleLightboxLabels = {
   open: string;
 };
@@ -7,6 +9,7 @@ type ArticleLightboxElements = {
   article: HTMLElement;
   image: HTMLImageElement;
   caption: HTMLElement;
+  exif: HTMLElement;
   closeButton: HTMLButtonElement;
   prevButton: HTMLButtonElement;
   nextButton: HTMLButtonElement;
@@ -113,6 +116,7 @@ function getLightboxElements(doc: Document): ArticleLightboxElements | null {
 
   const image = root.querySelector<HTMLImageElement>("[data-lightbox-image]");
   const caption = root.querySelector<HTMLElement>("[data-lightbox-caption]");
+  const exif = root.querySelector<HTMLElement>("[data-lightbox-exif]");
   const closeButton = root.querySelector<HTMLButtonElement>(
     "[data-lightbox-close]"
   );
@@ -132,6 +136,7 @@ function getLightboxElements(doc: Document): ArticleLightboxElements | null {
   if (
     !image ||
     !caption ||
+    !exif ||
     !closeButton ||
     !prevButton ||
     !nextButton ||
@@ -146,6 +151,7 @@ function getLightboxElements(doc: Document): ArticleLightboxElements | null {
     article,
     image,
     caption,
+    exif,
     closeButton,
     prevButton,
     nextButton,
@@ -178,6 +184,7 @@ export function initArticleLightbox(
     article,
     image,
     caption,
+    exif,
     closeButton,
     prevButton,
     nextButton,
@@ -198,7 +205,21 @@ export function initArticleLightbox(
     hadZoomCursor: trigger.classList.contains("cursor-zoom-in"),
   }));
 
+  const updatePhotoLayout = (photo: HTMLImageElement) => {
+    const width = Number(photo.getAttribute("width")) || photo.naturalWidth;
+    const height = Number(photo.getAttribute("height")) || photo.naturalHeight;
+    photo
+      .closest(".photo-frame")
+      ?.classList.toggle("photo-frame--portrait", width > 0 && height > width);
+  };
+  const onPhotoLoad = (event: Event) => {
+    if (event.target instanceof HTMLImageElement)
+      updatePhotoLayout(event.target);
+  };
+  article.addEventListener("load", onPhotoLoad, true);
+
   for (const trigger of eligibleImages) {
+    updatePhotoLayout(trigger);
     trigger.classList.add("cursor-zoom-in");
     trigger.setAttribute("role", "button");
     trigger.setAttribute("tabindex", "0");
@@ -207,7 +228,7 @@ export function initArticleLightbox(
       "aria-label",
       formatLightboxTriggerLabel(
         labels.open,
-        trigger.alt || trigger.title || ""
+        getImageCaption(trigger.alt || trigger.title || "", trigger.src)
       )
     );
   }
@@ -233,7 +254,16 @@ export function initArticleLightbox(
     image.src = trigger.currentSrc || trigger.src;
     image.alt = "";
     image.style.transform = `scale(${scale})`;
-    caption.textContent = trigger.alt || trigger.title || "";
+    const description = getImageCaption(
+      trigger.alt || trigger.title || "",
+      trigger.src
+    );
+    caption.textContent = description;
+    caption.hidden = !description;
+    const photoExif = trigger.dataset.photoExif || "";
+    exif.textContent = photoExif;
+    exif.hidden = !photoExif;
+    image.alt = description || labels.open;
     updateControls();
   };
 
@@ -346,6 +376,7 @@ export function initArticleLightbox(
     if (cleanedUp) return;
     cleanedUp = true;
     close();
+    article.removeEventListener("load", onPhotoLoad, true);
     article.removeEventListener("click", onArticleClick);
     article.removeEventListener("keydown", onArticleKeydown);
     doc.removeEventListener("keydown", onDocumentKeydown);

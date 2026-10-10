@@ -6,6 +6,7 @@ import type {
 } from "satteri";
 
 import { calloutHastPlugin, calloutMdastPlugin } from "./plugins/callouts";
+import { photoExifPlugin } from "./plugins/photoExif";
 import { contentComponentsPlugin } from "./plugins/contentComponents";
 import { linkProcessorPlugin, rssLinkProcessorPlugin } from "./plugins/links";
 import { createMediaCardPlugin } from "./plugins/mediaCards";
@@ -33,6 +34,7 @@ export const pageMdastPlugins: MdastPluginDefinition[] = [
   contentComponentsPlugin,
   calloutMdastPlugin,
   linkProcessorPlugin,
+  photoExifPlugin,
   createMediaCardPlugin({ output: "card" }),
 ];
 

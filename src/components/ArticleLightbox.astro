@@ -37,9 +37,16 @@ const labels = useTranslations(SITE.lang).lightbox;
     <img
       src=""
       alt=""
-      class="max-h-[82vh] max-w-[92vw] object-contain transition-transform duration-150 select-none motion-reduce:transition-none"
+      class="max-h-[70vh] max-w-[92vw] object-contain transition-transform duration-150 select-none motion-reduce:transition-none"
       data-lightbox-image
     />
+    <p
+      class="m-0 max-h-[16vh] max-w-[min(92vw,48rem)] overflow-y-auto px-2 text-center text-xs leading-6 text-white/70 sm:text-sm"
+      data-lightbox-exif
+      aria-label="拍摄参数"
+      hidden
+    >
+    </p>
     <figcaption
       class="max-w-[92vw] text-center text-sm text-white/80"
       data-lightbox-caption
