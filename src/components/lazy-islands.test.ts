@@ -72,7 +72,7 @@ describe("lazy island SSR contracts", () => {
     expect(mapSource).toContain("records = []");
     expect(mapSource).toContain('className="footprint-leaflet-map"');
     expect(mapSource).toContain('aria-label="交互式足迹地图"');
-    expect(mapSource).toContain("data-footprint-place-rail");
+    expect(mapSource).not.toContain("data-footprint-place-rail");
     expect(mapSource).toContain("正在准备地图图层");
   });
 

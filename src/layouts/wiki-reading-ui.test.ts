@@ -9,7 +9,7 @@ describe("wiki reading UI", () => {
   it("keeps the editorial directory typography readable", () => {
     const source = readFileSync("src/styles/wiki-index.css", "utf-8");
 
-    expect(source).toContain("line-height: 1.15");
+    expect(source).toContain("line-height: 1.65");
     expect(source).toContain("text-wrap: balance");
     expect(source).toContain(".wiki-directory-row");
     expect(source).not.toContain(".wiki-metrics");
@@ -52,6 +52,8 @@ describe("wiki reading UI", () => {
     expect(indexSource).toContain('class="page-intro"');
     expect(indexSource).toContain("page-title text-2xl");
     expect(indexStyles).not.toContain(".wiki-hero h1");
-    expect(detailsSource).toContain(".wiki-entry-heading::before");
+    expect(detailsSource).toContain('class="wiki-entry-heading page-intro"');
+    expect(detailsSource).not.toContain(".wiki-entry-hero::after");
+    expect(indexStyles).not.toMatch(/#[0-9a-f]{6}/i);
   });
 });

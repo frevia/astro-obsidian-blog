@@ -27,11 +27,11 @@
 ### 低水合与交互增强
 
 - 日历组件使用 `client:idle`，首页和碎片时间线在浏览器空闲时水合
-- 足迹地图使用 `client:visible`，Leaflet 地图不可用时自动退回地点列表
+- 足迹地图使用 `client:visible`，Leaflet 与 OpenFreeMap 地图不可用时自动退回文章链接
 - `Cmd/Ctrl + K` 打开原生搜索面板，Pagefind 引擎在首次搜索时按需加载
 - 响应式布局、键盘导航、语义化控件、明暗主题和 reduced-motion 支持
 - 知识库领域筛选、全文过滤、双向链接和专属阅读界面
-- Leaflet 足迹地图、地点索引、文章关联和明亮地图配色
+- Leaflet + MapLibre 足迹地图、地点索引、文章关联和明暗地图配色
 - Twikoo 评论、RSS 邻居订阅和 Vercel Cron 定时抓取
 
 ## 🚀 项目结构
@@ -66,18 +66,18 @@
 
 ## 🛠️ 技术栈
 
-| 类别       | 技术                                                            |
-| ---------- | --------------------------------------------------------------- |
-| 应用框架   | [Astro 7](https://astro.build/)                                 |
-| 主题基线   | [satnaing/astro-paper](https://github.com/satnaing/astro-paper) |
-| Markdown   | [Sätteri](https://github.com/HiDeoo/satteri)、MDX、Shiki        |
-| 样式       | [Tailwind CSS 4](https://tailwindcss.com/)                      |
-| UI 岛屿    | React 19 / Preact compat                                        |
-| 搜索       | [Pagefind](https://pagefind.app/)                               |
-| 地图       | [Leaflet](https://leafletjs.com/) + OpenStreetMap 瓦片          |
-| 检查与测试 | TypeScript、ESLint、Prettier、Vitest、Astro Check               |
-| 部署       | [Vercel](https://vercel.com/) adapter                           |
-| 评论       | [Twikoo](https://twikoo.js.org/)                                |
+| 类别       | 技术                                                                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 应用框架   | [Astro 7](https://astro.build/)                                                                                          |
+| 主题基线   | [satnaing/astro-paper](https://github.com/satnaing/astro-paper)                                                          |
+| Markdown   | [Sätteri](https://github.com/HiDeoo/satteri)、MDX、Shiki                                                                 |
+| 样式       | [Tailwind CSS 4](https://tailwindcss.com/)                                                                               |
+| UI 岛屿    | React 19 / Preact compat                                                                                                 |
+| 搜索       | [Pagefind](https://pagefind.app/)                                                                                        |
+| 地图       | [Leaflet](https://leafletjs.com/) + [MapLibre](https://maplibre.org/) + [OpenFreeMap](https://openfreemap.org/) 矢量样式 |
+| 检查与测试 | TypeScript、ESLint、Prettier、Vitest、Astro Check                                                                        |
+| 部署       | [Vercel](https://vercel.com/) adapter                                                                                    |
+| 评论       | [Twikoo](https://twikoo.js.org/)                                                                                         |
 
 ## 📦 安装与开发
 
@@ -253,7 +253,7 @@ cp .env.example .env
 - `CRON_SECRET`：保护 `/api/fetch-rss`（建议配置）
 - `BLOB_STORE_ACCESS`：控制 Blob 访问级别
 
-足迹地图可通过 `PUBLIC_FOOTPRINT_TILE_URL` 和 `PUBLIC_FOOTPRINT_TILE_ATTRIBUTION` 覆盖默认瓦片地址与版权信息。
+足迹地图默认使用 OpenFreeMap 的 Liberty（明亮）和 Dark（暗色）矢量样式，并由 MapLibre 原生渲染。为兼容旧部署，设置 `PUBLIC_FOOTPRINT_TILE_URL` 后会显式切换到 Leaflet 栅格瓦片；此时可同时用 `PUBLIC_FOOTPRINT_TILE_ATTRIBUTION` 覆盖版权信息。
 
 ## 🗺️ 页面入口
 
@@ -358,7 +358,7 @@ title: 电影标题
 - [Sätteri](https://github.com/HiDeoo/satteri)：Markdown 渲染管线
 - [vsme/astro-obsidian-blog](https://github.com/vsme/astro-obsidian-blog)：Obsidian 博客工作流参考
 - [Pagefind](https://pagefind.app/)：静态搜索
-- [Leaflet](https://leafletjs.com/) 与 [OpenStreetMap](https://www.openstreetmap.org/)：足迹地图
+- [Leaflet](https://leafletjs.com/)、[MapLibre](https://maplibre.org/) 与 [OpenFreeMap](https://openfreemap.org/)：足迹地图
 - [Chinese Days](https://github.com/vsme/chinese-days)：农历、节气与节假日数据
 - [Photosuite](https://photosuite.lhasa.icu/)：图片 EXIF 和灯箱体验参考
 

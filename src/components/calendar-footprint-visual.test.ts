@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import Calendar from "./Calendar";
+import FootprintMap from "./FootprintMap";
 
 describe("calendar and footprint visual integration", () => {
   it("renders the compact calendar entry as a today panel with day context", () => {
@@ -27,6 +28,22 @@ describe("calendar and footprint visual integration", () => {
     expect(html).toContain("2024年2月29日");
   });
 
+  it("renders a map without a side rail even when a place has no articles", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(FootprintMap, {
+        places: [
+          { name: "杭州", lat: 30.25, lng: 120.15 },
+          { name: "上海", lat: 31.23, lng: 121.47 },
+        ],
+        records: [],
+      })
+    );
+    expect(html).toContain("交互式足迹地图");
+    expect(html).toContain("适配全部地点");
+    expect(html).not.toContain("<aside");
+    expect(html).not.toContain("footprint-place-rail");
+  });
+
   it("keeps a cover-style empty state before any footprint location exists", () => {
     const source = readFileSync(
       resolve(import.meta.dirname, "FootprintMap.tsx"),
@@ -37,25 +54,24 @@ describe("calendar and footprint visual integration", () => {
     expect(source).toContain("这里还没有地点");
     expect(source).toContain("正在准备地图图层");
     expect(source).toContain("交互式足迹地图");
-    expect(source).toContain("data-footprint-place-rail");
+    expect(source).not.toContain("data-footprint-place-rail");
   });
 
-  it("keeps map markers and the place list wired through accessible controls", () => {
+  it("keeps popup navigation and map failure links without a sidebar", () => {
     const source = readFileSync(
       resolve(import.meta.dirname, "FootprintMap.tsx"),
       "utf-8"
     );
 
-    expect(source).toContain('aria-label="足迹地点与文章"');
-    expect(source).toContain('id="footprint-place-list"');
-    expect(source).toContain('aria-label="地点列表"');
-    expect(source).toContain("aria-pressed={selectedKey === item.key}");
-    expect(source).toContain("onClick={() => selectPlace(item.key)}");
+    expect(source).toContain('aria-label="足迹文章"');
+    expect(source).toContain("item.posts.forEach");
+    expect(source).not.toContain("item.posts.slice");
+    expect(source).toContain("maxHeight: 240");
+    expect(source).toContain("keyboard: true");
     expect(source).toContain("marker.openPopup()");
     expect(source).toContain("footprint-marker-pin-base");
     expect(source).toContain("footprint-marker-pin-hole");
     expect(source).toContain("footprint-popup-post-image");
-    expect(source).toContain("footprint-post-thumbnail");
     expect(source).toContain('data-astro-prefetch="tap"');
     expect(source).toContain('link.dataset.astroPrefetch = "tap"');
     expect(source).toContain('tileLayer.on("tileerror"');

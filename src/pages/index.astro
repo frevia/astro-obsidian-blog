@@ -5,6 +5,7 @@ import { SITE } from "@/config";
 import Layout from "@/layouts/Layout.astro";
 import { getCollection } from "astro:content";
 import { parseEntry } from "@/utils/parseEntry";
+import HomeFootprint from "@/components/home/HomeFootprint.astro";
 import HomeEditorial from "@/components/home/HomeEditorial.astro";
 import { buildFragmentPreviews } from "@/components/home/fragmentPreviews";
 import getSortedPosts from "@/utils/getSortedPosts";
@@ -69,6 +70,7 @@ const wikiHighlights = selectWikiHighlights(
       fragments={fragmentPreviews}
       {wikiHighlights}
     />
+    <HomeFootprint posts={blogPosts} />
   </main>
 
   <Footer />

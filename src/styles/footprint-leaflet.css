@@ -23,32 +23,13 @@ html[data-theme="dark"] .footprint-explorer {
 }
 
 .footprint-overview {
-  display: grid;
-  gap: 1.25rem;
   border-block: 1px solid var(--border);
-  padding-block: 1rem 1.25rem;
-}
-
-.footprint-overview-title {
-  margin-top: 0.55rem;
-  color: var(--foreground);
-  font-size: clamp(1.6rem, 4vw, 2.45rem);
-  font-weight: 600;
-  letter-spacing: -0.055em;
-  line-height: 1.1;
-}
-
-.footprint-overview-desc {
-  max-width: 38rem;
-  margin-top: 0.65rem;
-  color: color-mix(in oklab, var(--foreground) 64%, transparent);
-  font-size: 0.9rem;
-  line-height: 1.75;
+  padding-block: 1rem;
 }
 
 .footprint-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(8rem, 1.4fr);
   gap: 0.5rem;
   margin: 0;
 }
@@ -60,7 +41,7 @@ html[data-theme="dark"] .footprint-explorer {
 }
 
 .footprint-stats dt {
-  color: color-mix(in oklab, var(--foreground) 50%, transparent);
+  color: color-mix(in oklab, var(--foreground) 70%, transparent);
   font-size: 0.6875rem;
   letter-spacing: 0.08em;
 }
@@ -187,13 +168,13 @@ html[data-theme="dark"] .footprint-explorer {
 }
 
 .footprint-map-status {
-  color: color-mix(in oklab, var(--foreground) 48%, transparent);
+  color: color-mix(in oklab, var(--foreground) 68%, transparent);
   font-size: 0.6875rem;
   white-space: nowrap;
 }
 
-.footprint-map-reset,
-.footprint-place-clear {
+.footprint-map-reset {
+  min-height: 44px;
   border: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
   border-radius: 9999px;
   padding: 0.4rem 0.7rem;
@@ -208,9 +189,7 @@ html[data-theme="dark"] .footprint-explorer {
 }
 
 .footprint-map-reset:hover,
-.footprint-map-reset:focus-visible,
-.footprint-place-clear:hover,
-.footprint-place-clear:focus-visible {
+.footprint-map-reset:focus-visible {
   border-color: color-mix(in oklab, var(--footprint-accent) 60%, transparent);
   background: var(--footprint-accent-soft);
   outline: none;
@@ -221,19 +200,14 @@ html[data-theme="dark"] .footprint-explorer {
   opacity: 0.45;
 }
 
-.footprint-map-layout {
-  display: grid;
-  gap: 1rem;
-  padding: 0 0.65rem 0.65rem;
-}
-
-.footprint-map-column {
+.footprint-map-body {
   min-width: 0;
+  padding: 0 0.65rem 0.65rem;
 }
 
 .footprint-map-frame {
   position: relative;
-  min-height: clamp(20rem, 52vw, 36rem);
+  height: clamp(24rem, 65svh, 46rem);
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
@@ -246,17 +220,15 @@ html[data-theme="dark"] .footprint-explorer {
     var(--surface-muted) 72%,
     var(--background)
   );
-  /* 保留 OSM 原生的道路、绿地和水域色彩，只做轻微提亮。 */
-  --footprint-map-tile-filter: saturate(1.08) contrast(1.02) brightness(1.02);
-  min-height: inherit;
+  height: 100%;
   width: 100%;
   background: var(--footprint-map-background);
   color-scheme: light;
   isolation: isolate;
 }
 
-.footprint-leaflet-map .leaflet-tile-pane {
-  filter: var(--footprint-map-tile-filter);
+.footprint-leaflet-map .leaflet-gl-layer {
+  background: transparent;
 }
 
 html[data-theme="dark"] .footprint-leaflet-map {
@@ -265,13 +237,7 @@ html[data-theme="dark"] .footprint-leaflet-map {
     var(--surface-muted) 72%,
     var(--background)
   );
-  --footprint-map-tile-filter: grayscale(0.28) invert(0.82) hue-rotate(180deg)
-    brightness(0.77) contrast(0.94) saturate(0.9);
   color-scheme: dark;
-}
-
-html[data-theme="dark"] .footprint-leaflet-map .leaflet-tile-pane {
-  filter: var(--footprint-map-tile-filter);
 }
 
 .footprint-leaflet-map .leaflet-control-zoom,
@@ -325,244 +291,9 @@ html[data-theme="dark"] .footprint-leaflet-map .leaflet-tile-pane {
 
 .footprint-map-help {
   margin: 0.65rem 0.25rem 0.15rem;
-  color: color-mix(in oklab, var(--foreground) 53%, transparent);
+  color: color-mix(in oklab, var(--foreground) 68%, transparent);
   font-size: 0.75rem;
   line-height: 1.6;
-}
-
-.footprint-place-rail {
-  min-width: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  padding: 0.85rem;
-  background: var(--footprint-panel);
-}
-
-.footprint-place-rail-head,
-.footprint-place-detail-head {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.footprint-place-rail-head h3 {
-  margin-top: 0.35rem;
-  color: var(--foreground);
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.footprint-place-count {
-  display: inline-grid;
-  min-width: 1.75rem;
-  min-height: 1.75rem;
-  place-items: center;
-  border-radius: 9999px;
-  color: var(--footprint-accent);
-  background: var(--footprint-accent-soft);
-  font-size: 0.75rem;
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-}
-
-.footprint-place-prompt {
-  margin-top: 0.8rem;
-  color: color-mix(in oklab, var(--foreground) 56%, transparent);
-  font-size: 0.8rem;
-  line-height: 1.65;
-}
-
-.footprint-place-detail {
-  margin-top: 0.8rem;
-  border-block: 1px solid color-mix(in oklab, var(--border) 58%, transparent);
-  padding-block: 0.8rem;
-}
-
-.footprint-place-detail-kicker {
-  color: var(--footprint-accent);
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.footprint-place-detail h4 {
-  margin-top: 0.28rem;
-  color: var(--foreground);
-  font-size: 1.1rem;
-  font-weight: 600;
-  letter-spacing: -0.025em;
-}
-
-.footprint-place-clear {
-  display: inline-grid;
-  width: 1.75rem;
-  height: 1.75rem;
-  place-items: center;
-  padding: 0;
-  border-radius: 50%;
-  font-size: 1.1rem;
-  line-height: 1;
-}
-
-.footprint-place-coordinate {
-  margin-top: 0.3rem;
-  color: color-mix(in oklab, var(--foreground) 48%, transparent);
-  font-size: 0.6875rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.footprint-post-list {
-  display: grid;
-  gap: 0.45rem;
-  margin: 0.7rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.footprint-post-list a {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  overflow: hidden;
-  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
-  border-radius: 0.65rem;
-  padding: 0.35rem;
-  color: color-mix(in oklab, var(--foreground) 78%, transparent);
-  font-size: 0.8rem;
-  line-height: 1.45;
-  text-decoration: none;
-  transition:
-    color 160ms ease,
-    background-color 160ms ease,
-    border-color 160ms ease;
-}
-
-.footprint-post-list a:hover,
-.footprint-post-list a:focus-visible {
-  color: var(--footprint-accent);
-  background: var(--footprint-accent-soft);
-  border-color: color-mix(in oklab, var(--footprint-accent) 38%, var(--border));
-  outline: none;
-}
-
-.footprint-post-thumbnail {
-  width: 4.4rem;
-  height: 3rem;
-  flex: 0 0 auto;
-  border-radius: 0.45rem;
-  object-fit: cover;
-  background: var(--surface-muted);
-}
-
-.footprint-post-copy {
-  display: grid;
-  min-width: 0;
-  gap: 0.12rem;
-}
-
-.footprint-post-copy > span {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.footprint-post-list time {
-  color: color-mix(in oklab, var(--foreground) 45%, transparent);
-  font-size: 0.6875rem;
-}
-
-.footprint-place-list {
-  display: grid;
-  gap: 0.45rem;
-  margin: 0.85rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.footprint-place-button {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.65rem;
-  border: 1px solid color-mix(in oklab, var(--border-strong) 70%, var(--border));
-  border-radius: var(--radius-control);
-  padding: 0.6rem 0.65rem;
-  color: var(--foreground);
-  background: color-mix(in oklab, var(--background) 70%, transparent);
-  cursor: pointer;
-  text-align: left;
-  transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    transform 160ms ease;
-}
-
-.footprint-place-button:hover,
-.footprint-place-button:focus-visible,
-.footprint-place-button.is-selected {
-  border-color: color-mix(in oklab, var(--footprint-accent) 55%, transparent);
-  background: var(--footprint-accent-soft);
-  outline: none;
-  transform: translateX(2px);
-}
-
-.footprint-place-button-main {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 0.55rem;
-}
-
-.footprint-place-button-dot {
-  display: inline-block;
-  flex: 0 0 auto;
-  width: 0.55rem;
-  height: 0.55rem;
-  border: 2px solid var(--background);
-  border-radius: 50%;
-  background: var(--footprint-accent);
-  box-shadow: 0 0 0 2px
-    color-mix(in oklab, var(--footprint-accent) 30%, transparent);
-}
-
-.footprint-place-button strong,
-.footprint-place-button small {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.footprint-place-button strong {
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.footprint-place-button small {
-  margin-top: 0.15rem;
-  color: color-mix(in oklab, var(--foreground) 48%, transparent);
-  font-size: 0.6875rem;
-}
-
-.footprint-place-button-arrow {
-  flex: 0 0 auto;
-  color: var(--footprint-accent);
-  font-size: 0.95rem;
-  opacity: 0.45;
-  transition:
-    opacity 160ms ease,
-    transform 160ms ease;
-}
-
-.footprint-place-button:hover .footprint-place-button-arrow,
-.footprint-place-button:focus-visible .footprint-place-button-arrow,
-.footprint-place-button.is-selected .footprint-place-button-arrow {
-  opacity: 1;
-  transform: translate(2px, -2px);
 }
 
 .footprint-marker-icon-wrap {
@@ -653,10 +384,9 @@ html[data-theme="dark"] .footprint-leaflet-map .leaflet-tile-pane {
   font-weight: 600;
 }
 
-.footprint-popup-coordinate,
-.footprint-popup-more {
+.footprint-popup-coordinate {
   margin-top: 0.25rem;
-  color: color-mix(in oklab, var(--foreground) 48%, transparent);
+  color: color-mix(in oklab, var(--foreground) 68%, transparent);
   font-size: 0.6875rem;
   font-variant-numeric: tabular-nums;
 }
@@ -683,7 +413,8 @@ html[data-theme="dark"] .footprint-leaflet-map .leaflet-tile-pane {
   text-decoration: none;
 }
 
-.footprint-popup-posts a:hover {
+.footprint-popup-posts a:hover,
+.footprint-popup-posts a:focus-visible {
   border-color: color-mix(in oklab, var(--accent) 42%, var(--border));
   background: var(--footprint-accent-soft);
 }
@@ -715,17 +446,35 @@ html[data-theme="dark"] .footprint-leaflet-map .leaflet-tile-pane {
   font-size: 0.625rem;
 }
 
+.footprint-fallback-links {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  color: var(--accent);
+  list-style: disc inside;
+}
+
+.footprint-map-reset:focus-visible,
+.footprint-leaflet-map a:focus-visible,
+.footprint-marker-icon-wrap:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.footprint-leaflet-map .leaflet-control-zoom a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+}
+
+.footprint-leaflet-map .leaflet-popup-close-button {
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+  color: var(--foreground);
+}
+
 @media (min-width: 640px) {
-  .footprint-overview {
-    grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.85fr);
-    align-items: end;
-    gap: 2rem;
-  }
-
-  .footprint-stats {
-    align-self: end;
-  }
-
   .footprint-map-panel-head {
     padding-inline: 1.25rem;
   }
@@ -734,25 +483,8 @@ html[data-theme="dark"] .footprint-leaflet-map .leaflet-tile-pane {
     margin-inline: 1.25rem;
   }
 
-  .footprint-map-layout {
+  .footprint-map-body {
     padding: 0 1rem 1rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .footprint-map-layout {
-    grid-template-columns: minmax(0, 1fr) minmax(18rem, 21rem);
-    align-items: start;
-  }
-
-  .footprint-place-rail {
-    position: sticky;
-    top: calc(var(--site-header-height, 4rem) + 1rem);
-    max-height: min(
-      36rem,
-      calc(100vh - var(--site-header-height, 4rem) - 2rem)
-    );
-    overflow: auto;
   }
 }
 
@@ -773,15 +505,14 @@ html[data-theme="dark"] .footprint-leaflet-map .leaflet-tile-pane {
   }
 
   .footprint-map-frame {
-    min-height: 20rem;
+    height: 60svh;
+    min-height: 24rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .footprint-place-button,
-  .footprint-post-list a,
-  .footprint-map-reset,
-  .footprint-place-clear {
+  .footprint-marker-icon,
+  .footprint-map-reset {
     transition: none;
   }
 }

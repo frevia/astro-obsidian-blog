@@ -15,10 +15,12 @@ describe("footprint Leaflet theme", () => {
     expect(stylesheet).not.toContain(".dark .footprint-leaflet-map");
   });
 
-  it("keeps tile filtering and map background theme-aware", () => {
-    expect(stylesheet).toContain("--footprint-map-tile-filter");
-    expect(stylesheet).toContain("filter: var(--footprint-map-tile-filter)");
+  it("keeps vector canvas rendering native and the map background theme-aware", () => {
+    expect(stylesheet).toContain(".footprint-leaflet-map .leaflet-gl-layer");
     expect(stylesheet).toContain("background: var(--footprint-map-background)");
+    expect(stylesheet).not.toContain("footprint-map-tile-filter");
+    expect(stylesheet).not.toContain(".leaflet-tile-pane");
+    expect(stylesheet).not.toContain("invert(");
   });
 
   it("keeps selected markers on the footprint accent", () => {
