@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "@fontsource-variable/noto-sans-sc/wght.css";
+@import "@fontsource-variable/noto-serif-sc/wght.css";
 @import "./design-tokens.css";
 @import "./content-theme.css";
 @import "./media-card.css";
@@ -9,6 +11,11 @@
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 /* 色板见 design-tokens.css（worktree 冷色调）；此处仅 UX 分支扩展 token */
+
+:root {
+  --font-noto-sans-sc: "Noto Sans SC Variable";
+  --font-noto-serif-sc: "Noto Serif SC Variable";
+}
 
 @theme inline {
   --color-background: var(--background);
@@ -713,4 +720,26 @@ video {
       animation: none;
     }
   }
+}
+
+html[data-navigation-pending]::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: 3px;
+  z-index: 10000;
+  background: var(--accent);
+  transform-origin: left;
+  animation: navigation-progress 1.5s ease-out forwards;
+}
+@keyframes navigation-progress {
+  from {
+    transform: scaleX(0.08);
+  }
+  to {
+    transform: scaleX(0.85);
+  }
+}
+html[data-navigation-pending] #main-nav {
+  cursor: progress;
 }

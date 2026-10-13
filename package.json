@@ -5,7 +5,7 @@
   "packageManager": "pnpm@10.11.0",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build",
+    "build": "astro check && astro build && node scripts/fix-vercel-asset-cache.mjs",
     "preview": "astro preview",
     "sync": "astro sync",
     "astro": "astro",

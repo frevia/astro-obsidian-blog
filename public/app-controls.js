@@ -5,6 +5,26 @@
   if (window.__appControlsInitialized) return;
   window.__appControlsInitialized = true;
 
+  // Show feedback during HTML/CSS preparation, including cancelled navigations.
+  let navigationId = 0;
+  document.addEventListener("astro:before-preparation", event => {
+    const id = ++navigationId;
+    document.documentElement.dataset.navigationPending = "";
+    const loader = event.loader;
+    event.loader = async () => {
+      try {
+        await loader();
+      } finally {
+        if (id === navigationId) {
+          delete document.documentElement.dataset.navigationPending;
+        }
+      }
+    };
+  });
+  window.addEventListener("pageshow", () => {
+    delete document.documentElement.dataset.navigationPending;
+  });
+
   // ===== 主题切换功能 =====
   const primaryColorScheme = ""; // "light" | "dark"
 
