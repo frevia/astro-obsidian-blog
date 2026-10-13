@@ -27,19 +27,8 @@ import {
   pageHastPlugins,
   pageMdastPlugins,
 } from "./src/markdown/processor";
-import {
-  fontsourceVariantsFromPackage,
-  resolvePackageFileUrl,
-} from "./src/utils/loadLocalFont";
+import { resolvePackageFileUrl } from "./src/utils/loadLocalFont";
 
-const notoSansScVariants = fontsourceVariantsFromPackage(
-  "@fontsource-variable/noto-sans-sc/wght.css",
-  "woff2"
-);
-const notoSerifScVariants = fontsourceVariantsFromPackage(
-  "@fontsource-variable/noto-serif-sc/wght.css",
-  "woff2"
-);
 const maShanZhengWoff = resolvePackageFileUrl(
   "@fontsource/ma-shan-zheng/files/ma-shan-zheng-chinese-simplified-400-normal.woff"
 );
@@ -54,30 +43,6 @@ export default defineConfig({
   // Warm high-intent navigations without downloading every route up front.
   prefetch: { defaultStrategy: "hover" },
   fonts: [
-    {
-      name: "Noto Sans SC Variable",
-      cssVariable: "--font-noto-sans-sc",
-      provider: localFontProvider,
-      weights: ["100 900"],
-      styles: ["normal"],
-      formats: ["woff2"],
-      fallbacks: ["ui-sans-serif", "system-ui", "sans-serif"],
-      options: {
-        variants: notoSansScVariants,
-      },
-    },
-    {
-      name: "Noto Serif SC Variable",
-      cssVariable: "--font-noto-serif-sc",
-      provider: localFontProvider,
-      weights: ["200 900"],
-      styles: ["normal"],
-      formats: ["woff2"],
-      fallbacks: ["ui-serif", "Songti SC", "serif"],
-      options: {
-        variants: notoSerifScVariants,
-      },
-    },
     {
       name: "Ma Shan Zheng",
       cssVariable: "--font-og",

@@ -28,8 +28,14 @@ describe("owned font sources", () => {
   it("does not preload all Astro page font shards from Layout", () => {
     const layout = readFileSync("src/layouts/Layout.astro", "utf8");
 
-    expect(layout).toContain('<Font cssVariable="--font-noto-sans-sc" />');
-    expect(layout).toContain('<Font cssVariable="--font-noto-serif-sc" />');
+    const styles = readFileSync("src/styles/global.css", "utf8");
+    expect(layout).not.toContain("<Font ");
+    expect(styles).toContain(
+      '@import "@fontsource-variable/noto-sans-sc/wght.css"'
+    );
+    expect(styles).toContain(
+      '@import "@fontsource-variable/noto-serif-sc/wght.css"'
+    );
     expect(layout).not.toMatch(/<Font[^>]+preload/);
   });
 });

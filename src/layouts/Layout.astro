@@ -1,6 +1,5 @@
 ---
 import { ClientRouter } from "astro:transitions";
-import { Font } from "astro:assets";
 import { SITE, config } from "@/config";
 import "@/styles/global.css";
 
@@ -77,8 +76,6 @@ const structuredData = {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <Font cssVariable="--font-noto-sans-sc" />
-    <Font cssVariable="--font-noto-serif-sc" />
     <link rel="icon" type="image/png" href={getAssetPath("/favicon.png")} />
     <link rel="canonical" href={canonicalURL} />
     <meta name="generator" content={Astro.generator} />

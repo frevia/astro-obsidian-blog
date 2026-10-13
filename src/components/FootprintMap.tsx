@@ -73,6 +73,43 @@ function MapPinGlyph({ selected = false }: { selected?: boolean }) {
 
 const DEFAULT_CENTER: [number, number] = [25, 105];
 const DEFAULT_ZOOM = 3;
+
+export type FootprintInitialView =
+  | {
+      bounds: [number, number][];
+      options: {
+        padding: [number, number];
+        maxZoom: number;
+        animate: false;
+      };
+    }
+  | {
+      center: [number, number];
+      zoom: number;
+      options: { animate: false };
+    };
+
+export function getInitialMapView(
+  places: readonly Pick<FootprintPlace, "lat" | "lng">[]
+): FootprintInitialView {
+  if (places.length === 0) {
+    return {
+      center: DEFAULT_CENTER,
+      zoom: DEFAULT_ZOOM,
+      options: { animate: false },
+    };
+  }
+
+  return {
+    bounds: places.map(place => [place.lat, place.lng]),
+    options: {
+      padding: [48, 48],
+      maxZoom: 12,
+      animate: false,
+    },
+  };
+}
+
 const VECTOR_STYLE_URLS = {
   light: "https://tiles.openfreemap.org/styles/liberty",
   dark: "https://tiles.openfreemap.org/styles/dark",
@@ -251,6 +288,9 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         }),
     [places, records]
   );
+  const placeItemsRef = useRef(placeItems);
+  const initialViewSignatureRef = useRef<string | null>(null);
+  placeItemsRef.current = placeItems;
 
   const articleCount = new Set(records.map(record => record.url)).size;
   const latestDate = records.reduce<string | undefined>((latest, record) => {
@@ -393,7 +433,20 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         localMap = map;
         mapRef.current = map;
         leafletRef.current = L;
-        map.setView(DEFAULT_CENTER, DEFAULT_ZOOM, { animate: false });
+
+        const initialView = getInitialMapView(placeItemsRef.current);
+        if ("bounds" in initialView) {
+          map.fitBounds(initialView.bounds, initialView.options);
+        } else {
+          map.setView(
+            initialView.center,
+            initialView.zoom,
+            initialView.options
+          );
+        }
+        initialViewSignatureRef.current = placeItemsRef.current
+          .map(item => item.key)
+          .join("\u0000");
 
         L.control.zoom({ position: "topright" }).addTo(map);
         L.control.scale({ imperial: false, position: "bottomleft" }).addTo(map);
@@ -479,10 +532,36 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
       }
     };
 
-    void initializeMap();
+    let idleCallbackId: number | undefined;
+    let initializationTimer: number | undefined;
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (
+        callback: () => void,
+        options?: { timeout: number }
+      ) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+    const startInitialization = () => {
+      if (cancelled) return;
+      void initializeMap();
+    };
+
+    if (idleWindow.requestIdleCallback) {
+      idleCallbackId = idleWindow.requestIdleCallback(startInitialization, {
+        timeout: 500,
+      });
+    } else {
+      initializationTimer = window.setTimeout(startInitialization, 0);
+    }
 
     return () => {
       cancelled = true;
+      if (idleCallbackId !== undefined) {
+        idleWindow.cancelIdleCallback?.(idleCallbackId);
+      }
+      if (initializationTimer !== undefined) {
+        window.clearTimeout(initializationTimer);
+      }
       styleRequestId += 1;
       styleAbortController?.abort();
       themeObserver?.disconnect();
@@ -568,8 +647,11 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
 
   useEffect(() => {
     if (!mapReady) return;
+    const signature = placeItems.map(item => item.key).join("\u0000");
+    if (signature === initialViewSignatureRef.current) return;
     fitAllPlaces(false);
-  }, [fitAllPlaces, mapReady]);
+    initialViewSignatureRef.current = signature;
+  }, [fitAllPlaces, mapReady, placeItems]);
 
   const hasPlaces = placeItems.length > 0;
 
