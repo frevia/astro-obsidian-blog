@@ -1,3 +1,4 @@
+import CommentIcon from "./CommentIcon";
 import { useEffect, useRef, useState } from "react";
 import {
   PUBLIC_TWIKOO_ENV_ID,
@@ -228,19 +229,7 @@ export default function TwikooThread({
           aria-expanded={expanded}
           aria-controls={`${threadKey}-panel`}
         >
-          <svg
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            aria-hidden="true"
-          >
-            <path
-              d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6 3V6a2 2 0 0 1 2-2Z"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <CommentIcon className="h-5 w-5 shrink-0 text-accent" />
           <span>
             {expanded ? "收起评论" : "评论"}
             {hasComments ? ` ${commentCount}` : ""}

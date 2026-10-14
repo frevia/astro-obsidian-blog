@@ -124,12 +124,12 @@ const {
           </p>
         </article>
         <article class="about-stat about-stat--words">
-          <span class="about-stat-label">估算字数</span>
+          <span class="about-stat-label">累计字数</span>
           <div class="about-stat-value">
             <strong id="total-words">{blogStats.totalWordsInWan}</strong>
             <span>万字</span>
           </div>
-          <p>按每篇文章约 1500 字估算。</p>
+          <p>文章与 Notes 正文，不含代码。</p>
         </article>
       </div>
     </section>
@@ -157,7 +157,9 @@ const {
         commentsEnabled && (
           <>
             <hr class="my-8 border-dashed" />
-            <h2 class="about-comments-title mb-4 text-xl font-semibold">留言</h2>
+            <h2 class="about-comments-title mb-4 text-xl font-semibold">
+              留言
+            </h2>
           </>
         )
       }
