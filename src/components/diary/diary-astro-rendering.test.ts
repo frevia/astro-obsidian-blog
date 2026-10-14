@@ -72,7 +72,7 @@ describe("Astro diary rendering contracts", () => {
     const entry = source("DiaryEntry.astro");
 
     expect(entry).toContain('client:visible={{ rootMargin: "300px" }}');
-    expect(entry).toContain("collapsedWhenEmpty");
+    expect(entry).toContain('mode="inline"');
     expect(entry).toContain("data-diary-date");
     expect(entry).toContain("diary-date-accent");
     for (const renderer of [entry, source("../DiaryEntryReact.tsx")]) {

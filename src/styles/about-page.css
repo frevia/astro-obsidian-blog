@@ -223,7 +223,8 @@
     text-wrap: balance;
   }
 
-  .about-content .about-story-copy h2::before {
+  .about-content .about-story-copy h2::before,
+  .about-content .about-comments-title::before {
     content: none;
   }
 

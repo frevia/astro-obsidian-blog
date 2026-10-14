@@ -5,7 +5,11 @@ import type {
   MdastPluginDefinition,
 } from "satteri";
 
-import { calloutHastPlugin, calloutMdastPlugin } from "./plugins/callouts";
+import {
+  calloutHastPlugin,
+  rssCalloutHastPlugin,
+  calloutMdastPlugin,
+} from "./plugins/callouts";
 import { photoExifPlugin } from "./plugins/photoExif";
 import { contentComponentsPlugin } from "./plugins/contentComponents";
 import { linkProcessorPlugin, rssLinkProcessorPlugin } from "./plugins/links";
@@ -55,7 +59,7 @@ export const rssMdastPlugins: MdastPluginDefinition[] = [
 ];
 
 export const rssHastPlugins: HastPluginDefinition[] = [
-  calloutHastPlugin,
+  rssCalloutHastPlugin,
   highlightPlugin,
   mathPlugin,
   figurePlugin,

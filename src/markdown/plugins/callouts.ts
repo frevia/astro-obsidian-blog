@@ -183,7 +183,7 @@ export const calloutMdastPlugin: MdastPluginDefinition = defineMdastPlugin({
     const expandSign = matched[2] || "";
     const withoutMarker = textNode.value
       .slice(matched[0].length)
-      .replace(/^\s*/, "");
+      .replace(/^[ \t]*/, "");
     const lineBreakIndex = withoutMarker.indexOf("\n");
     const title =
       lineBreakIndex >= 0
@@ -224,47 +224,87 @@ export const calloutMdastPlugin: MdastPluginDefinition = defineMdastPlugin({
   },
 });
 
-export const calloutHastPlugin: HastPluginDefinition = defineHastPlugin({
-  name: "callout-hast",
-  element: {
-    filter: ["blockquote"],
-    visit(node: Readonly<Element>, ctx) {
-      const calloutType = node.properties["data-callout"];
-      if (!calloutType) return;
+function createCalloutHastPlugin(collapsible: boolean): HastPluginDefinition {
+  return defineHastPlugin({
+    name: "callout-hast",
+    element: {
+      filter: ["blockquote"],
+      visit(node: Readonly<Element>, ctx) {
+        const calloutType = node.properties["data-callout"];
+        if (!calloutType) return;
 
-      const rawTitle = node.properties["data-callout-title"];
-      ctx.setProperty(node, "data-callout-title", null);
+        const rawTitle = node.properties["data-callout-title"];
+        ctx.setProperty(node, "data-callout-title", null);
 
-      const titleText = typeof rawTitle === "string" ? rawTitle : "";
-      const iconFactory =
-        typeof calloutType === "string"
-          ? (icons[calloutType] ?? infoIcon)
-          : infoIcon;
-      const iconNode = iconFactory();
-      const titleChildren: ElementContent[] = [
-        {
+        const titleText = typeof rawTitle === "string" ? rawTitle : "";
+        const iconFactory =
+          typeof calloutType === "string"
+            ? (icons[calloutType] ?? infoIcon)
+            : infoIcon;
+        const iconNode = iconFactory();
+        const titleChildren: ElementContent[] = [
+          {
+            type: "element",
+            tagName: "div",
+            properties: { className: ["callout-title-icon"] },
+            children: [iconNode],
+          },
+        ];
+
+        const expandable =
+          collapsible && node.properties["data-expandable"] === "true";
+        const displayTitle =
+          titleText || (expandable ? String(calloutType).toUpperCase() : "");
+        if (displayTitle) {
+          titleChildren.push({
+            type: "element",
+            tagName: "div",
+            properties: { className: ["callout-title-text"] },
+            children: [{ type: "text", value: displayTitle }],
+          });
+        }
+
+        if (expandable) {
+          ctx.setProperty(node, "children", [
+            {
+              type: "element",
+              tagName: "details",
+              properties: {
+                className: ["callout-details"],
+                open: node.properties["data-expanded"] === "true",
+              },
+              children: [
+                {
+                  type: "element",
+                  tagName: "summary",
+                  properties: { className: ["callout-title"] },
+                  children: titleChildren.map(child =>
+                    child.type === "element"
+                      ? { ...child, tagName: "span" }
+                      : child
+                  ),
+                },
+                {
+                  type: "element",
+                  tagName: "div",
+                  properties: { className: ["callout-content"] },
+                  children: [...node.children],
+                },
+              ],
+            },
+          ]);
+          return;
+        }
+        ctx.prependChild(node, {
           type: "element",
           tagName: "div",
-          properties: { className: ["callout-title-icon"] },
-          children: [iconNode],
-        },
-      ];
-
-      if (titleText) {
-        titleChildren.push({
-          type: "element",
-          tagName: "div",
-          properties: { className: ["callout-title-text"] },
-          children: [{ type: "text", value: titleText }],
+          properties: { className: ["callout-title"] },
+          children: titleChildren,
         });
-      }
-
-      ctx.prependChild(node, {
-        type: "element",
-        tagName: "div",
-        properties: { className: ["callout-title"] },
-        children: titleChildren,
-      });
+      },
     },
-  },
-});
+  });
+}
+
+export const calloutHastPlugin = createCalloutHastPlugin(true);
+export const rssCalloutHastPlugin = createCalloutHastPlugin(false);

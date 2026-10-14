@@ -186,13 +186,6 @@ function createFeedCardHTML(item, fallbackOgImageGlobal, siteTimezone) {
             >
               ${escapeHtml(latestPostTitle || "暂未获取到最新文章")}
             </a>
-            <a
-              class="feeds-card-article-link feeds-card-arrow"
-              href="${escapeHtml(postLink)}"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="${escapeHtml(`阅读：${latestPostTitle || blogName}`)}"
-            >↗</a>
           </span>
           <span class="feeds-card-foot">
             ${

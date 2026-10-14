@@ -758,3 +758,85 @@ html[data-navigation-pending]::before {
 html[data-navigation-pending] #main-nav {
   cursor: progress;
 }
+
+/* Native disclosure keeps callouts usable without client scripts. */
+.callout > .callout-details {
+  padding-left: 0;
+}
+.callout-details > summary.callout-title {
+  min-height: 44px;
+  align-items: center;
+  cursor: pointer;
+  list-style: none;
+}
+.callout-details > summary::-webkit-details-marker {
+  display: none;
+}
+.callout-details > summary::after {
+  content: "+";
+  margin-left: auto;
+  padding-left: 0.75rem;
+}
+.callout-details[open] > summary::after {
+  content: "−";
+}
+.callout-details > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 0.25rem;
+}
+.callout-details > .callout-content {
+  padding-left: 1.5rem;
+}
+
+/* Only collapse the top-level composer; inline reply forms stay complete. */
+.twikoo-root[data-compact-editor]
+  .tk-comments
+  > .tk-submit:not([data-editor-expanded]):not(:has(textarea:focus))
+  .tk-meta-input,
+.twikoo-root[data-compact-editor]
+  .tk-comments
+  > .tk-submit:not([data-editor-expanded]):not(:has(textarea:focus))
+  .tk-row.actions,
+.twikoo-root[data-compact-editor]
+  .tk-comments
+  > .tk-submit:not([data-editor-expanded]):not(:has(textarea:focus))
+  .el-input__count {
+  display: none !important;
+}
+.twikoo-root[data-compact-editor]
+  .tk-comments
+  > .tk-submit:not([data-editor-expanded]):not(:has(textarea:focus))
+  textarea {
+  height: 44px !important;
+  min-height: 44px !important;
+  padding-block: 10px;
+  resize: none;
+}
+.twikoo-root[data-compact-editor]
+  .tk-comments
+  > .tk-submit:not([data-editor-expanded]):not(:has(textarea:focus)) {
+  margin-bottom: 1.25rem;
+}
+
+/* SVGs are block elements in prose; text-align alone cannot center them. */
+.twikoo-root .el-loading-spinner {
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  margin: 0;
+}
+.twikoo-root .el-loading-spinner .circular {
+  flex: none;
+  margin: 0;
+}
+
+.twikoo-root .tk-comment[data-comment-target] {
+  scroll-margin-top: calc(var(--site-header-height, 72px) + 24px);
+  outline: 2px solid var(--accent);
+  outline-offset: 8px;
+  border-radius: 4px;
+}
