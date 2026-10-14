@@ -256,7 +256,7 @@
       @apply border-l-success/65 bg-success/10;
     }
 
-    details {
+    details:not(.callout-details) {
       @apply inline-block cursor-pointer text-foreground select-none [&_p]:hidden [&_ul]:!my-0;
     }
 

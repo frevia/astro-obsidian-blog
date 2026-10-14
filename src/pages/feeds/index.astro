@@ -144,9 +144,7 @@ const hasTwikooEnv =
       commentsEnabled && (
         <section class="feeds-comments">
           <div class="feeds-comments-head">
-            <span class="feeds-eyebrow">留言</span>
-            <h2>推荐新邻居</h2>
-            <p>有推荐的博客，可以在下面留个链接。</p>
+            <h2>留言</h2>
           </div>
 
           {commentsEnabled && hasTwikooEnv && <Twikoo />}
@@ -387,7 +385,7 @@ const hasTwikooEnv =
 
   .feeds-card-article-row {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
     gap: 0.38rem;
   }
@@ -440,13 +438,6 @@ const hasTwikooEnv =
     color: var(--accent);
   }
 
-  .feeds-card-article-row:has(.feeds-card-title:hover) .feeds-card-arrow,
-  .feeds-card-article-row:has(.feeds-card-title:focus-visible)
-    .feeds-card-arrow {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
   .feeds-card-source:hover,
   .feeds-card-domain:hover {
     color: color-mix(in oklab, var(--accent) 74%, var(--foreground));
@@ -458,22 +449,6 @@ const hasTwikooEnv =
     font-size: 0.7rem;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .feeds-card-arrow {
-    color: var(--accent);
-    font-size: 1rem;
-    opacity: 0.38;
-    transform: translateX(-0.1rem);
-    transition:
-      opacity 160ms ease,
-      transform 160ms ease;
-  }
-
-  .feeds-card-arrow:hover,
-  .feeds-card-arrow:focus-visible {
-    opacity: 1;
-    transform: translate(0, 0);
   }
 
   .feeds-skeleton-card {
@@ -640,12 +615,6 @@ const hasTwikooEnv =
     letter-spacing: -0.04em;
   }
 
-  .feeds-comments-head p {
-    margin-top: 0.35rem;
-    color: var(--foreground-muted);
-    font-size: 0.8rem;
-  }
-
   @keyframes feeds-skeleton-shimmer {
     0% {
       background-position: 200% 0;
@@ -692,8 +661,7 @@ const hasTwikooEnv =
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .feeds-card,
-    .feeds-card-arrow {
+    .feeds-card {
       transition: none;
     }
 

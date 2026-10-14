@@ -1,0 +1,49 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import RecentComments from "@/components/RecentComments";
+import { SITE } from "@/config";
+import { withBase } from "@/utils/withBase";
+import { getPath } from "@/utils/getPath";
+import postFilter from "@/utils/postFilter";
+import type { CommentCatalog } from "@/lib/comment-links";
+const catalog: CommentCatalog = {};
+for (const [path, title] of [
+  ["/about", "关于"],
+  ["/feeds", "邻居"],
+]) {
+  const href = withBase(path);
+  catalog[href] = { href, title };
+}
+for (const post of await getCollection("blog", postFilter)) {
+  const href = getPath(post.id, post.filePath);
+  catalog[href] = { href, title: post.data.title };
+}
+for (const entry of await getCollection("diary")) {
+  const date = entry.id.split("/").pop()!.replace(/\.md$/, "");
+  const [year, month] = date.split("-");
+  catalog[withBase(`/diary/${date}`)] = {
+    href: withBase(`/notes/${year}-Q${Math.ceil(Number(month) / 3)}`),
+    title: `Notes · ${date}`,
+    anchor: `date-${date}`,
+  };
+}
+---
+
+<Layout title={`最近留言 | ${SITE.title}`}>
+  <Header />
+  <main
+    id="main-content"
+    class="page-main page-shell mx-auto w-full max-w-app px-4 pt-8 pb-12"
+  >
+    <header class="page-intro"><h1 class="page-title">最近留言</h1></header>
+    {
+      SITE.comments.enabled && (
+        <RecentComments client:load {catalog} siteUrl={SITE.website} />
+      )
+    }
+  </main>
+  <Footer />
+</Layout>

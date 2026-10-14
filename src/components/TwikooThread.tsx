@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   PUBLIC_TWIKOO_ENV_ID,
   PUBLIC_TWIKOO_REGION,
@@ -6,87 +6,75 @@ import {
 } from "astro:env/client";
 import { SITE } from "@/config";
 
-type TwikooInitOptions = {
-  envId: string;
-  el: string;
-  path: string;
-  lang?: string;
-  region?: string;
-};
-
-type TwikooGetCommentsCountOptions = {
-  envId: string;
-  urls: string[];
-  region?: string;
-  includeReply?: boolean;
-};
-
-type TwikooGlobal = {
-  init: (options: TwikooInitOptions) => void;
-  getCommentsCount: (
-    options: TwikooGetCommentsCountOptions
-  ) => Promise<Array<{ url: string; count: number }>>;
-};
-
-declare global {
-  interface Window {
-    twikoo?: TwikooGlobal;
-    __twikooScriptPromise?: Promise<void>;
-  }
-}
-
-const TWIKOO_CDN =
-  "https://cdn.jsdelivr.net/npm/twikoo@1.7.3/dist/twikoo.min.js";
-const TWIKOO_CSS = "https://cdn.jsdelivr.net/npm/twikoo@1.7.3/dist/twikoo.css";
-
-function ensureTwikooScript() {
-  if (typeof window === "undefined") return Promise.resolve();
-  if (window.twikoo) return Promise.resolve();
-  if (window.__twikooScriptPromise) return window.__twikooScriptPromise;
-
-  window.__twikooScriptPromise = new Promise<void>((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = TWIKOO_CDN;
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Failed to load Twikoo script"));
-    document.body.appendChild(script);
-  });
-
-  return window.__twikooScriptPromise;
-}
-
-function ensureTwikooStyle() {
-  if (typeof document === "undefined") return;
-  if (document.querySelector('link[data-twikoo-style="1"]')) return;
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = TWIKOO_CSS;
-  link.setAttribute("data-twikoo-style", "1");
-  document.head.appendChild(link);
-}
+import {
+  ensureTwikooScript,
+  ensureTwikooStyle,
+  type TwikooGetCommentsCountOptions,
+} from "@/lib/twikoo-client";
+import { readCommentTarget } from "@/lib/comment-links";
+import { locateComment } from "@/lib/locate-comment";
 
 interface TwikooThreadProps {
   threadKey: string;
   path: string;
-  /** diary 区使用折叠态：未展开时右下角显示「图标 + 评论」按钮，点击后展开完整评论区 */
-  collapsedWhenEmpty?: boolean;
+  /** Inline panels open on demand; page panels are immediately visible. */
+  mode?: "page" | "inline";
 }
 
 export default function TwikooThread({
   threadKey,
   path,
-  collapsedWhenEmpty = false,
+  mode = "page",
 }: TwikooThreadProps) {
+  const collapsedWhenEmpty = mode === "inline";
   const commentsEnabled = SITE.comments.enabled;
   const envId = PUBLIC_TWIKOO_ENV_ID?.trim();
   const hasRequiredEnv = Boolean(envId);
   const [expanded, setExpanded] = useState(!collapsedWhenEmpty);
+  const shell = useRef<HTMLDivElement>(null);
+  const [activated, setActivated] = useState(!collapsedWhenEmpty);
+  const [status, setStatus] = useState("loading");
   const [commentCount, setCommentCount] = useState<number | null>(null);
+
+  const [target, setTarget] = useState<{ id: string; path: string } | null>(
+    null
+  );
+  const [targetResolved, setTargetResolved] = useState(false);
+  const [locationMessage, setLocationMessage] = useState("");
+  useEffect(() => {
+    const sync = () => {
+      setTargetResolved(true);
+      // An inline thread must be explicitly addressed, not every note on the page.
+      const next =
+        collapsedWhenEmpty &&
+        !new URLSearchParams(location.search).has("thread")
+          ? null
+          : readCommentTarget(path, location.search, location.hash);
+      const existingAnchor = document.getElementById(location.hash.slice(1));
+      if (
+        !new URLSearchParams(location.search).has("comment") &&
+        existingAnchor &&
+        !existingAnchor.matches(".tk-comment")
+      )
+        return;
+      setTarget(previous =>
+        previous?.id === next?.id && previous?.path === next?.path
+          ? previous
+          : next
+      );
+      if (next) {
+        setExpanded(true);
+        setActivated(true);
+      }
+    };
+    sync();
+    window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
+  }, [path, collapsedWhenEmpty]);
 
   // 获取评论数量
   useEffect(() => {
-    if (!commentsEnabled || !hasRequiredEnv) return;
+    if (!commentsEnabled || !hasRequiredEnv || !collapsedWhenEmpty) return;
     const resolvedEnvId = envId;
     if (!resolvedEnvId) return;
 
@@ -111,60 +99,103 @@ export default function TwikooThread({
         // 返回顺序与 urls 一致，只传了一个 path 故取 res[0]
         const count = res?.[0]?.count ?? 0;
         setCommentCount(count);
-        // 有评论时默认展开（保持原有逻辑）
-        if (count > 0 && !collapsedWhenEmpty) setExpanded(true);
       } catch {
         // 忽略错误，保持折叠
       }
     };
 
     checkCount();
-  }, [path, collapsedWhenEmpty]);
+  }, [path, collapsedWhenEmpty, commentsEnabled, hasRequiredEnv, envId]);
 
   useEffect(() => {
-    if (!commentsEnabled || !hasRequiredEnv) return;
-    if (!expanded) return;
-    const resolvedEnvId = envId;
-    if (!resolvedEnvId) return;
-
+    if (!commentsEnabled || !envId || !activated || !targetResolved) return;
+    const host = shell.current;
+    if (!host) return;
+    let cancelled = false;
+    let stopLocating: (() => void) | undefined;
     const init = async () => {
       try {
         ensureTwikooStyle();
         await ensureTwikooScript();
-        if (!window.twikoo) return;
-        const root = document.getElementById(threadKey);
-        if (root) root.innerHTML = "";
-
-        const options: TwikooInitOptions = {
-          envId: resolvedEnvId,
-          el: `#${threadKey}`,
-          path,
+        if (cancelled || !window.twikoo) return;
+        const mount = document.createElement("div");
+        mount.id = `${threadKey}-mount`;
+        host.appendChild(mount);
+        await window.twikoo.init({
+          envId,
+          el: `#${mount.id}`,
+          path: target?.path ?? path,
           lang: PUBLIC_TWIKOO_LANG || "zh-CN",
-        };
-
-        if (
-          PUBLIC_TWIKOO_REGION &&
-          (PUBLIC_TWIKOO_REGION === "ap-shanghai" ||
-            PUBLIC_TWIKOO_REGION === "ap-guangzhou")
-        ) {
-          options.region = PUBLIC_TWIKOO_REGION;
-        }
-
-        window.twikoo.init(options);
-      } catch (error) {
-        console.error("Failed to initialize Twikoo thread:", error);
+          ...(PUBLIC_TWIKOO_REGION ? { region: PUBLIC_TWIKOO_REGION } : {}),
+        });
+        if (cancelled) return;
+        if (host.contains(document.activeElement))
+          (document.activeElement as HTMLElement)?.blur();
+        host
+          .querySelectorAll<HTMLTextAreaElement>("textarea")
+          .forEach(input => {
+            // Twikoo shares one draft across paths; never copy it into a new Notes thread.
+            if (collapsedWhenEmpty && input.value) {
+              const sharedDraft = localStorage.getItem("twikoo-draft");
+              input.value = "";
+              input.dispatchEvent(new Event("input", { bubbles: true }));
+              if (sharedDraft !== null)
+                localStorage.setItem("twikoo-draft", sharedDraft);
+            }
+            if (!input.placeholder) input.placeholder = "写下你的评论…";
+            input.setAttribute("aria-label", "评论内容");
+            if (input.value)
+              input
+                .closest(".tk-submit")
+                ?.setAttribute("data-editor-expanded", "");
+          });
+        setStatus("ready");
+        if (target)
+          stopLocating = locateComment(host, target.id, setLocationMessage);
+      } catch {
+        if (!cancelled) setStatus("error");
       }
     };
+    void init();
+    return () => {
+      cancelled = true;
+      stopLocating?.();
+      host.replaceChildren();
+    };
+  }, [
+    threadKey,
+    path,
+    activated,
+    commentsEnabled,
+    envId,
+    collapsedWhenEmpty,
+    target,
+    targetResolved,
+  ]);
 
-    init();
-  }, [threadKey, path, expanded]);
-
-  // 折叠评论区时主动清理 Twikoo 挂载内容，避免输入框残留
   useEffect(() => {
-    if (expanded) return;
-    const root = document.getElementById(threadKey);
-    if (root) root.innerHTML = "";
-  }, [expanded, threadKey]);
+    if (!collapsedWhenEmpty) return;
+    const onOpen = (event: Event) => {
+      if ((event as CustomEvent<string>).detail === threadKey) return;
+      const hasDraft = [
+        ...(shell.current?.querySelectorAll<HTMLTextAreaElement>("textarea") ??
+          []),
+      ].some(input => input.value.trim());
+      if (!hasDraft) setExpanded(false);
+    };
+    window.addEventListener("comment-panel-open", onOpen);
+    return () => window.removeEventListener("comment-panel-open", onOpen);
+  }, [threadKey, collapsedWhenEmpty]);
+
+  const toggle = () => {
+    if (!expanded) {
+      setActivated(true);
+      window.dispatchEvent(
+        new CustomEvent("comment-panel-open", { detail: threadKey })
+      );
+    }
+    setExpanded(!expanded);
+  };
 
   if (!commentsEnabled) {
     return null;
@@ -183,80 +214,76 @@ export default function TwikooThread({
   }
 
   const hasComments = commentCount !== null && commentCount > 0;
-  const expandAriaLabel = hasComments
-    ? `展开评论区（${commentCount} 条评论）`
-    : "展开评论区";
-
   return (
-    <div className="twikoo-container">
-      {/* 折叠态触发按钮 */}
-      {collapsedWhenEmpty && !expanded && (
-        <div className="twikoo-diary-collapsed flex justify-end">
-          <button
-            type="button"
-            onClick={() => setExpanded(true)}
-            className="twikoo-diary-trigger group relative inline-flex items-center gap-1.5 border-0 bg-transparent p-1.5 text-sm font-medium text-skin-base shadow-none transition-all hover:text-accent focus:outline-none focus-visible:underline focus-visible:underline-offset-4"
-            aria-label={expandAriaLabel}
+    <div
+      className={
+        collapsedWhenEmpty ? "notes-comments mt-3" : "comments-panel mt-8"
+      }
+    >
+      {collapsedWhenEmpty && (
+        <button
+          type="button"
+          className="ml-auto flex min-h-11 items-center gap-2 text-sm text-foreground/60 hover:text-accent focus-visible:outline-2 focus-visible:outline-accent"
+          onClick={toggle}
+          aria-expanded={expanded}
+          aria-controls={`${threadKey}-panel`}
+        >
+          <svg
+            className="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            aria-hidden="true"
           >
-            <svg
-              className="h-5 w-5 shrink-0 text-accent transition-transform group-hover:scale-110"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden
-            >
-              {/* 气泡外框 */}
-              <path
-                d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-6l-2 3.5v-3.5H6.5a2 2 0 0 1-2-2v-7z"
-                stroke="currentColor"
-                strokeWidth={1.5}
-                strokeLinejoin="round"
-              />
-              {/* 中间三个点 */}
-              <circle cx="9" cy="10.5" r="0.9" fill="currentColor" />
-              <circle cx="12" cy="10.5" r="0.9" fill="currentColor" />
-              <circle cx="15" cy="10.5" r="0.9" fill="currentColor" />
-            </svg>
-            {hasComments && (
-              <span className="absolute -top-1 -right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-accent px-1 text-xs font-medium text-white shadow-sm">
-                {commentCount > 99 ? "99+" : commentCount}
-              </span>
-            )}
-            <span className="text-sm leading-none font-medium">评论</span>
-          </button>
-        </div>
+            <path
+              d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6 3V6a2 2 0 0 1 2-2Z"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span>
+            {expanded ? "收起评论" : "评论"}
+            {hasComments ? ` ${commentCount}` : ""}
+          </span>
+        </button>
       )}
-
-      {/* 评论面板：折叠时强制隐藏 */}
-      <div className={collapsedWhenEmpty && !expanded ? "hidden" : ""}>
-        <div id={threadKey} className="twikoo mt-6" />
-        {collapsedWhenEmpty && expanded && (
-          <div className="mt-4 flex justify-end">
-            <button
-              type="button"
-              onClick={() => setExpanded(false)}
-              className="inline-flex items-center gap-2 border-0 bg-transparent p-1 text-sm font-medium text-skin-base shadow-none transition-colors hover:text-accent focus:outline-none focus-visible:underline focus-visible:underline-offset-4"
-              aria-label="折叠评论区"
-            >
-              <span>收起评论</span>
-              <svg
-                className="h-4 w-4 shrink-0"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden
-              >
-                <path
-                  d="M6 15l6-6 6 6"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
+      <div
+        id={`${threadKey}-panel`}
+        hidden={!expanded}
+        className={
+          collapsedWhenEmpty ? "border-t border-border/60 pt-3 pb-4" : ""
+        }
+      >
+        {activated && status === "loading" && (
+          <p
+            className="py-4 text-center text-sm text-foreground/60"
+            role="status"
+          >
+            正在加载评论…
+          </p>
         )}
+        {status === "error" && (
+          <p className="py-4 text-sm text-foreground/60" role="alert">
+            评论暂时无法加载，请稍后重新打开页面。
+          </p>
+        )}
+        {locationMessage && (
+          <p role="status" className="py-3 text-sm text-foreground/60">
+            {locationMessage}
+          </p>
+        )}
+        <div
+          ref={shell}
+          className="twikoo-root"
+          data-compact-editor=""
+          onFocusCapture={event => {
+            const target = event.target as HTMLElement;
+            if (target.matches("textarea"))
+              target
+                .closest(".tk-submit")
+                ?.setAttribute("data-editor-expanded", "");
+          }}
+        />
       </div>
     </div>
   );

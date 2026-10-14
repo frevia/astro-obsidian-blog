@@ -27,6 +27,11 @@
       "url": "https://zgw.me/feed",
       "avatar": "https://zgw.me/wp-includes/images/w-logo-blue-white-bg.png",
       "name": "微微道来"
+    },
+    {
+      "url": "https://blog.lhasa.icu/rss.xml/",
+      "avatar": "https://blog.lhasa.icu/favicon.svg",
+      "name": "游钓四方"
     }
   ]
 }

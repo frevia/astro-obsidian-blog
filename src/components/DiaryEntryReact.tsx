@@ -117,11 +117,7 @@ const DiaryEntryReact: React.FC<DiaryEntryProps> = ({
           aria-hidden="true"
         />
         <div className="w-full min-w-0 flex-1">
-          <TwikooThread
-            threadKey={threadKey}
-            path={threadPath}
-            collapsedWhenEmpty
-          />
+          <TwikooThread threadKey={threadKey} path={threadPath} mode="inline" />
         </div>
       </div>
     </div>

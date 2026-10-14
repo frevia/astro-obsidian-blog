@@ -32,6 +32,27 @@ const postFixtureUrl = new URL(
 );
 
 describe("processor contract", () => {
+  it("renders native callout disclosures with independent default states", async () => {
+    const result = await markdownToHtml(
+      "> [!note]- 收起\n> 隐藏正文\n\n> [!tip]+ 展开\n> **保留格式**\n\n> [!warning]-\n> 无标题正文\n\n> [!info] 普通\n> 普通正文",
+      {
+        features: markdownFeatures,
+        mdastPlugins: pageMdastPlugins,
+        hastPlugins: pageHastPlugins,
+      }
+    );
+    const $ = load(result.html);
+    expect($("details")).toHaveLength(3);
+    expect($("details").eq(0).attr("open")).toBeUndefined();
+    expect($("details").eq(1).attr("open")).toBeDefined();
+    expect($("details").eq(1).find("strong").text()).toBe("保留格式");
+    expect($("details").eq(2).find("summary").text()).toBe("WARNING");
+    expect($(".callout-info details")).toHaveLength(0);
+    const rss = await renderRssMarkdown("> [!note]- 收起\n> RSS正文");
+    expect(rss).not.toContain("<details");
+    expect(rss).toContain("RSS正文");
+  });
+
   it("renders RSS callouts with preserved type, title, and body", async () => {
     const html = await renderRssMarkdown("> [!note] RSS标题\n> 正文");
 
