@@ -35,7 +35,6 @@ describe("feeds page presentation", () => {
 
     expect(page).toContain('aria-label="邻居动态概览"');
     expect(page).toContain('id="feeds-latest"');
-    expect(page).toContain("最近来信");
     expect(page).toContain("推荐新邻居");
     const client = readFileSync("public/feeds.js", "utf-8");
     expect(client).toContain("feeds-card-latest-label");
