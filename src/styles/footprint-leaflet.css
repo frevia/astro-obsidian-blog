@@ -23,44 +23,33 @@ html[data-theme="dark"] .footprint-explorer {
 }
 
 .footprint-overview {
-  border-block: 1px solid var(--border);
-  padding-block: 1rem;
+  padding: 1rem 0.25rem;
 }
 
 .footprint-stats {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(8rem, 1.4fr);
-  gap: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
   margin: 0;
+  font-size: 0.8rem;
 }
 
 .footprint-stats > div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
   min-width: 0;
-  border-left: 1px solid var(--border);
-  padding: 0.25rem 0.75rem;
 }
 
 .footprint-stats dt {
-  color: color-mix(in oklab, var(--foreground) 70%, transparent);
-  font-size: 0.6875rem;
-  letter-spacing: 0.08em;
+  color: var(--foreground-muted);
 }
 
 .footprint-stats dd {
-  margin: 0.3rem 0 0;
+  margin: 0;
   color: var(--foreground);
-  font-size: 1.55rem;
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  letter-spacing: -0.05em;
-}
-
-.footprint-stats .footprint-stat-date {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.85rem;
-  letter-spacing: -0.02em;
+  font-weight: 500;
 }
 
 .footprint-empty-state {
@@ -95,7 +84,7 @@ html[data-theme="dark"] .footprint-explorer {
 }
 
 .footprint-map-panel {
-  margin-top: 1.75rem;
+  margin-top: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-card-emphasis);
   background: var(--surface);
@@ -202,7 +191,7 @@ html[data-theme="dark"] .footprint-explorer {
 
 .footprint-map-body {
   min-width: 0;
-  padding: 0 0.65rem 0.65rem;
+  padding: 0 0.25rem 0.65rem;
 }
 
 .footprint-map-frame {

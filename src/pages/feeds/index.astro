@@ -66,35 +66,12 @@ const hasTwikooEnv =
 
 <Layout title={`邻居 | ${SITE.title}`}>
   <Header />
-  <Main
-    pageTitle="邻居"
-    pageDesc="我常去拜访的个人博客，也是互联网仍然有趣的证明。"
-    pageDescClass="max-w-2xl"
-  >
-    <section id="feeds-list-section" class="feeds-page-stage">
-      <div class="feeds-overview" aria-label="邻居动态概览">
-        <div class="feeds-overview-item">
-          <span>邻居</span>
-          <strong id="feeds-count">正在同步</strong>
-        </div>
-        <div class="feeds-overview-item">
-          <span>最新来信</span>
-          <strong id="feeds-latest">读取中</strong>
-        </div>
-        <div class="feeds-overview-item feeds-overview-item--sync">
-          <span>同步状态</span>
-          <strong id="feeds-updated">连接 RSS 网络</strong>
-        </div>
-      </div>
-
-      <header class="feeds-stage-head">
-        <div>
-          <span class="feeds-eyebrow">邻里动态</span>
-          <h2>最近来信</h2>
-          <p>按发布时间排列，看看邻居们最近写了什么。</p>
-        </div>
-      </header>
-
+  <Main pageTitle="邻居" pageDesc="我订阅的博客。" pageDescClass="max-w-2xl">
+    <section
+      id="feeds-list-section"
+      class="feeds-page-stage"
+      aria-label="博客更新"
+    >
       <!-- 加载提示（骨架屏） -->
       <div id="feeds-loading">
         <ul class="feeds-list feeds-list--skeleton">
@@ -128,7 +105,7 @@ const hasTwikooEnv =
       <div id="feeds-no-content" class="feeds-state empty-state-card hidden">
         <div class="feeds-state-icon" aria-hidden="true">∅</div>
         <p class="feeds-state-title">还没有订阅内容</p>
-        <p class="feeds-state-copy">这里暂时没有可显示的博客更新。</p>
+        <p class="feeds-state-copy">暂无更新。</p>
       </div>
       <!-- Feeds 列表容器 -->
       <ul id="feeds-list" class="feeds-list"></ul>
@@ -144,7 +121,21 @@ const hasTwikooEnv =
       <!-- 已加载全部内容提示 -->
       <div id="all-loaded-indicator" class="feeds-all-loaded hidden">
         <span aria-hidden="true">✦</span>
-        <span>已经看到这里了</span>
+        <span>已加载全部更新</span>
+      </div>
+      <div class="feeds-overview" aria-label="邻居动态概览">
+        <div class="feeds-overview-item">
+          <span>邻居</span>
+          <strong id="feeds-count">正在同步</strong>
+        </div>
+        <div class="feeds-overview-item">
+          <span>最新文章</span>
+          <strong id="feeds-latest">读取中</strong>
+        </div>
+        <div class="feeds-overview-item feeds-overview-item--sync">
+          <span>同步状态</span>
+          <strong id="feeds-updated">正在同步</strong>
+        </div>
       </div>
     </section>
 
@@ -153,9 +144,9 @@ const hasTwikooEnv =
       commentsEnabled && (
         <section class="feeds-comments">
           <div class="feeds-comments-head">
-            <span class="feeds-eyebrow">开放讨论</span>
+            <span class="feeds-eyebrow">留言</span>
             <h2>推荐新邻居</h2>
-            <p>如果你也在认真记录，或者有喜欢的个人博客，欢迎留下地址。</p>
+            <p>有推荐的博客，可以在下面留个链接。</p>
           </div>
 
           {commentsEnabled && hasTwikooEnv && <Twikoo />}
@@ -270,61 +261,34 @@ const hasTwikooEnv =
   }
 
   .feeds-overview {
-    display: grid;
-    grid-template-columns: 0.8fr 1fr 1.45fr;
-    margin-top: 1.2rem;
-    border-block: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    margin-top: 1.5rem;
+    padding-block: 1rem;
+    border-top: 1px solid var(--border);
   }
 
   .feeds-overview-item {
-    display: grid;
-    gap: 0.4rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
     min-width: 0;
-    padding: 1rem 1.15rem;
-  }
-
-  .feeds-overview-item + .feeds-overview-item {
-    border-inline-start: 1px solid
-      color-mix(in oklab, var(--border) 72%, transparent);
+    font-size: 0.8rem;
   }
 
   .feeds-overview-item > span {
-    color: var(--foreground-subtle);
-    font-size: 0.68rem;
-    letter-spacing: 0.08em;
+    color: var(--foreground-muted);
   }
 
   .feeds-overview-item > strong {
-    overflow: hidden;
     color: var(--foreground);
-    font-size: 0.9rem;
-    font-weight: 650;
-    line-height: 1.35;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: inherit;
+    font-weight: 500;
   }
 
   .feeds-overview-item > strong.is-stale {
     color: color-mix(in oklab, #d97706 78%, var(--foreground));
-  }
-
-  .feeds-stage-head {
-    margin: 1.8rem 0 0.85rem;
-  }
-
-  .feeds-stage-head h2 {
-    margin-top: 0.3rem;
-    color: var(--foreground);
-    font-size: clamp(1.25rem, 2vw, 1.55rem);
-    font-weight: 650;
-    letter-spacing: -0.04em;
-  }
-
-  .feeds-stage-head p {
-    margin-top: 0.35rem;
-    color: var(--foreground-muted);
-    font-size: 0.78rem;
-    line-height: 1.6;
   }
 
   .feeds-list {
@@ -704,21 +668,6 @@ const hasTwikooEnv =
   }
 
   @media (max-width: 480px) {
-    .feeds-overview {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .feeds-overview-item {
-      gap: 0.2rem;
-      padding: 0.55rem 0.65rem;
-    }
-
-    .feeds-overview-item--sync {
-      grid-column: 1 / -1;
-      border-top: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
-      border-inline-start: 0 !important;
-    }
-
     .feeds-card-body {
       gap: 0.55rem;
       min-height: 5.6rem;

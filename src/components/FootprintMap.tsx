@@ -661,23 +661,6 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
       aria-label="足迹地图与统计"
       data-footprint-explorer
     >
-      <header className="footprint-overview">
-        <dl className="footprint-stats">
-          <div>
-            <dt>地点</dt>
-            <dd>{placeItems.length}</dd>
-          </div>
-          <div>
-            <dt>文章</dt>
-            <dd>{articleCount}</dd>
-          </div>
-          <div>
-            <dt>最近记录</dt>
-            <dd className="footprint-stat-date">{formatDate(latestDate)}</dd>
-          </div>
-        </dl>
-      </header>
-
       {!hasPlaces ? (
         <section
           className="footprint-empty-state"
@@ -776,6 +759,22 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
           ) : null}
         </div>
       </section>
+      <footer className="footprint-overview">
+        <dl className="footprint-stats">
+          <div>
+            <dt>地点</dt>
+            <dd>{placeItems.length}</dd>
+          </div>
+          <div>
+            <dt>文章</dt>
+            <dd>{articleCount}</dd>
+          </div>
+          <div>
+            <dt>最近记录</dt>
+            <dd className="footprint-stat-date">{formatDate(latestDate)}</dd>
+          </div>
+        </dl>
+      </footer>
     </section>
   );
 };
