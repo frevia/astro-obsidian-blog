@@ -2,6 +2,23 @@ import { describe, expect, it } from "vitest";
 import { buildFragmentPreviews } from "./fragmentPreviews";
 
 describe("buildFragmentPreviews", () => {
+  it("keeps the date visible for the first block and targets later blocks precisely", () => {
+    const previews = buildFragmentPreviews([
+      {
+        date: "2026-10-10",
+        timeBlocks: [
+          { time: "13:52", text: "第一条记录" },
+          { time: "10:30", text: "另一条记录" },
+        ],
+      },
+    ]);
+
+    expect(previews.map(item => item.href)).toEqual([
+      "/notes#date-2026-10-10",
+      "/notes#diary-2026-10-10-10-30",
+    ]);
+  });
+
   it("selects content-aware previews in source order", () => {
     const previews = buildFragmentPreviews(
       [

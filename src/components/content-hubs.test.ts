@@ -47,16 +47,18 @@ describe("content hub presentation contracts", () => {
     expect(fragmentCard).not.toContain("sm:mt-8");
     expect(fragmentCard).not.toContain("sm:mb-8");
     expect(fragmentCard).not.toMatch(/min-h-|h-full.*flex-col|mt-auto/);
-    expect(homeEditorial).toContain("grid items-start gap-4");
-    expect(fragmentCard).toContain("line-clamp-4");
-    expect(fragmentCard).toContain("home-lift-card");
-    expect(fragmentCard).toContain("Notes");
+    expect(homeEditorial).toMatch(
+      /\.home-notes-grid\s*\{[^}]*align-items: start/s
+    );
+    expect(fragmentCard).toContain("line-clamp-3");
+    expect(fragmentCard).toContain("focus-visible:outline-2");
+    expect(fragmentCard).toContain("note-meta");
     expect(fragmentCard).not.toContain("hover:border-accent/55");
     expect(fragmentCard).not.toContain("shadow-sm");
-    expect(fragmentCard).not.toContain("index");
+    expect(fragmentCard.split("---")[1]).not.toMatch(/\bindex\??\s*:/);
     expect(homeEditorial).toContain('presentation="featured"');
     expect(homeEditorial).toContain('href={withBase("/notes")}');
-    expect(homeEditorial).toContain("文章与 Notes");
+    expect(homeEditorial).toContain("日常手记");
     expect(homeEditorial).not.toContain("fragments.map((preview, index)");
   });
 

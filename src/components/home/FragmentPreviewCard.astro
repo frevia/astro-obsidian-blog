@@ -6,46 +6,157 @@ interface Props {
 }
 
 const { preview } = Astro.props;
-const dateLabel = preview.date.replace(/-/g, ".");
 ---
 
-<li data-content-kind={preview.kind} style={preview.style} class="min-w-0">
+<li data-content-kind={preview.kind} class="note-preview">
   <a
     href={preview.href}
     data-astro-prefetch="tap"
-    class="app-card home-lift-card group relative isolate flex flex-col overflow-hidden rounded-[var(--radius-card)] px-4 py-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+    class="note-preview-link focus-visible:outline-2 focus-visible:outline-accent"
   >
-    <span
-      aria-hidden="true"
-      class="pointer-events-none absolute -top-10 -right-8 -z-10 h-32 w-32 rounded-full bg-[var(--content-accent-soft)] opacity-[var(--content-image-opacity)] blur-2xl"
-    ></span>
-    {
-      preview.image && (
-        <div class="mb-4 aspect-[16/9] overflow-hidden rounded-xl border border-border/50 bg-muted/15">
-          <img
-            src={preview.image.src}
-            alt={preview.image.alt}
-            width="480"
-            height="270"
-            sizes="(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 100vw"
-            loading="lazy"
-            decoding="async"
-            class="app-card-media h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-          />
-        </div>
-      )
-    }
-    <div
-      class="flex items-center justify-between gap-3 text-xs tracking-wide text-foreground/55 tabular-nums"
-    >
-      <span>{preview.mediaLabel ?? "Notes"}</span>
-      <time datetime={`${preview.date}T${preview.time}`}>
-        {dateLabel} · {preview.time}
-      </time>
+    <time class="note-date" datetime={`${preview.date}T${preview.time}`}>
+      <span class="note-month">{preview.date.slice(5).replace("-", "/")}</span>
+      <span class="note-year">{preview.date.slice(0, 4)}</span>
+    </time>
+    <span class="note-marker" aria-hidden="true"></span>
+    <div class="note-content">
+      <div class="note-meta">
+        <span>{preview.time}</span>{
+          preview.mediaLabel && <span>{preview.mediaLabel}</span>
+        }
+      </div>
+      <div class="note-body">
+        <p class="note-excerpt line-clamp-3">{preview.excerpt}</p>
+        {
+          preview.image && (
+            <img
+              src={preview.image.src}
+              alt={preview.image.alt || "Notes 配图"}
+              width="80"
+              height="80"
+              loading="lazy"
+              decoding="async"
+              class="note-thumbnail"
+            />
+          )
+        }
+      </div>
     </div>
-    <p class="mt-3 line-clamp-4 text-base leading-7 text-foreground/88">
-      {preview.excerpt}
-    </p>
-    <span class="mt-4 text-sm font-medium text-accent"> 查看这条 Notes </span>
   </a>
 </li>
+<style>
+  .note-preview {
+    position: relative;
+    min-width: 0;
+  }
+  .note-preview:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 1.1rem;
+    bottom: -1.1rem;
+    left: 6.25rem;
+    width: 1px;
+    background: var(--border);
+    pointer-events: none;
+  }
+  .note-preview-link {
+    display: grid;
+    grid-template-columns: 5rem 1px minmax(0, 1fr);
+    align-items: start;
+    gap: 1.25rem;
+    padding: 0.5rem 0 1.5rem;
+    text-decoration: none;
+    outline-offset: 4px;
+  }
+  .note-date {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .note-month {
+    font-size: 1.25rem;
+    line-height: 1.4;
+    color: var(--foreground);
+  }
+  .note-year,
+  .note-meta {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    color: var(--foreground-muted);
+  }
+  .note-marker {
+    position: relative;
+    z-index: 1;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-left: -0.21875rem;
+    margin-top: 0.6rem;
+    border: 1px solid var(--accent-strong);
+    border-radius: 50%;
+    background: var(--background);
+  }
+  .note-preview-link:hover .note-marker {
+    background: var(--accent-strong);
+  }
+  .note-content {
+    min-width: 0;
+  }
+  .note-meta {
+    display: flex;
+    gap: 0.75rem;
+    line-height: 1.75;
+  }
+  .note-body {
+    display: flex;
+    align-items: start;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+  .note-excerpt {
+    flex: 1;
+    min-width: 0;
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--foreground);
+    transition: color 0.2s;
+  }
+  .note-preview-link:hover .note-excerpt {
+    color: var(--accent-strong);
+  }
+  .note-thumbnail {
+    width: 5rem;
+    height: 5rem;
+    flex-shrink: 0;
+    border-radius: 0.5rem;
+    object-fit: cover;
+  }
+  .note-preview:last-child .note-preview-link {
+    padding-bottom: 0;
+  }
+  @media (max-width: 480px) {
+    .note-preview-link {
+      grid-template-columns: 3.5rem 1px minmax(0, 1fr);
+      gap: 0.75rem;
+    }
+    .note-preview:not(:last-child)::after {
+      left: 4.25rem;
+    }
+    .note-month {
+      font-size: 1.05rem;
+    }
+    .note-body {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .note-thumbnail {
+      width: 4rem;
+      height: 4rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .note-excerpt {
+      transition: none;
+    }
+  }
+</style>
