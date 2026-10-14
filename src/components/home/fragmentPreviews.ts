@@ -105,7 +105,9 @@ export function buildFragmentPreviews(
         date: entry.date,
         time: block.time,
         href: withBase(
-          `/notes#diary-${entry.date}-${block.time.replace(/:/g, "-")}`
+          block === entry.timeBlocks[0]
+            ? `/notes#date-${entry.date}`
+            : `/notes#diary-${entry.date}-${block.time.replace(/:/g, "-")}`
         ),
         kind,
         excerpt,

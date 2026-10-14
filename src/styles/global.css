@@ -179,6 +179,11 @@ h6 {
   }
 }
 
+/* Notes 锚点跟随实际页头高度，避免窄屏固定导航遮挡日期或时间。 */
+.date-group :is(h2, h3)[id] {
+  scroll-margin-top: calc(var(--site-header-height, 4.5rem) + 1rem);
+}
+
 /* Footnotes: default offset */
 .footnote-item[id],
 .footnote-ref[id] {
@@ -623,6 +628,16 @@ video {
 #tcomment .tk-replies .tk-nick-link,
 .twikoo .tk-replies .tk-nick-link {
   font-size: 1em !important;
+}
+
+/* 回复的首段紧随 @昵称，后续段落和块级内容保留原有排版。 */
+:is(#tcomment, .twikoo)
+  .tk-content
+  > span:has(> .tk-ruser)
+  + span
+  > p:first-child {
+  display: inline;
+  margin: 0;
 }
 
 /* 隐藏 Twikoo 底部 footer */

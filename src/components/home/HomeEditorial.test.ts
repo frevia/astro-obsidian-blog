@@ -11,12 +11,13 @@ describe("home knowledge highlights", () => {
     expect(source).toContain("wikiHighlights.length > 0");
     expect(source).toContain("wikiHighlights.map(item");
     expect(source).toContain('id="home-wiki-heading"');
-    expect(source).toContain("home-lift-card");
+    expect(source).toContain("home-wiki-link");
     expect(source).toContain("{item.domain.label}");
-    expect(source).toContain("{item.title}");
+    expect(source).toContain("title={item.title}");
     expect(source).not.toContain("item.description");
     expect(source).not.toContain("item.relations");
     expect(source).not.toContain("home-wiki-lead");
+    expect(source).not.toContain("home-intro");
   });
 
   it("provides the full wiki entry point and passes selected concepts from home", () => {

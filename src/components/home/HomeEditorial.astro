@@ -15,109 +15,249 @@ interface Props {
 const { featuredPost, fragments = [], wikiHighlights = [] } = Astro.props;
 ---
 
-{
-  (featuredPost || fragments.length > 0 || wikiHighlights.length > 0) && (
-    <>
-      {(featuredPost || fragments.length > 0) && (
+<div class="home-editorial">
+  <h1 class="sr-only">Frevia 的文章与日常</h1>
+
+  {
+    featuredPost && (
+      <section class="home-section" aria-labelledby="home-editorial-heading">
+        <header class="home-section-heading">
+          <div>
+            <>
+              <h2 id="home-editorial-heading">最近文章</h2>
+            </>
+          </div>
+          <a
+            class="home-section-link"
+            href={withBase("/posts")}
+            data-astro-prefetch="hover"
+          >
+            全部文章
+          </a>
+        </header>
+        <ul aria-label="最新精选文章">
+          <Card {...featuredPost} presentation="featured" variant="h3" />
+        </ul>
+      </section>
+    )
+  }
+
+  <div class="home-secondary">
+    {
+      fragments.length > 0 && (
         <section
-          class="mb-12 border-b border-border/50 pb-10"
-          aria-labelledby="home-editorial-heading"
+          class="home-section home-notes"
+          aria-labelledby="home-notes-heading"
         >
-          <header class="mb-5 flex flex-wrap items-end justify-between gap-3">
+          <header class="home-section-heading">
             <div>
-              <p class="text-xs font-semibold tracking-[0.22em] text-accent uppercase">
-                最近写下
-              </p>
-              <h2
-                id="home-editorial-heading"
-                class="mt-1 text-2xl font-semibold tracking-tight text-foreground"
-              >
-                文章与 Notes
-              </h2>
-            </div>
-            <div class="flex flex-wrap items-center gap-1">
-              <a
-                href={withBase("/posts")}
-                data-astro-prefetch="hover"
-                class="rounded-md px-2 py-1 text-sm font-medium text-accent hover:underline"
-              >
-                看全部文章
-              </a>
-              <a
-                href={withBase("/notes")}
-                data-astro-prefetch="hover"
-                class="rounded-md px-2 py-1 text-sm font-medium text-accent hover:underline"
-              >
-                查看全部 Notes
-              </a>
-            </div>
-          </header>
-
-          {featuredPost && (
-            <ul class="mb-6" aria-label="最新精选文章">
-              <Card {...featuredPost} presentation="featured" variant="h3" />
-            </ul>
-          )}
-
-          {fragments.length > 0 && (
-            <ol
-              class="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3"
-              aria-label="近期 Notes 预览"
-            >
-              {fragments.map(preview => (
-                <FragmentPreviewCard {preview} />
-              ))}
-            </ol>
-          )}
-        </section>
-      )}
-
-      {wikiHighlights.length > 0 && (
-        <section
-          class="home-wiki-editorial mb-12 border-b border-border/50 pb-10"
-          aria-labelledby="home-wiki-heading"
-        >
-          <header class="mb-5 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p class="text-xs font-semibold tracking-[0.22em] text-accent uppercase">
-                持续积累
-              </p>
-              <h2
-                id="home-wiki-heading"
-                class="mt-1 text-2xl font-semibold tracking-tight text-foreground"
-              >
-                知识库
-              </h2>
+              <>
+                <h2 id="home-notes-heading">
+                  日常手记 <span>Notes</span>
+                </h2>
+              </>
             </div>
             <a
+              class="home-section-link"
+              href={withBase("/notes")}
+              data-astro-prefetch="hover"
+            >
+              全部手记
+            </a>
+          </header>
+          <ol class="home-notes-grid" aria-label="近期 Notes 预览">
+            {fragments.map(preview => (
+              <FragmentPreviewCard {preview} />
+            ))}
+          </ol>
+        </section>
+      )
+    }
+
+    {
+      wikiHighlights.length > 0 && (
+        <section
+          class="home-section home-wiki-editorial"
+          aria-labelledby="home-wiki-heading"
+        >
+          <header class="home-section-heading">
+            <div>
+              <>
+                <h2 id="home-wiki-heading">知识库</h2>
+              </>
+            </div>
+            <a
+              class="home-section-link"
               href={withBase("/wiki")}
               data-astro-prefetch="hover"
-              class="rounded-md px-2 py-1 text-sm font-medium text-accent hover:underline"
             >
               浏览全部知识
             </a>
           </header>
-
-          <ul class="grid gap-3 sm:grid-cols-3" aria-label="精选知识概念">
+          <ul class="home-wiki-list" aria-label="精选知识概念">
             {wikiHighlights.map(item => (
-              <li class="min-w-0">
+              <li>
                 <a
                   href={item.href}
                   data-astro-prefetch="hover"
-                  class="app-card home-lift-card group flex h-full min-h-36 flex-col p-4 no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+                  class="home-wiki-link"
                 >
-                  <span class="text-xs text-foreground-muted">
-                    {item.domain.label}
-                  </span>
-                  <h3 class="mt-3 text-base leading-7 font-semibold text-foreground group-hover:text-accent">
-                    {item.title}
+                  <div class="home-wiki-meta">
+                    <span class="home-wiki-domain">{item.domain.label}</span>
+                    <svg
+                      class="home-wiki-icon"
+                      aria-hidden="true"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M6 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4Z" />
+                    </svg>
+                  </div>
+                  <h3 title={item.title}>
+                    {item.title.replace(/\s*[（(][^（）()]*[）)]$/u, "")}
                   </h3>
+                  {item.title.match(/[（(]([^（）()]*)[）)]$/u)?.[1] && (
+                    <p class="home-wiki-subtitle">
+                      {item.title.match(/[（(]([^（）()]*)[）)]$/u)?.[1]}
+                    </p>
+                  )}
                 </a>
               </li>
             ))}
           </ul>
         </section>
-      )}
-    </>
-  )
-}
+      )
+    }
+  </div>
+</div>
+
+<style>
+  :global(.home-section) {
+    margin-bottom: 2.75rem;
+  }
+  :global(.home-section-heading) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  :global(.home-section-heading h2) {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .home-section-heading h2 span {
+    margin-left: 0.5rem;
+    font-size: 0.8rem;
+    font-family: var(--font-sans);
+    font-weight: 400;
+    color: var(--foreground-muted);
+  }
+  :global(.home-section-link) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    flex-shrink: 0;
+    font-size: 0.875rem;
+    color: var(--foreground-muted);
+    text-decoration: none;
+  }
+  :global(.home-section-link:hover) {
+    color: var(--accent-strong);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+  :global(.home-section-link:focus-visible),
+  .home-wiki-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+  .home-notes-grid {
+    display: grid;
+    align-items: start;
+    gap: 0;
+    padding: 0.25rem 1.25rem 0;
+  }
+  .home-wiki-list {
+    display: grid;
+    gap: 1rem;
+  }
+  .home-wiki-list li {
+    min-width: 0;
+  }
+  .home-wiki-link {
+    display: block;
+    height: 100%;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    background: var(--surface);
+    text-decoration: none;
+    transition:
+      border-color 0.2s,
+      background-color 0.2s;
+  }
+  .home-wiki-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .home-wiki-icon {
+    flex-shrink: 0;
+    color: var(--foreground-muted);
+  }
+  .home-wiki-domain {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    color: var(--foreground-muted);
+  }
+  .home-wiki-link h3 {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    font-weight: 600;
+    color: var(--foreground);
+  }
+  .home-wiki-subtitle {
+    margin-top: 0.25rem;
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--foreground-muted);
+    overflow-wrap: anywhere;
+  }
+  .home-wiki-link:hover {
+    border-color: var(--accent);
+    background: var(--accent-softer);
+  }
+  .home-wiki-link:hover h3,
+  .home-wiki-link:hover .home-wiki-icon {
+    color: var(--accent-strong);
+  }
+  @media (min-width: 768px) {
+    .home-wiki-list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 639px) {
+    :global(.home-section) {
+      margin-bottom: 2rem;
+    }
+    .home-notes-grid {
+      padding-inline: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .home-wiki-link {
+      transition: none;
+    }
+  }
+</style>
