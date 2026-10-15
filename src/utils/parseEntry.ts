@@ -1,4 +1,5 @@
 import path from "path";
+import { markdownToMdast, markdownToHtml } from "satteri";
 import {
   optimizeImage,
   type ImageOptimizeOptions,
@@ -189,6 +190,7 @@ export async function parseEntry(
 
     const originalBlockContent = blockContent;
 
+    const listBlocks: string[] = [];
     const applyMarkdown = (input: string) => {
       let t = (input || "").trim();
       t = t.replace(/```(imgs|html|card-[^\n]*)[\s\S]*?```/g, "").trim();
@@ -200,7 +202,7 @@ export async function parseEntry(
         "<mark class='bg-accent/20 text-foreground px-0.5'>$1</mark>"
       );
 
-      t = t.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+      t = t.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
       t = t.replace(/_(.+?)_/g, "<em>$1</em>");
 
       t = t.replace(
@@ -272,29 +274,27 @@ export async function parseEntry(
         return `<a href="${withBase(finalHref)}"${externalAttrs} class="${linkClass}">${linkText}</a>`;
       });
 
-      t = t.replace(/((?:^- .+(?:\n|$))+)/gm, match => {
-        const items = match
-          .split("\n")
-          .filter(line => line.trim().startsWith("- "))
-          .map(
-            line =>
-              `<li class="ml-4 list-disc">${line.substring(2).trim()}</li>`
-          )
-          .join("");
-        return `<ul class="mt-1 mb-2 pl-2">${items}</ul>`;
-      });
-
-      t = t.replace(/((?:^\d+\. .+(?:\n|$))+)/gm, match => {
-        const items = match
-          .split("\n")
-          .filter(line => /^\d+\. /.test(line.trim()))
-          .map(
-            line =>
-              `<li class="ml-4 list-decimal">${line.replace(/^\d+\. /, "").trim()}</li>`
-          )
-          .join("");
-        return `<ol class="mt-1 mb-2 pl-2">${items}</ol>`;
-      });
+      // Parse indentation and list boundaries instead of treating each line independently.
+      const tree = markdownToMdast(t);
+      for (const node of (tree.type === "root"
+        ? [...tree.children]
+        : []
+      ).reverse()) {
+        if (node.type !== "list") continue;
+        const start = node.position?.start.offset;
+        const end = node.position?.end.offset;
+        if (start === undefined || end === undefined) continue;
+        const { html } = markdownToHtml(t.slice(start, end));
+        const listHtml = html
+          .replace(/<ul>/g, '<ul class="mt-1 mb-2 pl-6 list-disc">')
+          .replace(
+            /<ol(\s[^>]*)?>/g,
+            '<ol$1 class="mt-1 mb-2 pl-6 list-decimal">'
+          );
+        const placeholder = `__HTML_BLOCK_LIST_${listBlocks.length}__`;
+        listBlocks.push(listHtml);
+        t = t.slice(0, start) + placeholder + t.slice(end);
+      }
 
       t = t.replace(/((?:^>.*(?:\n|$))+)/gm, match => {
         const lines = match
@@ -425,6 +425,9 @@ export async function parseEntry(
 
     text = applyFootnotesToText(text);
     postText = applyFootnotesToText(postText);
+    listBlocks.forEach((block, index) => {
+      listBlocks[index] = applyFootnotesToText(block);
+    });
 
     // 碎片仅用语义上的悬停/聚焦提示（.footnote-tooltip），不渲染文末脚注列表
 
@@ -714,6 +717,9 @@ export async function parseEntry(
         t = t.replace(`__HTML_BLOCK_${index}__`, block);
       });
 
+      listBlocks.forEach((block, index) => {
+        t = t.replace(`__HTML_BLOCK_LIST_${index}__`, () => block);
+      });
       return t;
     };
 
