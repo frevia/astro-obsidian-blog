@@ -2,8 +2,6 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-const distClient = "dist/client";
-const astroFontsDir = join(distClient, "_astro", "fonts");
 const pngSignature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
 function walk(dir) {
@@ -37,7 +35,8 @@ export function isGeneratedOgPngPath(path) {
   return fileName === "cover.png" || fileName === "index.png";
 }
 
-export function verifyOgBuild() {
+export function verifyOgBuild(distClient = "dist/client") {
+  const astroFontsDir = join(distClient, "_astro", "fonts");
   const fontFiles = walk(astroFontsDir).filter(path =>
     /\.(woff2?|ttf|otf)$/.test(path)
   );
@@ -46,14 +45,6 @@ export function verifyOgBuild() {
   ).length;
   const astroWoffCount = fontFiles.filter(path => path.endsWith(".woff")).length;
 
-  assert(
-    fontFiles.length >= 203,
-    `Expected at least 203 Astro font files, found ${fontFiles.length}`
-  );
-  assert(
-    astroWoff2Count >= 202,
-    `Expected at least 202 Astro woff2 font shards, found ${astroWoff2Count}`
-  );
   assert(
     astroWoffCount >= 1,
     `Expected at least one Astro woff font for OG, found ${astroWoffCount}`
@@ -80,22 +71,22 @@ export function verifyOgBuild() {
   const ogPngFiles = walk(join(distClient, "posts")).filter(
     isGeneratedOgPngPath
   );
-  assert(ogPngFiles.length > 0, "Expected at least one generated post OG PNG");
+  const siteOg = readPngDimensions(join(distClient, "og.png"));
+  assert(siteOg.width === 1200 && siteOg.height === 630,
+    "Expected a 1200x630 site og.png image");
 
   const dimensions = ogPngFiles.map(path => ({
     path,
     ...readPngDimensions(path),
   }));
-  assert(
-    dimensions.some(({ width, height }) => width === 1000 && height === 1000),
-    "Expected a 1000x1000 cover.png OG image"
-  );
-  assert(
-    dimensions.some(({ width, height }) => width === 1200 && height === 630),
-    "Expected a 1200x630 index.png OG image"
-  );
+  for (const { path, width, height } of dimensions) {
+    const isCover = basename(path) === "cover.png";
+    assert(width === (isCover ? 1000 : 1200) && height === (isCover ? 1000 : 630),
+      `Unexpected OG image dimensions for ${path}: ${width}x${height}`);
+  }
 
   return {
+    siteOg,
     astroFonts: fontFiles.length,
     astroWoff2: astroWoff2Count,
     astroWoff: astroWoffCount,

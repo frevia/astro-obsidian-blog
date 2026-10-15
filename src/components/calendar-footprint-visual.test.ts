@@ -66,15 +66,15 @@ describe("calendar and footprint visual integration", () => {
     expect(source).toContain('aria-label="足迹文章"');
     expect(source).toContain("item.posts.forEach");
     expect(source).not.toContain("item.posts.slice");
-    expect(source).toContain("maxHeight: 240");
-    expect(source).toContain("keyboard: true");
-    expect(source).toContain("marker.openPopup()");
+
+    expect(source).toContain('button.type = "button"');
+    expect(source).toContain("popup.open(map!, position)");
     expect(source).toContain("footprint-marker-pin-base");
     expect(source).toContain("footprint-marker-pin-hole");
     expect(source).toContain("footprint-popup-post-image");
     expect(source).toContain('data-astro-prefetch="tap"');
     expect(source).toContain('link.dataset.astroPrefetch = "tap"');
-    expect(source).toContain('tileLayer.on("tileerror"');
+    expect(source).toContain("loadAMap()");
     expect(source).toContain("地图暂时无法加载");
   });
 });

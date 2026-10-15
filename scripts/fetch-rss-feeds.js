@@ -10,7 +10,7 @@
  * 
  * 用法：
  * - 手动执行：node scripts/fetch-rss-feeds.js
- * - 构建前自动执行：通过 package.json 配置
+ * - 仅更新本地静态数据；Vercel Cron 使用 src/utils/fetchFeeds.ts 写入 Blob
  */
 
 import fs from 'fs';

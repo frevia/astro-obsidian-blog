@@ -36,7 +36,7 @@ const DiaryFeedList: React.FC<DiaryFeedListProps> = ({
           aria-labelledby={`date-${entry.date}`}
           aria-describedby={`content-${entry.date}`}
           tabIndex={0}
-          className={`diary-entry-reveal -mx-3 rounded-lg border border-transparent transition-all duration-200 hover:border-border/70 hover:bg-skin-fill/30 focus:ring-skin-accent focus:ring-offset-skin-fill focus:outline-none ${density === "compact" ? "p-2" : "p-3"}`}
+          className={`diary-entry-reveal -mx-3 rounded-lg border border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${density === "compact" ? "px-2 py-4" : "px-3 py-5"}`}
           style={{ animationDelay: `${Math.min(index, 8) * 70}ms` }}
         >
           <DiaryEntryReact

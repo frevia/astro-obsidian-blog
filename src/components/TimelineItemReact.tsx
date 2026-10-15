@@ -39,11 +39,11 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
   musicData,
   footnoteHtml,
 }) => {
-  const mediaSpacing = relatedPostLink ? "mb-2" : "mb-4";
+  const mediaSpacing = relatedPostLink ? "mb-1" : "mb-2";
 
   return (
     <article
-      className="mb-1 pb-6 last:pb-0"
+      className="pb-4 last:pb-0"
       tabIndex={0}
       role="article"
       aria-label={`${time} 时间段的记录`}
@@ -108,7 +108,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
 
               {htmlContent && (
                 <div
-                  className="html-content mt-0 mb-4 max-w-none leading-relaxed"
+                  className="html-content mt-0 mb-2 max-w-none leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: htmlContent }}
                   suppressHydrationWarning={true}
                   role="region"
@@ -156,7 +156,7 @@ const TimelineItemReact: React.FC<TimelineItemProps> = ({
 
               {postText && (
                 <div
-                  className="mb-4 text-base leading-relaxed whitespace-pre-wrap"
+                  className="mb-2 text-base leading-relaxed whitespace-pre-wrap"
                   dangerouslySetInnerHTML={{ __html: postText }}
                 />
               )}

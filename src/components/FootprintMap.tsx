@@ -1,15 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type {
-  LayerGroup,
-  Map as LeafletMap,
-  Marker as LeafletMarker,
-} from "leaflet";
-import type { Map as MapLibreMap, StyleSpecification } from "maplibre-gl";
-import "leaflet/dist/leaflet.css";
-import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
-import "maplibre-gl/dist/maplibre-gl.css";
-import "@/styles/footprint-leaflet.css";
-import { prepareFootprintStyle } from "./footprint/vectorStyle";
+import "@/styles/footprint-map.css";
+import {
+  loadAMap,
+  type AMapInstance,
+  type AMapMarker,
+  type AMapInfoWindow,
+} from "./footprint/amap";
 
 export interface FootprintPlace {
   name: string;
@@ -35,11 +31,6 @@ export interface FootprintMapProps {
   records?: FootprintRecord[];
 }
 
-type LeafletApi = typeof import("leaflet");
-type MaplibreLayer = ReturnType<
-  typeof import("@maplibre/maplibre-gl-leaflet").maplibreGL
->;
-
 type PlaceItem = FootprintPlace & {
   key: string;
   posts: FootprintRecord[];
@@ -48,99 +39,10 @@ type PlaceItem = FootprintPlace & {
 const MAP_PIN_PATH =
   "M16 2C9.373 2 4 7.373 4 14c0 8.68 9.65 18.4 11.35 20.03a.92.92 0 0 0 1.3 0C18.35 32.4 28 22.68 28 14 28 7.373 22.627 2 16 2Z";
 
-function MapPinGlyph({ selected = false }: { selected?: boolean }) {
-  return (
-    <svg
-      className={["footprint-map-legend-pin", selected ? "is-selected" : null]
-        .filter(Boolean)
-        .join(" ")}
-      viewBox="0 0 32 42"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <ellipse
-        className="footprint-marker-pin-base"
-        cx="16"
-        cy="37"
-        rx="9"
-        ry="2.8"
-      />
-      <path className="footprint-marker-pin-body" d={MAP_PIN_PATH} />
-      <circle className="footprint-marker-pin-hole" cx="16" cy="14" r="4.1" />
-    </svg>
-  );
-}
-
-const DEFAULT_CENTER: [number, number] = [25, 105];
-const DEFAULT_ZOOM = 3;
-
-export type FootprintInitialView =
-  | {
-      bounds: [number, number][];
-      options: {
-        padding: [number, number];
-        maxZoom: number;
-        animate: false;
-      };
-    }
-  | {
-      center: [number, number];
-      zoom: number;
-      options: { animate: false };
-    };
-
-export function getInitialMapView(
-  places: readonly Pick<FootprintPlace, "lat" | "lng">[]
-): FootprintInitialView {
-  if (places.length === 0) {
-    return {
-      center: DEFAULT_CENTER,
-      zoom: DEFAULT_ZOOM,
-      options: { animate: false },
-    };
-  }
-
-  return {
-    bounds: places.map(place => [place.lat, place.lng]),
-    options: {
-      padding: [48, 48],
-      maxZoom: 12,
-      animate: false,
-    },
-  };
-}
-
-const VECTOR_STYLE_URLS = {
-  light: "https://tiles.openfreemap.org/styles/liberty",
-  dark: "https://tiles.openfreemap.org/styles/dark",
-} as const;
-const VECTOR_ATTRIBUTION =
-  '&copy; <a href="https://openfreemap.org/" target="_blank" rel="noreferrer">OpenFreeMap</a>, <a href="https://openmaptiles.org/" target="_blank" rel="noreferrer">OpenMapTiles</a>, <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors';
-const RASTER_TILE_URL = import.meta.env.PUBLIC_FOOTPRINT_TILE_URL;
-const RASTER_TILE_ATTRIBUTION =
-  import.meta.env.PUBLIC_FOOTPRINT_TILE_ATTRIBUTION ??
-  '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors';
-
-type FootprintTheme = keyof typeof VECTOR_STYLE_URLS;
-
-function currentFootprintTheme(): FootprintTheme {
-  return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
-}
-
-async function fetchFootprintStyle(
-  theme: FootprintTheme,
-  signal: AbortSignal
-): Promise<StyleSpecification> {
-  const response = await fetch(VECTOR_STYLE_URLS[theme], { signal });
-  if (!response.ok) {
-    throw new Error(`OpenFreeMap style request failed: ${response.status}`);
-  }
-
-  const style = (await response.json()) as StyleSpecification;
-  if (!Array.isArray(style.layers)) {
-    throw new Error("OpenFreeMap style has no layers");
-  }
-  return prepareFootprintStyle(style, theme === "dark");
+function currentMapStyle() {
+  return document.documentElement.dataset.theme === "dark"
+    ? "amap://styles/dark"
+    : "amap://styles/normal";
 }
 
 const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
@@ -184,14 +86,13 @@ function formatCoordinate(value: number): string {
   return value.toFixed(4);
 }
 
-function createMarkerIcon(L: LeafletApi, selected: boolean) {
-  return L.divIcon({
-    className: "footprint-marker-icon-wrap",
-    html: `<span class="footprint-marker-icon${selected ? " is-selected" : ""}" aria-hidden="true"><svg viewBox="0 0 32 42" focusable="false"><ellipse class="footprint-marker-pin-base" cx="16" cy="37" rx="9" ry="2.8"></ellipse><path class="footprint-marker-pin-body" d="${MAP_PIN_PATH}"></path><circle class="footprint-marker-pin-hole" cx="16" cy="14" r="4.1"></circle></svg></span>`,
-    iconSize: [38, 44],
-    iconAnchor: [19, 42],
-    popupAnchor: [0, -40],
-  });
+function createMarkerButton(name: string): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "footprint-marker-icon-wrap footprint-marker-button";
+  button.setAttribute("aria-label", `查看${name}的文章`);
+  button.innerHTML = `<span class="footprint-marker-icon" aria-hidden="true"><svg viewBox="0 0 32 42" focusable="false"><ellipse class="footprint-marker-pin-base" cx="16" cy="37" rx="9" ry="2.8"></ellipse><path class="footprint-marker-pin-body" d="${MAP_PIN_PATH}"></path><circle class="footprint-marker-pin-hole" cx="16" cy="14" r="4.1"></circle></svg></span>`;
+  return button;
 }
 
 function createPopupContent(item: PlaceItem): HTMLElement {
@@ -258,20 +159,19 @@ function createPopupContent(item: PlaceItem): HTMLElement {
   return root;
 }
 
+const EMPTY_PLACES: FootprintPlace[] = [];
+const EMPTY_RECORDS: FootprintRecord[] = [];
+
 const FootprintMap: React.FC<FootprintMapProps> = ({
-  places = [],
-  records = [],
+  places = EMPTY_PLACES,
+  records = EMPTY_RECORDS,
 }) => {
   const mapElementRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<LeafletMap | null>(null);
-  const leafletRef = useRef<LeafletApi | null>(null);
-  const maplibreMapRef = useRef<MapLibreMap | null>(null);
-  const markerLayerRef = useRef<LayerGroup<LeafletMarker> | null>(null);
-  const markersRef = useRef(new Map<string, LeafletMarker>());
-
+  const mapRef = useRef<AMapInstance | null>(null);
+  const markersRef = useRef<AMapMarker[]>([]);
+  const popupRef = useRef<AMapInfoWindow | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
   const placeItems = useMemo<PlaceItem[]>(
     () =>
@@ -288,10 +188,6 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         }),
     [places, records]
   );
-  const placeItemsRef = useRef(placeItems);
-  const initialViewSignatureRef = useRef<string | null>(null);
-  placeItemsRef.current = placeItems;
-
   const articleCount = new Set(records.map(record => record.url)).size;
   const latestDate = records.reduce<string | undefined>((latest, record) => {
     if (!record.date) return latest;
@@ -299,359 +195,108 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
     return latest;
   }, undefined);
 
-  const fitAllPlaces = useCallback(
-    (animate = true) => {
-      const map = mapRef.current;
-      const L = leafletRef.current;
-      if (!map || !L) return;
-
-      if (placeItems.length === 0) {
-        map.setView(DEFAULT_CENTER, DEFAULT_ZOOM, { animate });
-        return;
-      }
-
-      const bounds = L.latLngBounds(
-        placeItems.map(item => [item.lat, item.lng] as [number, number])
-      );
-      map.fitBounds(bounds, {
-        padding: [48, 48],
-        maxZoom: 12,
-        animate,
-      });
-    },
-    [placeItems]
-  );
-
-  const selectPlace = useCallback((key: string) => {
-    setSelectedKey(key);
-  }, []);
-
   const clearSelection = useCallback(() => {
-    setSelectedKey(null);
-    mapRef.current?.closePopup();
-    fitAllPlaces();
-  }, [fitAllPlaces]);
+    popupRef.current?.close();
+    mapRef.current?.setFitView(markersRef.current, true, [48, 48, 48, 48], 12);
+  }, []);
 
   useEffect(() => {
     const element = mapElementRef.current;
     if (!element) return;
-
     let cancelled = false;
-    let resizeObserver: ResizeObserver | undefined;
+    let map: AMapInstance | undefined;
     let themeObserver: MutationObserver | undefined;
-    let invalidateTimer: number | undefined;
-    let styleAbortController: AbortController | undefined;
-    let styleRequestId = 0;
-    let styleLoading = true;
-    let activeTheme = currentFootprintTheme();
-    let pendingTheme: FootprintTheme | null = null;
-    let localMap: LeafletMap | null = null;
-    let localVectorLayer: MaplibreLayer | null = null;
+    let readyTimer: ReturnType<typeof setTimeout> | undefined;
+    setMapReady(false);
+    setMapError(null);
 
-    const markStyleReady = () => {
-      if (cancelled) return;
-      styleLoading = false;
-      pendingTheme = null;
-      setMapReady(true);
-      setMapError(null);
-    };
-
-    const applyVectorTheme = async (theme: FootprintTheme) => {
-      const maplibreMap = maplibreMapRef.current;
-      if (!maplibreMap || cancelled) return;
-
-      const requestId = ++styleRequestId;
-      styleAbortController?.abort();
-      const controller = new AbortController();
-      styleAbortController = controller;
-      pendingTheme = theme;
-
-      try {
-        const style = await fetchFootprintStyle(theme, controller.signal);
-        if (cancelled || requestId !== styleRequestId) return;
-
-        styleLoading = true;
-        maplibreMap.setStyle(style);
-        activeTheme = theme;
-        pendingTheme = null;
-      } catch {
-        if (
-          cancelled ||
-          controller.signal.aborted ||
-          requestId !== styleRequestId
-        ) {
-          return;
-        }
-        pendingTheme = null;
-        styleLoading = false;
-        setMapError("地图暂时无法加载，但仍可从下方文章链接查看足迹。");
-      }
-    };
-
-    const initializeMap = async () => {
-      try {
-        const module = (await import("leaflet")) as LeafletApi & {
-          default?: LeafletApi;
-        };
+    void loadAMap()
+      .then(AMap => {
         if (cancelled) return;
-
-        const L = module.default ?? module;
-        let maplibreModule: typeof import("maplibre-gl") | undefined;
-        let adapterModule:
-          | typeof import("@maplibre/maplibre-gl-leaflet")
-          | undefined;
-        let initialStyle: StyleSpecification | undefined;
-
-        if (!RASTER_TILE_URL) {
-          styleAbortController = new AbortController();
-          [maplibreModule, adapterModule, initialStyle] = await Promise.all([
-            import("maplibre-gl"),
-            import("@maplibre/maplibre-gl-leaflet"),
-            fetchFootprintStyle(activeTheme, styleAbortController.signal),
-          ]);
-          if (cancelled) return;
-          maplibreModule.setWorkerUrl(maplibreWorkerUrl);
-        }
-
-        const prefersReducedMotion = window.matchMedia(
-          "(prefers-reduced-motion: reduce)"
-        ).matches;
-        const map = L.map(element, {
-          zoomControl: false,
-          minZoom: 1,
-          maxBounds: [
-            [-85, -Infinity],
-            [85, Infinity],
-          ],
-          maxBoundsViscosity: 1,
-          maxZoom: 18,
-          scrollWheelZoom: false,
-          zoomAnimation: !prefersReducedMotion,
-          markerZoomAnimation: !prefersReducedMotion,
-          attributionControl: false,
+        map = new AMap.Map(element, {
+          viewMode: "2D",
+          center: [105, 25],
+          zoom: 4,
+          mapStyle: currentMapStyle(),
+          scrollWheel: true,
+          resizeEnable: true,
+          animateEnable: !window.matchMedia("(prefers-reduced-motion: reduce)")
+            .matches,
         });
-        localMap = map;
         mapRef.current = map;
-        leafletRef.current = L;
-
-        const initialView = getInitialMapView(placeItemsRef.current);
-        if ("bounds" in initialView) {
-          map.fitBounds(initialView.bounds, initialView.options);
-        } else {
-          map.setView(
-            initialView.center,
-            initialView.zoom,
-            initialView.options
-          );
-        }
-        initialViewSignatureRef.current = placeItemsRef.current
-          .map(item => item.key)
-          .join("\u0000");
-
-        L.control.zoom({ position: "topright" }).addTo(map);
-        L.control.scale({ imperial: false, position: "bottomleft" }).addTo(map);
-        const attributionControl = L.control.attribution({ prefix: false });
-        attributionControl.addTo(map);
-        if (RASTER_TILE_URL) {
-          const tileLayer = L.tileLayer(RASTER_TILE_URL, {
-            maxZoom: 19,
-            attribution: RASTER_TILE_ATTRIBUTION,
-            crossOrigin: true,
-          });
-          tileLayer.on("tileerror", () => {
-            if (!cancelled) {
-              setMapError("地图图层暂时不可用，但仍可从下方文章链接查看足迹。");
-            }
-          });
-          tileLayer.addTo(map);
-          attributionControl.addAttribution(RASTER_TILE_ATTRIBUTION);
-          markStyleReady();
-        } else if (adapterModule && initialStyle) {
-          attributionControl.addAttribution(VECTOR_ATTRIBUTION);
-          localVectorLayer = adapterModule.maplibreGL({
-            style: initialStyle,
-            localIdeographFontFamily: '"Noto Sans SC", system-ui, sans-serif',
-            attributionControl: false,
-          });
-          localVectorLayer.addTo(map);
-          const maplibreMap = localVectorLayer.getMaplibreMap();
-          if (!maplibreMap)
-            throw new Error("MapLibre layer did not initialize");
-
-          maplibreMapRef.current = maplibreMap;
-          maplibreMap.on("load", markStyleReady);
-          maplibreMap.on("style.load", markStyleReady);
-          maplibreMap.on("error", () => {
-            if (!cancelled && styleLoading) {
-              setMapError("地图暂时无法加载，但仍可从下方文章链接查看足迹。");
-            }
-          });
-          if (maplibreMap.isStyleLoaded()) markStyleReady();
-
-          themeObserver = new MutationObserver(() => {
-            const theme = currentFootprintTheme();
-            if (theme === activeTheme) {
-              if (pendingTheme) {
-                styleRequestId += 1;
-                styleAbortController?.abort();
-                pendingTheme = null;
-              }
-              styleLoading = false;
-              setMapError(null);
-              return;
-            }
-            void applyVectorTheme(theme);
-          });
-          themeObserver.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ["data-theme"],
-          });
-          if (currentFootprintTheme() !== activeTheme) {
-            void applyVectorTheme(currentFootprintTheme());
-          }
-        } else {
-          throw new Error("MapLibre dependencies did not load");
-        }
-
-        markerLayerRef.current = L.layerGroup().addTo(map);
-        resizeObserver = new ResizeObserver(() => {
-          map.invalidateSize({ pan: false });
+        readyTimer = setTimeout(() => {
+          if (!cancelled)
+            setMapError("地图暂时无法加载，请稍后刷新；下方仍可查看足迹文章。");
+        }, 20000);
+        map.on("complete", () => {
+          if (cancelled) return;
+          clearTimeout(readyTimer);
+          setMapReady(true);
+          setMapError(null);
         });
-        resizeObserver.observe(element);
-        invalidateTimer = window.setTimeout(
-          () => map.invalidateSize({ pan: false }),
-          0
+        const popup = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -42) });
+        popupRef.current = popup;
+        const buttons: HTMLButtonElement[] = [];
+        popup.on("close", () =>
+          buttons.forEach(button => {
+            button.querySelector("span")?.classList.remove("is-selected");
+            button.setAttribute("aria-expanded", "false");
+          })
         );
-      } catch (error) {
-        if (!cancelled) {
-          console.error("Footprint map initialization failed", error);
-          styleLoading = false;
-          setMapReady(false);
+        markersRef.current = placeItems.map(item => {
+          // Article coordinates come from AMap and are already GCJ-02.
+          const position: [number, number] = [item.lng, item.lat];
+          const button = createMarkerButton(item.name);
+          button.setAttribute("aria-expanded", "false");
+          buttons.push(button);
+          const marker = new AMap.Marker({
+            position,
+            content: button,
+            anchor: "bottom-center",
+            title: item.name,
+          });
+          button.addEventListener("click", event => {
+            event.stopPropagation();
+            popup.close();
+            buttons.forEach(other => {
+              other
+                .querySelector("span")
+                ?.classList.toggle("is-selected", other === button);
+              other.setAttribute("aria-expanded", String(other === button));
+            });
+            popup.setContent(createPopupContent(item));
+            popup.open(map!, position);
+          });
+          map!.add(marker);
+          return marker;
+        });
+        if (markersRef.current.length)
+          map.setFitView(markersRef.current, true, [48, 48, 48, 48], 12);
+        map.addControl(new AMap.Scale());
+        themeObserver = new MutationObserver(() =>
+          map?.setMapStyle(currentMapStyle())
+        );
+        themeObserver.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["data-theme"],
+        });
+      })
+      .catch(() => {
+        if (!cancelled)
           setMapError("地图暂时无法加载，但仍可从下方文章链接查看足迹。");
-        }
-      }
-    };
-
-    let idleCallbackId: number | undefined;
-    let initializationTimer: number | undefined;
-    const idleWindow = window as Window & {
-      requestIdleCallback?: (
-        callback: () => void,
-        options?: { timeout: number }
-      ) => number;
-      cancelIdleCallback?: (handle: number) => void;
-    };
-    const startInitialization = () => {
-      if (cancelled) return;
-      void initializeMap();
-    };
-
-    if (idleWindow.requestIdleCallback) {
-      idleCallbackId = idleWindow.requestIdleCallback(startInitialization, {
-        timeout: 500,
       });
-    } else {
-      initializationTimer = window.setTimeout(startInitialization, 0);
-    }
 
     return () => {
       cancelled = true;
-      if (idleCallbackId !== undefined) {
-        idleWindow.cancelIdleCallback?.(idleCallbackId);
-      }
-      if (initializationTimer !== undefined) {
-        window.clearTimeout(initializationTimer);
-      }
-      styleRequestId += 1;
-      styleAbortController?.abort();
+      clearTimeout(readyTimer);
       themeObserver?.disconnect();
-      resizeObserver?.disconnect();
-      if (invalidateTimer !== undefined) window.clearTimeout(invalidateTimer);
-      markerLayerRef.current?.clearLayers();
-      markerLayerRef.current = null;
-      markersRef.current.clear();
-      const map = localMap ?? mapRef.current;
-      if (map && localVectorLayer) {
-        try {
-          if (map.hasLayer(localVectorLayer)) {
-            map.removeLayer(localVectorLayer);
-          } else {
-            localVectorLayer.getMaplibreMap()?.remove();
-          }
-        } catch {
-          try {
-            localVectorLayer.getMaplibreMap()?.remove();
-          } catch {
-            // The layer may have failed before MapLibre created its map.
-          }
-        }
-      }
-      map?.remove();
+      popupRef.current?.close();
+      popupRef.current = null;
+      markersRef.current = [];
+      map?.destroy();
       mapRef.current = null;
-      leafletRef.current = null;
-      maplibreMapRef.current = null;
     };
-  }, []);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    const L = leafletRef.current;
-    const markerLayer = markerLayerRef.current;
-    if (!map || !L || !markerLayer || !mapReady) return;
-
-    markerLayer.clearLayers();
-    markersRef.current.clear();
-
-    placeItems.forEach(item => {
-      const marker = L.marker([item.lat, item.lng], {
-        icon: createMarkerIcon(L, item.key === selectedKey),
-        title: item.name,
-        keyboard: true,
-        riseOnHover: true,
-        autoPan: true,
-      });
-      marker.bindPopup(createPopupContent(item), {
-        className: "footprint-leaflet-popup",
-        maxWidth: 320,
-        minWidth: 200,
-        maxHeight: 240,
-      });
-      marker.on("click", () => selectPlace(item.key));
-      marker.on("popupopen", () => selectPlace(item.key));
-      marker.addTo(markerLayer);
-      markersRef.current.set(item.key, marker);
-    });
-  }, [mapReady, placeItems, selectPlace]);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    const L = leafletRef.current;
-    if (!map || !L || !mapReady) return;
-
-    markersRef.current.forEach((marker, key) => {
-      marker.setIcon(createMarkerIcon(L, key === selectedKey));
-    });
-
-    if (!selectedKey) return;
-    const item = placeItems.find(place => place.key === selectedKey);
-    const marker = markersRef.current.get(selectedKey);
-    if (!item || !marker) return;
-
-    const targetZoom = Math.max(map.getZoom(), 12);
-    map.flyTo([item.lat, item.lng], targetZoom, {
-      duration: 0.55,
-      animate: !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    });
-    marker.openPopup();
-  }, [mapReady, placeItems, selectedKey]);
-
-  useEffect(() => {
-    if (!mapReady) return;
-    const signature = placeItems.map(item => item.key).join("\u0000");
-    if (signature === initialViewSignatureRef.current) return;
-    fitAllPlaces(false);
-    initialViewSignatureRef.current = signature;
-  }, [fitAllPlaces, mapReady, placeItems]);
+  }, [placeItems]);
 
   const hasPlaces = placeItems.length > 0;
 
@@ -677,55 +322,58 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         className="footprint-map-panel"
         aria-labelledby="footprint-map-title"
       >
-        <header className="footprint-map-panel-head">
-          <div>
-            <p className="footprint-eyebrow">TRAVEL JOURNAL</p>
-            <h2 id="footprint-map-title">去过的地方</h2>
-          </div>
-          <div className="footprint-map-actions">
-            <span
-              className="footprint-map-status"
-              role="status"
-              aria-live="polite"
-            >
-              {mapError
-                ? "地图暂不可用"
-                : mapReady
-                  ? "点击地点，展开回忆"
-                  : "地图载入中"}
-            </span>
-            <button
-              type="button"
-              className="footprint-map-reset"
-              onClick={clearSelection}
-              disabled={!hasPlaces || !mapReady}
-            >
-              适配全部地点
-            </button>
-          </div>
-        </header>
-
-        <div className="footprint-map-legend" aria-label="地图图例">
-          <span className="footprint-map-legend-item">
-            <MapPinGlyph />
-            已记录地点
-          </span>
-          <span className="footprint-map-legend-item">
-            <MapPinGlyph selected />
-            当前选中
-          </span>
-          <span className="footprint-map-legend-note">点标记查看文章</span>
-        </div>
+        <h2 id="footprint-map-title" className="sr-only">
+          足迹地图
+        </h2>
 
         <div className="footprint-map-body">
           <div className="footprint-map-frame">
             <div
               ref={mapElementRef}
-              className="footprint-leaflet-map"
+              className="footprint-amap"
               role="region"
               aria-label="交互式足迹地图"
               aria-describedby="footprint-map-help"
             />
+            <div
+              className="footprint-map-toolbar"
+              role="group"
+              aria-label="地图操作"
+            >
+              <button
+                type="button"
+                aria-label="放大地图"
+                title="放大地图"
+                disabled={!mapReady}
+                onClick={() => mapRef.current?.zoomIn()}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                aria-label="缩小地图"
+                title="缩小地图"
+                disabled={!mapReady}
+                onClick={() => mapRef.current?.zoomOut()}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12h14" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                aria-label="适配全部地点"
+                title="适配全部地点"
+                disabled={!hasPlaces || !mapReady}
+                onClick={clearSelection}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5" />
+                </svg>
+              </button>
+            </div>
             {!mapReady && !mapError ? (
               <div
                 className="footprint-map-loading app-loading-state"
@@ -740,10 +388,6 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
               </div>
             ) : null}
           </div>
-          <p className="footprint-map-help" id="footprint-map-help">
-            拖动探索地图，点击地点查看照片与文章。键盘可用 Tab 选择标记，Enter
-            打开。
-          </p>
           {mapError ? (
             <ul className="footprint-fallback-links" aria-label="足迹文章">
               {Array.from(
@@ -762,18 +406,45 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
       <footer className="footprint-overview">
         <dl className="footprint-stats">
           <div>
-            <dt>地点</dt>
+            <dt>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z" />
+                <circle cx="12" cy="10" r="2.5" />
+              </svg>
+              地点
+            </dt>
             <dd>{placeItems.length}</dd>
           </div>
           <div>
-            <dt>文章</dt>
+            <dt>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8l-5-5Z M14 3v5h5M9 12h6M9 16h6" />
+              </svg>
+              文章
+            </dt>
             <dd>{articleCount}</dd>
           </div>
           <div>
-            <dt>最近记录</dt>
+            <dt>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="4" y="5" width="16" height="16" rx="2" />
+                <path d="M8 3v4M16 3v4M4 11h16M8 15h2M14 15h2" />
+              </svg>
+              最近记录
+            </dt>
             <dd className="footprint-stat-date">{formatDate(latestDate)}</dd>
           </div>
         </dl>
+        <p className="footprint-map-help" id="footprint-map-help">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="6" y="3" width="12" height="18" rx="6" />
+            <path d="M12 7v4" />
+          </svg>
+          <span>拖动浏览 · 滚轮缩放</span>
+          <span className="sr-only">
+            。点击地点查看照片与文章；键盘可用 Tab 选择标记，Enter 打开。
+          </span>
+        </p>
       </footer>
     </section>
   );

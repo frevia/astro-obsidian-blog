@@ -28,11 +28,11 @@
 
 - 日历组件使用 `client:idle`，首页和碎片时间线在浏览器空闲时水合
 - 正文照片底部与灯箱显示 ExifReader 从本地原图提取的拍摄参数；自动隐藏文件名式说明，保留人工描述。仅输出品牌、型号、光圈、快门、ISO 和焦距，不输出 GPS 或设备序列号；远程图片及无 EXIF 图片不显示参数。
-- 足迹地图使用 `client:visible`，Leaflet 与 OpenFreeMap 地图不可用时自动退回文章链接
+- 足迹地图使用 `client:visible`，高德地图不可用时自动退回文章链接
 - `Cmd/Ctrl + K` 打开原生搜索面板，Pagefind 引擎在首次搜索时按需加载
 - 响应式布局、键盘导航、语义化控件、明暗主题和 reduced-motion 支持
 - 知识库领域筛选、全文过滤、双向链接和专属阅读界面
-- Leaflet + MapLibre 足迹地图、地点索引、文章关联和明暗地图配色
+- 高德 JS API 2.0 足迹地图、地点索引、文章关联和明暗地图配色
 - Twikoo 评论、RSS 邻居订阅和 Vercel Cron 定时抓取
 
 ## 🚀 项目结构
@@ -42,8 +42,7 @@
 ├── astro-paper.config.ts       # 网站可编辑配置
 ├── astro.config.ts             # Astro、Sätteri、Vite 和部署配置
 ├── public/
-│   ├── data/feeds/             # RSS 订阅与生成数据
-│   └── data/footprint/         # 足迹地图标签数据
+│   └── data/feeds/             # RSS 订阅与生成数据
 ├── src/
 │   ├── data/                   # 独立 blog-data Git 子模块
 │   │   ├── blog/               # 博客文章
@@ -59,7 +58,7 @@
 │   ├── utils/                  # 内容解析、图片和 wikilink 工具
 │   ├── config.ts               # 用户配置的 resolved 兼容视图
 │   └── content.config.ts       # Astro 内容集合和 schema
-├── scripts/                    # 构建、RSS、地图标签和校验脚本
+├── scripts/                    # 内容拉取、RSS、节气缓存和构建校验脚本
 └── package.json
 ```
 
@@ -67,18 +66,18 @@
 
 ## 🛠️ 技术栈
 
-| 类别       | 技术                                                                                                                     |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------ |
-| 应用框架   | [Astro 7](https://astro.build/)                                                                                          |
-| 主题基线   | [satnaing/astro-paper](https://github.com/satnaing/astro-paper)                                                          |
-| Markdown   | [Sätteri](https://github.com/HiDeoo/satteri)、MDX、Shiki                                                                 |
-| 样式       | [Tailwind CSS 4](https://tailwindcss.com/)                                                                               |
-| UI 岛屿    | React 19 / Preact compat                                                                                                 |
-| 搜索       | [Pagefind](https://pagefind.app/)                                                                                        |
-| 地图       | [Leaflet](https://leafletjs.com/) + [MapLibre](https://maplibre.org/) + [OpenFreeMap](https://openfreemap.org/) 矢量样式 |
-| 检查与测试 | TypeScript、ESLint、Prettier、Vitest、Astro Check                                                                        |
-| 部署       | [Vercel](https://vercel.com/) adapter                                                                                    |
-| 评论       | [Twikoo](https://twikoo.js.org/)                                                                                         |
+| 类别       | 技术                                                                      |
+| ---------- | ------------------------------------------------------------------------- |
+| 应用框架   | [Astro 7](https://astro.build/)                                           |
+| 主题基线   | [satnaing/astro-paper](https://github.com/satnaing/astro-paper)           |
+| Markdown   | [Sätteri](https://github.com/HiDeoo/satteri)、MDX、Shiki                  |
+| 样式       | [Tailwind CSS 4](https://tailwindcss.com/)                                |
+| UI 岛屿    | React 19 / Preact compat                                                  |
+| 搜索       | [Pagefind](https://pagefind.app/)                                         |
+| 地图       | [高德地图 JS API 2.0](https://lbs.amap.com/api/javascript-api-v2/summary) |
+| 检查与测试 | TypeScript、ESLint、Prettier、Vitest、Astro Check                         |
+| 部署       | [Vercel](https://vercel.com/) adapter                                     |
+| 评论       | [Twikoo](https://twikoo.js.org/)                                          |
 
 ## 📦 安装与开发
 
@@ -139,9 +138,9 @@ pnpm run fetch:rss-feeds
 #### 工作原理
 
 1. Vercel Cron 调用 `/api/fetch-rss` 端点
-2. 该端点执行 `scripts/fetch-rss-feeds.js` 脚本
-3. 本地脚本从 RSS 订阅源拉取最新数据，生成 `public/data/feeds/feeds.json` 文件
-4. 配置 `BLOB_READ_WRITE_TOKEN` 后，服务端会将结果同步到 Vercel Blob，页面优先读取最新数据
+2. 端点调用 `src/utils/fetchFeeds.ts` 抓取订阅源，通过 `BLOB_READ_WRITE_TOKEN` 将结果写入 Vercel Blob
+3. 页面通过 `/api/feeds.json` 优先读取 Blob；无可用 Blob 数据时回退到仓库中的静态数据
+4. 手动命令 `pnpm run fetch:rss-feeds` 运行 `scripts/fetch-rss-feeds.js`，只更新本地 `public/data/feeds/feeds.json`，不会同步到 Blob
 
 ### 本地开发
 
@@ -184,21 +183,9 @@ pnpm run verify:theme
 pnpm run build
 pnpm run verify:responsive
 pnpm run verify:footprint
+node scripts/verify-og-build.mjs
+python3 scripts/test-fetch-data.py
 ```
-
-### 足迹地图标签数据（本地生成）
-
-足迹地图**全国省名与省内市名**的排布共用同一套预计算（弦 + 中心点），避免在浏览器端跑 Turf。
-
-```bash
-# 生成/更新市、省标签弦与中心点 JSON
-pnpm run generate:footprint-labels
-```
-
-- 生成脚本：`scripts/generate-footprint-city-labels.ts`
-- 输出文件：`public/data/footprint/footprint-city-label-chords.json`（键含 `省Key-city-序号` 与 `nation-province-序号`）
-- 建议在以下场景重新生成：升级 Turf、调整标签算法参数、地图数据源变更
-- 该 JSON 属于构建输入，建议提交到仓库
 
 ## ⚙️ 配置
 
@@ -254,7 +241,14 @@ cp .env.example .env
 - `CRON_SECRET`：保护 `/api/fetch-rss`（建议配置）
 - `BLOB_STORE_ACCESS`：控制 Blob 访问级别
 
-足迹地图默认使用 OpenFreeMap 的 Liberty（明亮）和 Dark（暗色）矢量样式，并由 MapLibre 原生渲染。为兼容旧部署，设置 `PUBLIC_FOOTPRINT_TILE_URL` 后会显式切换到 Leaflet 栅格瓦片；此时可同时用 `PUBLIC_FOOTPRINT_TILE_ATTRIBUTION` 覆盖版权信息。
+足迹地图使用高德 JS API 2.0，按主题切换标准和暗色底图。文章 `locations` 坐标必须来自高德（GCJ-02），不做二次转换。
+
+本地 `.env` 和 Vercel 部署环境均需设置 `PUBLIC_AMAP_KEY`（Web端 JS API 类型）。安全配置二选一：
+
+- 推荐生产环境设置 `PUBLIC_AMAP_SERVICE_HOST`，指向自己的安全代理，如 `https://example.com/_AMapService`；安全密钥保留在代理服务端。
+- 本地调试可使用 `PUBLIC_AMAP_SECURITY_JS_CODE`；这是公开客户端配置，会打包到浏览器，不能当作服务端秘密。请在高德控制台限制 Key 的可用域名。
+
+代理配置方式见[高德安全密钥文档](https://lbs.amap.com/api/javascript-api-v2/guide/abc/jscode)。修改环境变量后需重启开发服务器，线上需重新构建部署。未配置或加载失败时显示足迹文章链接。
 
 ## 🗺️ 页面入口
 
@@ -359,7 +353,7 @@ title: 电影标题
 - [Sätteri](https://github.com/HiDeoo/satteri)：Markdown 渲染管线
 - [vsme/astro-obsidian-blog](https://github.com/vsme/astro-obsidian-blog)：Obsidian 博客工作流参考
 - [Pagefind](https://pagefind.app/)：静态搜索
-- [Leaflet](https://leafletjs.com/)、[MapLibre](https://maplibre.org/) 与 [OpenFreeMap](https://openfreemap.org/)：足迹地图
+- [高德地图](https://lbs.amap.com/)：足迹地图
 - [Chinese Days](https://github.com/vsme/chinese-days)：农历、节气与节假日数据
 - [Photosuite](https://photosuite.lhasa.icu/)：图片 EXIF 和灯箱体验参考
 

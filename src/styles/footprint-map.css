@@ -1,12 +1,12 @@
-/* The map uses Leaflet for spatial interaction while the surrounding UI stays
- * in the site's quiet editorial language. */
+/* Shared footprint layout and AMap marker styling. */
 
 .footprint-explorer {
   --footprint-accent: var(--accent);
   --footprint-accent-soft: color-mix(in oklab, var(--accent) 12%, transparent);
   --footprint-panel: color-mix(in oklab, var(--surface) 88%, var(--background));
   --footprint-pin: #3498ed;
-  margin-top: 2rem;
+  margin-top: 1rem;
+  padding-inline: 0;
 }
 
 html[data-theme="dark"] .footprint-explorer {
@@ -23,26 +23,50 @@ html[data-theme="dark"] .footprint-explorer {
 }
 
 .footprint-overview {
-  padding: 1rem 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1.5rem;
+  padding: 0.85rem 0;
 }
 
 .footprint-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem 1.5rem;
+  gap: 0.5rem 1.25rem;
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
 .footprint-stats > div {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.5rem;
   min-width: 0;
 }
 
+.footprint-stats dt,
+.footprint-stats dd {
+  line-height: 1.5;
+}
+
 .footprint-stats dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   color: var(--foreground-muted);
+}
+
+.footprint-stats dt svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .footprint-stats dd {
@@ -84,126 +108,84 @@ html[data-theme="dark"] .footprint-explorer {
 }
 
 .footprint-map-panel {
-  margin-top: 0;
+  min-width: 0;
+  padding-inline: 0;
+}
+
+.footprint-map-toolbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: var(--radius-card-emphasis);
-  background: var(--surface);
-  box-shadow: var(--shadow-md);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+  backdrop-filter: blur(12px);
 }
 
-.footprint-map-panel-head {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem 1rem 0.85rem;
-}
-
-.footprint-map-panel-head h2 {
-  margin-top: 0.4rem;
+.footprint-map-toolbar button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
   color: var(--foreground);
-  font-size: 1.15rem;
-  font-weight: 600;
-  letter-spacing: -0.025em;
-}
-
-.footprint-map-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-}
-
-.footprint-map-legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.55rem 1rem;
-  margin: 0 1rem 0.8rem;
-  border-top: 1px solid color-mix(in oklab, var(--border) 55%, transparent);
-  padding-top: 0.7rem;
-  color: color-mix(in oklab, var(--foreground) 58%, transparent);
-  font-size: 0.68rem;
-}
-
-.footprint-map-legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  white-space: nowrap;
-}
-
-.footprint-map-legend-pin {
-  display: block;
-  width: 0.68rem;
-  height: 0.88rem;
-  overflow: visible;
-  color: var(--footprint-pin);
-  opacity: 0.78;
-  filter: drop-shadow(0 1px 1px rgb(15 23 42 / 18%));
-}
-
-.footprint-map-legend-pin.is-selected {
-  width: 0.76rem;
-  height: 0.98rem;
-  color: var(--footprint-pin);
-  opacity: 1;
-  filter: drop-shadow(
-    0 0 3px color-mix(in oklab, currentColor 42%, transparent)
-  );
-}
-
-.footprint-map-legend-note {
-  color: var(--foreground-subtle);
-}
-
-.footprint-map-status {
-  color: color-mix(in oklab, var(--foreground) 68%, transparent);
-  font-size: 0.6875rem;
-  white-space: nowrap;
-}
-
-.footprint-map-reset {
-  min-height: 44px;
-  border: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
-  border-radius: 9999px;
-  padding: 0.4rem 0.7rem;
-  color: var(--footprint-accent);
-  background: var(--background);
   cursor: pointer;
-  font-size: 0.75rem;
-  font-weight: 600;
-  transition:
-    border-color 160ms ease,
-    background-color 160ms ease;
 }
 
-.footprint-map-reset:hover,
-.footprint-map-reset:focus-visible {
-  border-color: color-mix(in oklab, var(--footprint-accent) 60%, transparent);
+.footprint-map-toolbar button + button {
+  border-top: 1px solid var(--border);
+}
+
+.footprint-map-toolbar button:hover:not(:disabled) {
+  color: var(--accent);
   background: var(--footprint-accent-soft);
-  outline: none;
 }
 
-.footprint-map-reset:disabled {
+.footprint-map-toolbar button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -4px;
+}
+
+.footprint-map-toolbar button:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
-  opacity: 0.45;
+}
+
+.footprint-map-toolbar svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (pointer: coarse) {
+  .footprint-map-toolbar button {
+    width: 44px;
+    height: 44px;
+  }
 }
 
 .footprint-map-body {
   min-width: 0;
-  padding: 0 0.25rem 0.65rem;
 }
 
 .footprint-map-frame {
   position: relative;
-  height: clamp(24rem, 65svh, 46rem);
+  height: clamp(28rem, 72svh, 52rem);
   overflow: hidden;
-  border: 1px solid var(--border);
   border-radius: var(--radius-card);
   background: var(--background);
 }
 
-.footprint-leaflet-map {
+.footprint-amap {
   --footprint-map-background: color-mix(
     in oklab,
     var(--surface-muted) 72%,
@@ -216,44 +198,13 @@ html[data-theme="dark"] .footprint-explorer {
   isolation: isolate;
 }
 
-.footprint-leaflet-map .leaflet-gl-layer {
-  background: transparent;
-}
-
-html[data-theme="dark"] .footprint-leaflet-map {
+html[data-theme="dark"] .footprint-amap {
   --footprint-map-background: color-mix(
     in oklab,
     var(--surface-muted) 72%,
     var(--background)
   );
   color-scheme: dark;
-}
-
-.footprint-leaflet-map .leaflet-control-zoom,
-.footprint-leaflet-map .leaflet-control-scale-line,
-.footprint-leaflet-map .leaflet-control-attribution {
-  border-color: color-mix(in oklab, var(--border) 75%, transparent);
-  color: color-mix(in oklab, var(--foreground) 58%, transparent);
-  background: color-mix(in oklab, var(--background) 90%, transparent);
-  box-shadow: 0 0.4rem 1.2rem -0.75rem rgb(15 23 42 / 35%);
-  backdrop-filter: blur(8px);
-}
-
-.footprint-leaflet-map .leaflet-control-zoom a {
-  border-color: color-mix(in oklab, var(--border) 70%, transparent);
-  color: var(--foreground);
-  background: transparent;
-}
-
-.footprint-leaflet-map .leaflet-control-zoom a:hover,
-.footprint-leaflet-map .leaflet-control-zoom a:focus-visible {
-  color: var(--footprint-accent);
-  background: var(--footprint-accent-soft);
-  outline: none;
-}
-
-.footprint-leaflet-map .leaflet-control-attribution a {
-  color: var(--footprint-accent);
 }
 
 .footprint-map-loading,
@@ -279,10 +230,29 @@ html[data-theme="dark"] .footprint-leaflet-map {
 }
 
 .footprint-map-help {
-  margin: 0.65rem 0.25rem 0.15rem;
-  color: color-mix(in oklab, var(--foreground) 68%, transparent);
-  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  color: var(--foreground-muted);
+  font-size: 0.6875rem;
   line-height: 1.6;
+}
+
+.footprint-map-help svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .footprint-map-help {
+    display: none;
+  }
 }
 
 .footprint-marker-icon-wrap {
@@ -342,20 +312,6 @@ html[data-theme="dark"] .footprint-leaflet-map {
     )
     drop-shadow(0 0.4rem 0.32rem rgb(15 23 42 / 36%));
   transform: translateY(-2px) scale(1.1);
-}
-
-.footprint-leaflet-popup .leaflet-popup-content-wrapper,
-.footprint-leaflet-popup .leaflet-popup-tip {
-  border: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
-  color: var(--foreground);
-  background: var(--surface);
-  box-shadow: 0 1rem 2.5rem -1rem rgb(15 23 42 / 30%);
-}
-
-.footprint-leaflet-popup .leaflet-popup-content {
-  min-width: 12rem;
-  margin: 0.85rem 0.95rem;
-  font-family: var(--font-noto-sans-sc), sans-serif;
 }
 
 .footprint-popup-eyebrow {
@@ -443,65 +399,50 @@ html[data-theme="dark"] .footprint-leaflet-map {
   list-style: disc inside;
 }
 
-.footprint-map-reset:focus-visible,
-.footprint-leaflet-map a:focus-visible,
+.footprint-amap a:focus-visible,
 .footprint-marker-icon-wrap:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
-.footprint-leaflet-map .leaflet-control-zoom a {
-  width: 44px;
-  height: 44px;
-  line-height: 44px;
-}
-
-.footprint-leaflet-map .leaflet-popup-close-button {
-  width: 36px;
-  height: 36px;
-  line-height: 36px;
-  color: var(--foreground);
-}
-
-@media (min-width: 640px) {
-  .footprint-map-panel-head {
-    padding-inline: 1.25rem;
-  }
-
-  .footprint-map-legend {
-    margin-inline: 1.25rem;
-  }
-
-  .footprint-map-body {
-    padding: 0 1rem 1rem;
-  }
-}
-
 @media (max-width: 480px) {
-  .footprint-map-panel-head {
-    align-items: start;
-    flex-direction: column;
-  }
-
-  .footprint-map-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .footprint-map-status {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
   .footprint-map-frame {
-    height: 60svh;
-    min-height: 24rem;
+    height: 65svh;
+    min-height: 22rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .footprint-marker-icon,
-  .footprint-map-reset {
+  .footprint-marker-icon {
     transition: none;
   }
+}
+
+.footprint-marker-button {
+  width: 32px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.footprint-marker-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+.footprint-amap .amap-info-content {
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 24px 18px 18px;
+}
+.footprint-amap .amap-info-close {
+  color: var(--foreground);
+}
+.footprint-popup-content {
+  width: min(280px, calc(100vw - 100px));
+  max-height: 240px;
+  overflow-y: auto;
 }

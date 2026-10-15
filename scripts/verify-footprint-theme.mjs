@@ -1,12 +1,12 @@
 import { existsSync, readFileSync } from "node:fs";
 
-const SOURCE = "src/styles/footprint-leaflet.css";
+const SOURCE = "src/styles/footprint-map.css";
 const REQUIRED = [
-  "html[data-theme=\"dark\"] .footprint-leaflet-map",
-  ".footprint-leaflet-map .leaflet-gl-layer",
+  "html[data-theme=\"dark\"] .footprint-amap",
+  ".footprint-amap .amap-info-content",
   ".footprint-marker-icon.is-selected",
 ];
-const FORBIDDEN = ["footprint-map-tile-filter", ".leaflet-tile-pane", "invert("];
+const FORBIDDEN = ["invert("];
 
 if (!existsSync(SOURCE)) {
   console.error("missing", SOURCE);
@@ -23,7 +23,7 @@ for (const token of REQUIRED) {
 
 for (const token of FORBIDDEN) {
   if (text.includes(token)) {
-    console.error("raster-only footprint theme token found", token);
+    console.error("map color inversion is incompatible with native AMap themes", token);
     process.exit(1);
   }
 }
