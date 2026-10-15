@@ -1,3 +1,4 @@
+import { load } from "cheerio";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/utils/optimizeImages", () => ({
@@ -130,4 +131,60 @@ describe("parseEntry base path handling", () => {
       "//cdn.example.com/image.png"
     );
   });
+});
+
+describe("Notes nested Markdown lists", () => {
+  it("keeps nested bullets inside the second ordered item and continues numbering", async () => {
+    const result = await parseEntry({
+      id: "2026/10/2026-10-15.md",
+      body: [
+        "## 14:24",
+        "更新博客系统，内容如下：",
+        "1. 重构 Notes",
+        "2. 评论区调整：",
+        "   - **回复**平行显示",
+        "   - 默认不展开",
+        "   - 统一头像",
+        "3. 接入高德",
+        "",
+        "后续说明",
+      ].join("\n"),
+    } as never);
+    const $ = load(result.timeBlocks[0].text);
+    expect($("body > ol")).toHaveLength(1);
+    expect($("body > ol > li")).toHaveLength(3);
+    expect($("body > ol > li").eq(1).find("ul > li")).toHaveLength(3);
+    expect($("ul strong").text()).toBe("回复");
+    expect($("body > p").last().text()).toBe("后续说明");
+  });
+  it("preserves deeper ordered lists, non-one starts and text after a media card", async () => {
+    const result = await parseEntry({
+      id: "2026/10/2026-10-15.md",
+      body: [
+        "## 14:24",
+        "```card-book",
+        "title: 测试",
+        "```",
+        "",
+        "3. 第一层",
+        "   1. 第二层",
+        "      - 第三层",
+        "4. 下一项",
+      ].join("\n"),
+    } as never);
+    const $ = load(result.timeBlocks[0].postText!);
+    expect($("body > ol").attr("start")).toBe("3");
+    expect($("body > ol > li")).toHaveLength(2);
+    expect($("ol ol ul li").text()).toBe("第三层");
+  });
+});
+
+it("preserves star bullets and Notes footnote tooltips inside lists", async () => {
+  const result = await parseEntry({
+    id: "2026/10/2026-10-15.md",
+    body: "## 14:24\n* 第一项[^1]\n* 第二项\n\n[^1]: 说明",
+  } as never);
+  const $ = load(result.timeBlocks[0].text);
+  expect($("body > ul > li")).toHaveLength(2);
+  expect($("li .footnote-tooltip").text()).toBe("说明");
 });
