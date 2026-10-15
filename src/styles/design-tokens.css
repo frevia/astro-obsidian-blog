@@ -135,8 +135,8 @@ html[data-theme="dark"] {
   .page-shell::before {
     position: absolute;
     z-index: -1;
-    inset: -2rem -1rem auto;
-    height: 18rem;
+    inset: -1.5rem -1rem auto;
+    height: 16rem;
     pointer-events: none;
     background:
       radial-gradient(circle at 15% 0%, var(--page-glow), transparent 56%),
@@ -145,7 +145,19 @@ html[data-theme="dark"] {
         color-mix(in oklab, var(--accent) 3%, transparent),
         transparent 48%
       );
+    mask-image: radial-gradient(
+      ellipse closest-side,
+      #000 35%,
+      transparent 100%
+    );
     content: "";
+  }
+
+  @media (max-width: 639px) {
+    .page-shell::before {
+      inset-inline: 0;
+      height: 13rem;
+    }
   }
 
   .page-intro {

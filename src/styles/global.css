@@ -1047,12 +1047,29 @@ html[data-navigation-pending] #main-nav {
   margin-top: 8px;
 }
 @media (max-width: 639px) {
+  #notes {
+    padding-inline: 0;
+  }
+  .notes-day-body {
+    grid-column: 1 / -1;
+    margin-top: 12px;
+    padding-inline-start: 4px;
+  }
+  .notes-author-header {
+    align-self: center;
+    margin-bottom: 0;
+  }
+  .notes-author-header strong {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
   .notes-conversation {
-    grid-template-columns: 36px minmax(0, 1fr);
+    grid-template-columns: 40px minmax(0, 1fr);
     column-gap: 10px;
   }
   .notes-author-avatar {
-    width: 36px;
-    height: 36px;
+    grid-row: auto;
+    width: 40px;
+    height: 40px;
   }
 }
