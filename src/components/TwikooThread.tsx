@@ -1,10 +1,10 @@
-import CommentIcon from "./CommentIcon";
 import { useEffect, useRef, useState } from "react";
 import {
   PUBLIC_TWIKOO_ENV_ID,
   PUBLIC_TWIKOO_REGION,
   PUBLIC_TWIKOO_LANG,
 } from "astro:env/client";
+import CommentIcon from "./CommentIcon";
 import { SITE } from "@/config";
 
 import {
@@ -18,14 +18,16 @@ import { locateComment } from "@/lib/locate-comment";
 interface TwikooThreadProps {
   threadKey: string;
   path: string;
-  /** Inline panels open on demand; page panels are immediately visible. */
+  /** Inline composers stay visible; their reply lists open on demand. */
   mode?: "page" | "inline";
+  timestamp?: string;
 }
 
 export default function TwikooThread({
   threadKey,
   path,
   mode = "page",
+  timestamp,
 }: TwikooThreadProps) {
   const collapsedWhenEmpty = mode === "inline";
   const commentsEnabled = SITE.comments.enabled;
@@ -33,7 +35,7 @@ export default function TwikooThread({
   const hasRequiredEnv = Boolean(envId);
   const [expanded, setExpanded] = useState(!collapsedWhenEmpty);
   const shell = useRef<HTMLDivElement>(null);
-  const [activated, setActivated] = useState(!collapsedWhenEmpty);
+  const [activated, setActivated] = useState(true);
   const [status, setStatus] = useState("loading");
   const [commentCount, setCommentCount] = useState<number | null>(null);
 
@@ -114,6 +116,20 @@ export default function TwikooThread({
     if (!host) return;
     let cancelled = false;
     let stopLocating: (() => void) | undefined;
+    // Twikoo can replace textareas after loading comments or opening a reply.
+    const labelInputs = () => {
+      host.querySelectorAll("textarea").forEach(input => {
+        if (input.getAttribute("aria-label") !== "评论内容")
+          input.setAttribute("aria-label", "评论内容");
+      });
+    };
+    const inputObserver = new MutationObserver(labelInputs);
+    inputObserver.observe(host, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["aria-label"],
+    });
     const init = async () => {
       try {
         ensureTwikooStyle();
@@ -143,7 +159,10 @@ export default function TwikooThread({
               if (sharedDraft !== null)
                 localStorage.setItem("twikoo-draft", sharedDraft);
             }
-            if (!input.placeholder) input.placeholder = "写下你的评论…";
+            if (!input.placeholder)
+              input.placeholder = collapsedWhenEmpty
+                ? "说点什么吧…"
+                : "写下你的评论…";
             input.setAttribute("aria-label", "评论内容");
             if (input.value)
               input
@@ -161,6 +180,7 @@ export default function TwikooThread({
     return () => {
       cancelled = true;
       stopLocating?.();
+      inputObserver.disconnect();
       host.replaceChildren();
     };
   }, [
@@ -195,6 +215,16 @@ export default function TwikooThread({
         new CustomEvent("comment-panel-open", { detail: threadKey })
       );
     }
+    if (expanded) {
+      shell.current
+        ?.querySelectorAll<HTMLElement>(".tk-submit")
+        .forEach(editor => {
+          if (
+            !editor.querySelector<HTMLTextAreaElement>("textarea")?.value.trim()
+          )
+            editor.removeAttribute("data-editor-expanded");
+        });
+    }
     setExpanded(!expanded);
   };
 
@@ -218,30 +248,33 @@ export default function TwikooThread({
   return (
     <div
       className={
-        collapsedWhenEmpty ? "notes-comments mt-3" : "comments-panel mt-8"
+        collapsedWhenEmpty ? "notes-comments mt-1" : "comments-panel mt-8"
       }
     >
       {collapsedWhenEmpty && (
-        <button
-          type="button"
-          className="ml-auto flex min-h-11 items-center gap-2 text-sm text-foreground/60 hover:text-accent focus-visible:outline-2 focus-visible:outline-accent"
-          onClick={toggle}
-          aria-expanded={expanded}
-          aria-controls={`${threadKey}-panel`}
-        >
-          <CommentIcon className="h-5 w-5 shrink-0 text-accent" />
-          <span>
-            {expanded ? "收起评论" : "评论"}
-            {hasComments ? ` ${commentCount}` : ""}
-          </span>
-        </button>
+        <div className="notes-comment-toolbar">
+          <span className="text-sm text-skin-base/60">{timestamp}</span>
+          <button
+            type="button"
+            className="flex min-h-7 items-center gap-1 text-sm text-foreground/60 hover:text-accent focus-visible:outline-2 focus-visible:outline-accent pointer-coarse:min-h-11"
+            onClick={toggle}
+            aria-label={expanded ? "收起评论" : "展开评论"}
+            aria-expanded={expanded}
+            aria-controls={`${threadKey}-panel`}
+          >
+            <CommentIcon className="h-5 w-5" />
+            <span>
+              {expanded ? "收起" : "评论"}
+              {hasComments ? ` ${commentCount}` : ""}
+            </span>
+          </button>
+        </div>
       )}
       <div
         id={`${threadKey}-panel`}
-        hidden={!expanded}
-        className={
-          collapsedWhenEmpty ? "border-t border-border/60 pt-3 pb-4" : ""
-        }
+        hidden={!collapsedWhenEmpty && !expanded}
+        data-comments-expanded={expanded}
+        className={collapsedWhenEmpty ? "notes-comment-panel" : ""}
       >
         {activated && status === "loading" && (
           <p
@@ -267,10 +300,12 @@ export default function TwikooThread({
           data-compact-editor=""
           onFocusCapture={event => {
             const target = event.target as HTMLElement;
-            if (target.matches("textarea"))
+            if (target.matches("textarea")) {
+              if (collapsedWhenEmpty) setExpanded(true);
               target
                 .closest(".tk-submit")
                 ?.setAttribute("data-editor-expanded", "");
+            }
           }}
         />
       </div>

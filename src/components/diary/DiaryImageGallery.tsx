@@ -107,13 +107,13 @@ export default function DiaryImageGallery({
 
   return (
     <figure
-      className="images-grid mb-4"
+      className="images-grid mb-2"
       ref={galleryRef}
       role="group"
       aria-label={`图片集合，共 ${optimizedImages.length} 张图片`}
     >
       <div
-        className={`grid gap-3 ${
+        className={`grid gap-2 ${
           htmlContent
             ? "w-full grid-cols-1"
             : optimizedImages.length === 1

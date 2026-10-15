@@ -77,8 +77,12 @@ describe("Astro diary rendering contracts", () => {
     expect(entry).toContain("diary-date-accent");
     for (const renderer of [entry, source("../DiaryEntryReact.tsx")]) {
       expect(renderer).not.toContain("sm:-mt-10");
+      expect(renderer).toContain("notes-author-avatar");
+      expect(renderer).toContain("notes-author-header");
+      expect(renderer).toContain("withBase(`/diary/${date}`)");
+      expect(renderer.match(/<TwikooThread/g)).toHaveLength(1);
     }
-    expect(entry).toContain('class="date-group mb-4 pb-4"');
+    expect(entry).toContain('class="date-group notes-conversation"');
     expect(entry).not.toContain("date-group mb-4 border-b");
     expect(entry).not.toContain("font-bold text-skin-accent");
     expect(entry).not.toContain("<script");

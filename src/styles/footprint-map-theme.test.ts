@@ -3,20 +3,18 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const stylesheet = readFileSync(
-  resolve(import.meta.dirname, "footprint-leaflet.css"),
+  resolve(import.meta.dirname, "footprint-map.css"),
   "utf8"
 );
 
-describe("footprint Leaflet theme", () => {
+describe("footprint AMap theme", () => {
   it("follows the site's data-theme contract for dark mode", () => {
-    expect(stylesheet).toContain(
-      'html[data-theme="dark"] .footprint-leaflet-map'
-    );
-    expect(stylesheet).not.toContain(".dark .footprint-leaflet-map");
+    expect(stylesheet).toContain('html[data-theme="dark"] .footprint-amap');
+    expect(stylesheet).not.toContain(".dark .footprint-amap");
   });
 
   it("keeps vector canvas rendering native and the map background theme-aware", () => {
-    expect(stylesheet).toContain(".footprint-leaflet-map .leaflet-gl-layer");
+    expect(stylesheet).toContain(".footprint-amap .amap-info-content");
     expect(stylesheet).toContain("background: var(--footprint-map-background)");
     expect(stylesheet).not.toContain("footprint-map-tile-filter");
     expect(stylesheet).not.toContain(".leaflet-tile-pane");

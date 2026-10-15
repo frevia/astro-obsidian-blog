@@ -47,11 +47,11 @@ const diaryImages = images?.map(image => ({
   src: baseAwarePath(image.src),
   original: baseAwarePath(image.original),
 }));
-const mediaSpacing = relatedPostLink ? "mb-2" : "mb-4";
+const mediaSpacing = relatedPostLink ? "mb-1" : "mb-2";
 ---
 
 <article
-  class="mb-1 pb-6 last:pb-0"
+  class="pb-4 last:pb-0"
   tabindex="0"
   role="article"
   aria-label={`${time} 时间段的记录`}
@@ -120,7 +120,7 @@ const mediaSpacing = relatedPostLink ? "mb-2" : "mb-4";
           {
             htmlContent && (
               <div
-                class="html-content mt-0 mb-4 max-w-none leading-relaxed"
+                class="html-content mt-0 mb-2 max-w-none leading-relaxed"
                 set:html={htmlContent}
                 role="region"
                 aria-label="富文本内容"
@@ -177,7 +177,7 @@ const mediaSpacing = relatedPostLink ? "mb-2" : "mb-4";
           {
             postText && (
               <div
-                class="mb-4 text-base leading-relaxed whitespace-pre-wrap"
+                class="mb-2 text-base leading-relaxed whitespace-pre-wrap"
                 set:html={postText}
               />
             )

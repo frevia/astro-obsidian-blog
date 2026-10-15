@@ -27,7 +27,7 @@ describe("shared comment presentation", () => {
     expect($("[role=status]").text()).toContain("正在加载评论");
   });
 
-  it("keeps inline panels hidden and uninitialized until requested", () => {
+  it("shows the inline composer with the reply list collapsed", () => {
     const $ = load(
       renderToStaticMarkup(
         createElement(TwikooThread, {
@@ -39,8 +39,9 @@ describe("shared comment presentation", () => {
     );
     expect($("button").attr("aria-expanded")).toBe("false");
     expect($("button").attr("aria-controls")).toBe("day-panel");
-    expect($("#day-panel").attr("hidden")).toBeDefined();
-    expect($("[role=status]")).toHaveLength(0);
+    expect($("#day-panel").attr("hidden")).toBeUndefined();
+    expect($("#day-panel").attr("data-comments-expanded")).toBe("false");
+    expect($("[role=status]")).toHaveLength(1);
     expect($(".twikoo-root").children()).toHaveLength(0);
   });
 });
