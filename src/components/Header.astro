@@ -83,14 +83,14 @@ const headerLabels = {
       <a
         href={withBase("/")}
         data-astro-prefetch="hover"
-        class="mr-8 py-1 text-xl leading-8 font-semibold whitespace-nowrap lg:my-auto lg:flex-shrink-0 lg:leading-none"
+        class="mr-3 py-1 text-xl leading-8 font-semibold whitespace-nowrap lg:my-auto lg:flex-shrink-0 lg:text-lg lg:leading-none"
       >
-        <div class="relative -left-1.5 flex items-center">
+        <div class="flex items-center">
           <img
             src={withBase("/header-logo.png")}
             alt=""
             aria-hidden="true"
-            class="h-10 w-16 object-contain"
+            class="h-10 w-16 object-contain lg:h-8 lg:w-10"
           />
           <span class="ml-2">{SITE.title}</span>
         </div>
@@ -102,7 +102,7 @@ const headerLabels = {
         class="hidden lg:flex lg:items-center"
         aria-label={headerLabels.mainNav}
       >
-        <ul class="flex items-center gap-x-2">
+        <ul class="flex items-center">
           {
             navItems.map(item => (
               <li>
@@ -117,7 +117,7 @@ const headerLabels = {
                       : undefined
                   }
                   class:list={[
-                    "rounded-md px-3 py-2 text-base font-medium whitespace-nowrap text-foreground/85 transition-colors duration-200 hover:text-accent",
+                    "rounded-md px-2 py-2 text-base font-medium whitespace-nowrap text-foreground/85 transition-colors duration-200 hover:text-accent",
                     {
                       "active-nav":
                         isActive(item.href) &&
@@ -135,7 +135,8 @@ const headerLabels = {
 
       <!-- 右侧：功能按钮（桌面端） -->
       <div
-        class="hidden lg:ml-auto lg:flex lg:flex-shrink-0 lg:items-center lg:gap-x-2"
+        id="header-actions"
+        class="hidden lg:ml-auto lg:flex lg:flex-shrink-0 lg:items-center [&>a]:flex [&>a]:h-11 [&>a]:w-9 [&>a]:items-center [&>a]:justify-center [&>button]:h-11 [&>button]:w-9"
       >
         {
           SITE.comments.enabled && (
@@ -144,7 +145,7 @@ const headerLabels = {
               data-nav-path="/comments"
               aria-label="最近留言"
               title="最近留言"
-              class="focus-outline flex min-h-11 items-center rounded-md p-3 hover:text-accent"
+              class="focus-outline flex min-h-11 items-center rounded-md p-2 hover:text-accent"
             >
               <CommentIcon className="h-5 w-5" />
             </a>
@@ -161,7 +162,7 @@ const headerLabels = {
               astroPrefetch="hover"
               href={withBase("/archives")}
               class:list={[
-                "focus-outline flex min-h-11 items-center rounded-md border border-transparent p-3 hover:border-border/70",
+                "focus-outline flex min-h-11 items-center rounded-md border border-transparent p-2 hover:border-border/70",
                 {
                   "active-nav [&>svg]:stroke-accent": isActive("/archives"),
                 },
@@ -186,7 +187,7 @@ const headerLabels = {
               astroPrefetch="hover"
               href={withBase("/search")}
               class:list={[
-                "focus-outline flex min-h-11 items-center rounded-md border border-transparent p-3 hover:border-border/70",
+                "focus-outline flex min-h-11 items-center rounded-md border border-transparent p-2 hover:border-border/70",
                 {
                   "active-nav [&>svg]:stroke-accent": isActive("/search"),
                 },
@@ -209,7 +210,7 @@ const headerLabels = {
         <a
           href={withBase("/rss.xml")}
           target="_blank"
-          class="focus-outline flex min-h-11 items-center rounded-md border border-transparent p-3 hover:border-border/70 hover:text-accent"
+          class="focus-outline flex min-h-11 items-center rounded-md border border-transparent p-2 hover:border-border/70 hover:text-accent"
           aria-label={headerLabels.rssFeed}
           title={headerLabels.rssFeed}
         >
@@ -226,7 +227,7 @@ const headerLabels = {
           SITE.lightAndDarkMode && (
             <button
               id="theme-btn"
-              class="focus-outline relative flex min-h-11 items-center rounded-md p-3"
+              class="focus-outline relative flex min-h-11 min-w-8 items-center rounded-md p-2"
               title={headerLabels.toggleTheme}
               aria-label={headerLabels.themeAuto}
               aria-pressed="false"
@@ -235,8 +236,8 @@ const headerLabels = {
               data-theme-dark-label={headerLabels.themeDark}
               data-theme-auto-label={headerLabels.themeAuto}
             >
-              <IconMoon class="absolute top-[50%] left-[50%] w-4 -translate-[50%] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-              <IconSunHigh class="absolute top-[50%] left-[50%] w-4 -translate-[50%] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+              <IconMoon class="absolute top-[50%] left-[50%] h-4 w-4 -translate-[50%] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+              <IconSunHigh class="absolute top-[50%] left-[50%] h-4 w-4 -translate-[50%] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
             </button>
           )
         }
