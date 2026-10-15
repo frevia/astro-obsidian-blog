@@ -801,6 +801,28 @@ video {
   box-shadow: none !important;
 }
 
+/* Only replace the editor's anonymous SVG; uploaded avatars stay untouched. */
+.twikoo-root .tk-submit .tk-avatar-img:has(> svg) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--surface-muted);
+}
+.twikoo-root .tk-submit .tk-avatar-img > svg {
+  display: none;
+}
+.twikoo-root .tk-submit .tk-avatar-img:has(> svg)::before {
+  content: "";
+  width: 60%;
+  height: 60%;
+  background: var(--foreground-muted);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='3.5'/%3E%3Cpath d='M5 20v-2a7 7 0 0 1 14 0v2'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
 #tcomment .tk-avatar img,
 .twikoo .tk-avatar img {
   display: block !important;
