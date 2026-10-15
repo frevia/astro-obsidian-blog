@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "@/styles/footprint-map.css";
+import { manageMapStyle } from "./footprint/mapStyleLifecycle";
 import {
   loadAMap,
   type AMapInstance,
@@ -205,6 +206,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
     if (!element) return;
     let cancelled = false;
     let map: AMapInstance | undefined;
+    let styleLifecycle: ReturnType<typeof manageMapStyle> | undefined;
     let themeObserver: MutationObserver | undefined;
     let readyTimer: ReturnType<typeof setTimeout> | undefined;
     setMapReady(false);
@@ -217,13 +219,14 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
           viewMode: "2D",
           center: [105, 25],
           zoom: 4,
-          mapStyle: currentMapStyle(),
           scrollWheel: true,
           resizeEnable: true,
           animateEnable: !window.matchMedia("(prefers-reduced-motion: reduce)")
             .matches,
         });
         mapRef.current = map;
+        styleLifecycle = manageMapStyle(map);
+        styleLifecycle.update(currentMapStyle());
         readyTimer = setTimeout(() => {
           if (!cancelled)
             setMapError("地图暂时无法加载，请稍后刷新；下方仍可查看足迹文章。");
@@ -274,7 +277,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
           map.setFitView(markersRef.current, true, [48, 48, 48, 48], 12);
         map.addControl(new AMap.Scale());
         themeObserver = new MutationObserver(() =>
-          map?.setMapStyle(currentMapStyle())
+          styleLifecycle?.update(currentMapStyle())
         );
         themeObserver.observe(document.documentElement, {
           attributes: true,
@@ -293,7 +296,8 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
       popupRef.current?.close();
       popupRef.current = null;
       markersRef.current = [];
-      map?.destroy();
+      if (styleLifecycle) styleLifecycle.dispose();
+      else map?.destroy();
       mapRef.current = null;
     };
   }, [placeItems]);
