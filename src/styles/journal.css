@@ -25,10 +25,10 @@
   .journal-page .journal-hero-title {
     margin: 0;
     color: var(--foreground);
-    font-size: clamp(1.9rem, 3vw, 2.25rem);
+    font-size: clamp(1.65rem, 2.5vw, 2rem);
     font-weight: 650;
     line-height: 1.28;
-    text-wrap: balance;
+    text-wrap: pretty;
   }
 
   .journal-page .journal-hero-date {
@@ -147,7 +147,7 @@
 
   .journal-page .journal-spread {
     display: grid;
-    grid-template-columns: minmax(0, 1.5fr) minmax(14rem, 0.85fr);
+    grid-template-columns: minmax(0, 1fr);
     align-items: center;
     gap: clamp(1rem, 3vw, 2rem);
     margin-block: 1.75rem;
@@ -163,8 +163,8 @@
   }
 
   .journal-page .journal-spread .journal-photos img {
-    aspect-ratio: 3 / 4;
-    object-fit: cover !important;
+    height: auto;
+    object-fit: contain !important;
   }
 
   .journal-page .journal-moment {
@@ -188,16 +188,17 @@
 
   @media (min-width: 768px) {
     .journal-page .journal-hero:not(.journal-hero--text-only) {
-      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
-      min-height: 20rem;
+      grid-template-columns: minmax(0, 1fr) minmax(10rem, 0.5fr);
+      gap: clamp(1.5rem, 4vw, 3rem);
+      min-height: 0;
     }
 
     .journal-page .journal-hero-cover-wrap {
-      max-height: 25rem;
+      max-height: 18rem;
     }
 
     .journal-page .journal-hero-cover {
-      max-height: 25rem;
+      max-height: 18rem;
     }
   }
 
@@ -241,7 +242,7 @@
    so journal crops do not leave letterboxing inside their photo frames. */
 @layer base {
   .journal-page .app-prose .journal-spread .journal-photos img {
-    object-fit: cover !important;
+    object-fit: contain !important;
   }
 }
 
@@ -312,7 +313,7 @@
 }
 
 .journal-page .journal-photos[data-photo-count="2"] {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
 }
 
 .journal-page .journal-photos[data-photo-count="2"] > figure:nth-of-type(2) {
@@ -345,4 +346,55 @@
   width: 3.5rem;
   height: 1.1rem;
   transform: rotate(5deg);
+}
+
+/* Journal photos keep their composition; camera metadata sits outside the image. */
+.journal-page .journal-spread .journal-photos img {
+  max-height: min(65vh, 34rem);
+  aspect-ratio: auto;
+}
+
+.journal-page .journal-photos .photo-frame {
+  border-radius: 0;
+  overflow: visible;
+}
+
+.journal-page .journal-photos .photo-exif,
+.journal-page .journal-photos .photo-frame--portrait .photo-exif {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.15rem 0.6rem;
+  padding: 0.65rem 0.15rem 0;
+  background: none;
+  color: var(--foreground-muted);
+  text-shadow: none;
+  font-size: 0.65rem;
+  line-height: 1.6;
+  text-align: start;
+}
+
+.journal-page .journal-photos .photo-exif span + span::before {
+  content: none;
+}
+
+.journal-page .journal-spread > .journal-moment {
+  width: min(100%, 32rem);
+  justify-self: start;
+  margin: 0.25rem 0 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+  border-inline-start: 2px solid var(--border);
+  background: none;
+  transform: none;
+}
+
+.journal-page .journal-spread > .journal-moment::before {
+  content: none;
+}
+
+@media (max-width: 640px) {
+  .journal-page .journal-photos[data-photo-count="2"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
