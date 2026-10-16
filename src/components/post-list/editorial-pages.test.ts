@@ -57,15 +57,20 @@ describe("editorial home and post list contracts", () => {
     expect(posts).not.toMatch(/client:(?:load|idle|visible|media|only)/);
   });
 
-  it("uses a featured first post and a single-column editorial sequence per year", () => {
+  it("uses uniform compact cards and a single-column editorial sequence per year", () => {
     const editorialYear = source("components/post-list/EditorialYear.astro");
 
-    expect(editorialYear).toContain(
-      'presentation={index === 0 ? "featured" : "editorial"}'
-    );
+    expect(editorialYear).toContain('presentation="editorial"');
     expect(editorialYear).not.toContain("mediaAlign=");
-    expect(editorialYear).toContain('class="flex min-w-0 flex-col gap-6"');
+    expect(editorialYear).toContain('class="flex min-w-0 flex-col gap-4"');
     expect(editorialYear).not.toContain('class="grid');
+  });
+
+  it("keeps tag results on the same compact presentation", () => {
+    const tagPage = source("pages/posts/[tag]/[...page].astro");
+    expect(tagPage).toContain('presentation="editorial"');
+    expect(tagPage).toContain("pageSize: SITE.postPerPage");
+    expect(tagPage).toContain("<Pagination {page} />");
   });
 
   it("publishes content and view-transition hooks on shared cards", () => {
@@ -82,14 +87,14 @@ describe("editorial home and post list contracts", () => {
     expect(card).toContain('coverOrientation === "portrait"');
     expect(card).toContain('coverOrientation === "landscape"');
     expect(card).toContain("const editorialCoverSizes =");
+    expect(card).toContain("max-height: 150px");
+    expect(card).toContain("max-height: 100px");
+    expect(card).toContain("toYMDInTimeZone(published, timezone)");
+    expect(card).toContain("post-card-excerpt line-clamp-2");
     expect(card).toContain("const hasAuthoredCover = Boolean(data.cover);");
     expect(card).toContain("const cardCover = isStandard");
     expect(card).toContain("data.cover ?? fallbackCover");
     expect(card).not.toContain('"aspect-[4/3] w-24 rounded-xl sm:w-48"');
-    expect(card).toContain('"w-24 self-center rounded-xl sm:w-40"');
-    expect(card).toContain(
-      '"w-full self-center rounded-xl sm:w-[42%] sm:max-w-80"'
-    );
     expect(card).toContain('"aspect-video w-full rounded-xl sm:w-[52%]"');
     expect(card).toContain(
       'isFeatured && Boolean(cardCover) && mediaAlign === "start"'
@@ -97,12 +102,6 @@ describe("editorial home and post list contracts", () => {
     expect(card).toContain(
       'isFeatured && Boolean(cardCover) && mediaAlign === "end"'
     );
-    expect(card).toContain('"flex-row items-stretch gap-4 sm:gap-6"');
-    expect(card).toContain(
-      '"flex-col gap-4 sm:flex-row sm:items-stretch sm:gap-6"'
-    );
-    expect(card).toContain('"line-clamp-2 hidden text-sm leading-6 sm:block"');
-    expect(card).toContain("sm:items-stretch");
     expect(card).toContain("width: 100%");
     expect(card).toContain("height: auto");
     expect(card).toContain("margin: 0");
@@ -128,11 +127,15 @@ describe("editorial home and post list contracts", () => {
     expect(card).toContain(":global(.post-card-cover-image)");
     expect(card).toContain("animation: none");
     expect(card).toContain("transform: translateY(-2px)");
-    expect(card).toContain("@media (hover: hover) and (pointer: fine)");
     expect(card).toContain("background: var(--interactive-hover)");
     expect(card).not.toContain("translateY(-2px) scale(1.025)");
     expect(card).toContain("cardCover && (");
     expect(card).not.toContain("aspect-[16/10]");
+  });
+
+  it("keeps coverless editorial cards text-only without generated OG artwork", () => {
+    const card = source("components/Card.astro");
+    expect(card).toMatch(/: isEditorial\s*\? data.cover\s*:/);
   });
 
   it("centralizes string and local image rendering in the card cover component", () => {

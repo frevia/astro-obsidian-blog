@@ -22,14 +22,10 @@ const { year, posts } = Astro.props;
       {year}
     </h2>
   </header>
-  <ol class="flex min-w-0 flex-col gap-6" aria-label={`${year} 年文章`}>
+  <ol class="flex min-w-0 flex-col gap-4" aria-label={`${year} 年文章`}>
     {
-      posts.map((post, index) => (
-        <Card
-          {...post}
-          presentation={index === 0 ? "featured" : "editorial"}
-          variant="h3"
-        />
+      posts.map(post => (
+        <Card {...post} presentation="editorial" variant="h3" />
       ))
     }
   </ol>

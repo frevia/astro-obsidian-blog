@@ -45,8 +45,8 @@ const t = useTranslations(SITE.lang);
     <h1 slot="title" transition:name={tag}>
       {tplStr(t.pages.tagPageTitleCompact, { tag })}
     </h1>
-    <ul>
-      {page.data.map(data => <Card {...data} />)}
+    <ul class="flex flex-col gap-4">
+      {page.data.map(data => <Card {...data} presentation="editorial" />)}
     </ul>
   </Main>
 
