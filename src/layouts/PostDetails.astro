@@ -311,6 +311,7 @@ const hasJournalRelations =
 </Layout>
 
 <script>
+  import { initJournalMoments } from "@/components/journal-moments";
   declare global {
     interface Window {
       __postDetailsCleanup?: () => void;
@@ -425,6 +426,7 @@ const hasJournalRelations =
     createProgressBar();
     updateScrollProgress();
     setupCopyButtons();
+    cleanupCallbacks.push(initJournalMoments());
 
     window.__postDetailsCleanup = () => {
       cleanupCallbacks.forEach(cleanup => cleanup());

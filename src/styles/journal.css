@@ -172,7 +172,7 @@
     margin: 0;
     padding: 1.15rem 1.25rem;
     border-inline-start: 2px solid var(--line-soft);
-    background: color-mix(in oklab, var(--surface-muted) 80%, transparent);
+    background: color-mix(in oklab, var(--surface-muted) 55%, var(--surface));
     color: var(--foreground-muted);
   }
 
@@ -339,12 +339,12 @@
 .journal-page .journal-moment {
   position: relative;
   border-inline-start: 0;
-  transform: rotate(-0.6deg);
+  transform: none;
 }
 
 .journal-page .journal-moment::before {
-  width: 3.5rem;
-  height: 1.1rem;
+  width: 2.6rem;
+  height: 0.85rem;
   transform: rotate(5deg);
 }
 
@@ -430,19 +430,20 @@
 .journal-page .journal-spread > .journal-moment {
   width: min(100%, 32rem);
   justify-self: start;
-  margin: 0.25rem 0 0;
-  padding: 0.25rem 0 0.25rem 1rem;
-  border-inline-start: 2px solid var(--border);
-  background: none;
-  transform: none;
-}
-
-.journal-page .journal-spread > .journal-moment::before {
-  content: none;
+  margin: 0.75rem 0 0;
 }
 
 @media (max-width: 640px) {
   .journal-page .journal-photos[data-photo-count="2"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+.journal-page .journal-spread {
+  position: relative;
+}
+
+.journal-page .journal-spread > .journal-moment--placed {
+  position: absolute;
+  margin: 0;
 }
