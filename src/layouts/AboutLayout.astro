@@ -97,6 +97,10 @@ const {
       </div>
     </section>
 
+    <section id="about" class="about-content app-prose prose-img:border-0">
+      <slot />
+    </section>
+
     <section class="about-stats" aria-labelledby="about-stats-title">
       <header class="about-stats-head">
         <div>
@@ -110,7 +114,6 @@ const {
             <strong id="running-days">{blogStats.runningDays}</strong>
             <span>天</span>
           </div>
-          <p>从建站当天算起。</p>
         </article>
         <article class="about-stat">
           <span class="about-stat-label">已发表</span>
@@ -134,7 +137,14 @@ const {
       </div>
     </section>
 
-    <section id="about" class="about-content app-prose prose-img:border-0">
+    <section class="about-content app-prose about-closing">
+      <div class="about-signature">
+        <span class="about-signature-label">签名</span>
+        <blockquote>
+          “人生就是一列开往坟墓的列车，路途上会有很多站，很难有人可以自始至终陪着走完。当陪你的人要下车时，即使不舍也该心存感激，然后挥手道别。”
+          <cite>——《千与千寻》</cite>
+        </blockquote>
+      </div>
       <!-- 统计数据容器（隐藏） -->
       <!-- 通过 data 属性传递值给客户端脚本 -->
       <div
@@ -150,8 +160,6 @@ const {
         style="display: none;"
       >
       </div>
-      <!-- 插槽：页面内容 -->
-      <slot />
 
       {
         commentsEnabled && (

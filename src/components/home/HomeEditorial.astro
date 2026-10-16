@@ -247,6 +247,36 @@ const { featuredPost, fragments = [], wikiHighlights = [] } = Astro.props;
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
+  @media (max-width: 767px) {
+    .home-wiki-list {
+      gap: 0;
+      border-block: 1px solid var(--border);
+    }
+    .home-wiki-list li + li {
+      border-top: 1px solid var(--border);
+    }
+    .home-wiki-link {
+      position: relative;
+      padding: 0.875rem 2rem 0.875rem 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+    .home-wiki-meta {
+      margin: 0;
+    }
+    .home-wiki-domain {
+      display: none;
+    }
+    .home-wiki-icon {
+      position: absolute;
+      right: 0.25rem;
+      top: 1.1rem;
+    }
+    .home-wiki-subtitle {
+      margin-top: 0.125rem;
+    }
+  }
   @media (max-width: 639px) {
     :global(.home-section) {
       margin-bottom: 2rem;

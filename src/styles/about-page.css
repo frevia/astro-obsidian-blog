@@ -7,7 +7,7 @@
   .about-hero {
     position: relative;
     display: flex;
-    min-height: clamp(20rem, 42vw, 30rem);
+    min-height: clamp(17rem, 32vw, 22rem);
     align-items: end;
     overflow: hidden;
     margin: 1.25rem 0 1.25rem;
@@ -25,7 +25,6 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center 54%;
   }
 
   .about-hero-overlay {
@@ -66,7 +65,7 @@
   .about-hero h1 {
     margin-top: 0.55rem;
     color: white;
-    font-size: clamp(2.2rem, 6vw, 4rem);
+    font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 700;
     letter-spacing: -0.08em;
     line-height: 0.95;
@@ -106,7 +105,7 @@
   }
 
   .about-stats {
-    margin-bottom: 2rem;
+    margin-block: 1.75rem 2rem;
   }
 
   .about-stats-head {
@@ -160,7 +159,7 @@
 
   .about-stat-label {
     color: var(--about-accent);
-    font-size: 0.62rem;
+    font-size: 0.75rem;
     font-weight: 800;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -175,7 +174,7 @@
 
   .about-stat-value strong {
     color: var(--foreground);
-    font-size: clamp(1.7rem, 3.4vw, 2.55rem);
+    font-size: clamp(1.5rem, 3vw, 2rem);
     font-variant-numeric: tabular-nums;
     font-weight: 650;
     letter-spacing: -0.08em;
@@ -184,7 +183,7 @@
 
   .about-stat-value span {
     color: var(--foreground-muted);
-    font-size: 0.68rem;
+    font-size: 0.75rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
   }
@@ -192,7 +191,7 @@
   .about-stat p {
     margin-top: 0.5rem;
     color: var(--foreground-muted);
-    font-size: 0.69rem;
+    font-size: 0.75rem;
     line-height: 1.55;
   }
 
@@ -273,8 +272,7 @@
   }
 
   .about-signature {
-    border-top: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
-    padding-top: 1.25rem;
+    padding-block: 0.25rem 0.5rem;
   }
 
   .about-signature-label {
@@ -284,12 +282,33 @@
     letter-spacing: 0.14em;
   }
 
+  .about-signature-label {
+    display: block;
+    color: var(--foreground-muted);
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: normal;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+  }
+
   .about-signature blockquote {
     margin: 0.65rem 0 0;
+    padding: 0.15rem 0 0.15rem 1rem;
+    border: 0;
+    border-left: 2px solid var(--border-strong);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
     color: color-mix(in oklab, var(--foreground) 78%, transparent);
     font-family: var(--font-serif);
     font-size: 0.9rem;
     line-height: 1.9;
+  }
+
+  .about-signature blockquote::before,
+  .about-signature blockquote::after {
+    content: none;
   }
 
   .about-signature cite {
@@ -313,12 +332,8 @@
 
   @media (max-width: 680px) {
     .about-hero {
-      min-height: 25rem;
+      min-height: 19rem;
       padding: 1.2rem;
-    }
-
-    .about-hero-image {
-      object-position: 56% center;
     }
 
     .about-hero-overlay {
@@ -350,18 +365,18 @@
     }
 
     .about-stat-value strong {
-      font-size: clamp(1.45rem, 8vw, 2rem);
+      font-size: clamp(1.4rem, 6vw, 1.75rem);
     }
 
     .about-stat p {
-      font-size: 0.62rem;
+      font-size: 0.75rem;
       line-height: 1.45;
     }
   }
 
   @media (max-width: 430px) {
     .about-hero {
-      min-height: 22rem;
+      min-height: 18rem;
       padding: 1.1rem;
     }
 
@@ -386,5 +401,18 @@
     .about-stat {
       transition: none;
     }
+  }
+}
+
+/* Keep the hero image filling its frame despite unlayered responsive image defaults. */
+.about-page .about-hero-image {
+  width: 100%;
+  height: 100%;
+  object-position: center bottom;
+}
+
+@media (max-width: 680px) {
+  .about-page .about-hero-image {
+    object-position: 56% center;
   }
 }

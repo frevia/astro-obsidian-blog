@@ -133,6 +133,7 @@ const titleClass = isStandard
       class:list={[
         isEditorial ? "post-card-layout" : "flex min-w-0 gap-4",
         {
+          "home-featured-layout": isFeatured,
           "flex-col sm:flex-row sm:items-start sm:gap-4": isStandard,
           "flex-col sm:flex-row sm:items-center sm:gap-6":
             isFeatured && Boolean(cardCover) && mediaAlign === "start",
@@ -149,6 +150,7 @@ const titleClass = isStandard
               "relative shrink-0 overflow-hidden",
               {
                 "post-card-cover-frame": isEditorial,
+                "home-featured-cover": isFeatured,
                 "border border-border/60 bg-muted/15": isStandard,
               },
               isStandard
@@ -204,6 +206,7 @@ const titleClass = isStandard
         class:list={[
           isEditorial ? "post-card-copy" : "min-w-0 flex-1",
           {
+            "home-featured-copy": isFeatured,
             "flex flex-col justify-center py-1 sm:py-3": isFeatured,
           },
         ]}
@@ -374,6 +377,56 @@ const titleClass = isStandard
     object-fit: contain;
   }
   @media (max-width: 639px) {
+    .home-featured-layout:has(.home-featured-cover) {
+      display: grid;
+      grid-template-columns: 88px minmax(0, 1fr);
+      gap: 0.5rem 1rem;
+      align-items: start;
+    }
+    .home-featured-layout:has(.home-featured-cover) .home-featured-copy {
+      display: contents;
+    }
+    .home-featured-cover {
+      grid-column: 1;
+      grid-row: 1 / 4;
+      width: 88px;
+      aspect-ratio: auto;
+      align-self: center;
+    }
+    .home-featured-cover :global(img) {
+      max-height: 128px;
+      object-fit: contain;
+    }
+    .home-featured-copy > div {
+      grid-column: 2;
+      grid-row: 1;
+      margin-bottom: 0;
+    }
+    .home-featured-copy > h2,
+    .home-featured-copy > h3 {
+      grid-column: 2;
+      grid-row: 2;
+      font-size: 1.25rem;
+      line-height: 1.4;
+    }
+    .home-featured-copy > :global(.datetime-meta) {
+      grid-column: 2;
+      grid-row: 3;
+      margin-top: 0;
+      font-size: 0.75rem;
+      line-height: 1.5;
+      white-space: normal;
+    }
+    .home-featured-copy :global(.datetime-meta-part) {
+      display: inline;
+      white-space: normal;
+    }
+    .home-featured-copy > p,
+    .home-featured-copy > span {
+      grid-column: 1 / -1;
+      margin-top: 0.5rem;
+    }
+
     .post-card-copy {
       display: contents;
     }
