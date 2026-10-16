@@ -1095,3 +1095,8 @@ html[data-navigation-pending] #main-nav {
     height: 40px;
   }
 }
+
+.twikoo-root .tk-comments-no,
+.twikoo-root .tk-comments-no > span {
+  color: var(--foreground-muted);
+}

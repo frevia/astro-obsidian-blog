@@ -126,10 +126,11 @@ const { preview } = Astro.props;
   }
   .note-thumbnail {
     width: 5rem;
-    height: 5rem;
+    height: auto;
+    max-height: 7rem;
     flex-shrink: 0;
     border-radius: 0.5rem;
-    object-fit: cover;
+    object-fit: contain;
   }
   .note-preview:last-child .note-preview-link {
     padding-bottom: 0;
@@ -146,12 +147,12 @@ const { preview } = Astro.props;
       font-size: 1.05rem;
     }
     .note-body {
-      flex-direction: column;
       gap: 0.75rem;
     }
     .note-thumbnail {
-      width: 4rem;
-      height: 4rem;
+      width: 3rem;
+      height: auto;
+      max-height: 4.5rem;
     }
   }
   @media (prefers-reduced-motion: reduce) {

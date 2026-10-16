@@ -65,7 +65,13 @@ describe("neighbor and about page presentation", () => {
     expect(about).toContain("about-stat-grid");
     expect(aboutPage).toContain('class="about-story"');
     expect(aboutPage).toContain('class="about-story-copy"');
-    expect(aboutPage).toContain('class="about-signature"');
+    expect(about).toContain('class="about-signature"');
+    expect(about.indexOf("<slot />")).toBeLessThan(
+      about.indexOf('class="about-stats"')
+    );
+    expect(about.indexOf('class="about-stats"')).toBeLessThan(
+      about.indexOf('class="about-signature"')
+    );
     expect(aboutPage).not.toContain("DisintegrationImg");
     expect(aboutPage).not.toContain('class="about-portrait');
     expect(about).toContain('id="running-days"');
