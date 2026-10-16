@@ -17,6 +17,7 @@ import Twikoo from "@/components/Twikoo.astro";
 import AiSummaryCard from "@/components/AiSummaryCard.astro";
 import ArticleLightbox from "@/components/ArticleLightbox.astro";
 import ArticleHero from "@/components/article/ArticleHero.astro";
+import JournalHero from "@/components/article/JournalHero.astro";
 import ReadingNavigation from "@/components/reading/ReadingNavigation.astro";
 import {
   getArticleAccent,
@@ -29,6 +30,7 @@ import { optimizeImage } from "@/utils/optimizeImages";
 import { PUBLIC_TWIKOO_ENV_ID } from "astro:env/client";
 import { tplStr, useTranslations } from "@/i18n";
 import "@/styles/article-reading.css";
+import "@/styles/journal.css";
 
 const commentsEnabled = SITE.comments.enabled;
 const hasTwikooEnv = Boolean(PUBLIC_TWIKOO_ENV_ID?.trim());
@@ -49,6 +51,7 @@ const {
   canonicalURL,
   published,
   timezone,
+  pageLayout: postLayout,
   hideEditPost,
   summary,
   tags,
@@ -56,6 +59,8 @@ const {
 
 const { Content, headings } = await render(post);
 const tocHeadings = headings.filter(({ depth }) => depth >= 2 && depth <= 4);
+const journalHeadings = headings.filter(({ depth }) => depth === 2);
+const isJournal = postLayout === "journal";
 const titleTransitionName = toTransitionName(title);
 const coverTransitionName = `${titleTransitionName}-cover`;
 const articleCategory = tags[0] ?? post.id.split("/")[0] ?? "文章";
@@ -80,6 +85,7 @@ let displayCover = await resolveArticleCoverUrl(
       : optimized.thumbnail;
   }
 );
+const journalCover = initOgImage ? displayCover : undefined;
 
 // Use dynamic OG image if enabled and no remote|local cover
 if (!displayCover && SITE.dynamicOgImage) {
@@ -138,6 +144,8 @@ const hasReadingNavigation =
   tocHeadings.length > 0 ||
   outgoingWikilinks.length > 0 ||
   backlinks.length > 0;
+const hasJournalRelations =
+  outgoingWikilinks.length > 0 || backlinks.length > 0;
 ---
 
 <Layout {...layoutProps}>
@@ -147,6 +155,7 @@ const hasReadingNavigation =
     id="main-content"
     class:list={[
       "article-page page-shell mx-auto mt-4 w-full max-w-app px-4 pb-24 sm:pb-12",
+      { "journal-page": isJournal },
       { "mt-8": !SITE.showBackButton },
     ]}
     style={articleAccentStyle}
@@ -156,23 +165,53 @@ const hasReadingNavigation =
     data-copy-label={postDetailsLabels.copyCode}
     data-copied-label={postDetailsLabels.copiedCode}
   >
-    <ArticleHero
-      {title}
-      category={articleCategory}
-      {description}
-      {summary}
-      {published}
-      {timezone}
-      readingMinutes={readingMinutes}
-      cover={displayCover}
-      {titleTransitionName}
-      {coverTransitionName}
-    />
+    {
+      isJournal ? (
+        <JournalHero
+          {title}
+          category={articleCategory}
+          {description}
+          {published}
+          {timezone}
+          cover={journalCover}
+          {titleTransitionName}
+          {coverTransitionName}
+        />
+      ) : (
+        <ArticleHero
+          {title}
+          category={articleCategory}
+          {description}
+          {summary}
+          {published}
+          {timezone}
+          readingMinutes={readingMinutes}
+          cover={displayCover}
+          {titleTransitionName}
+          {coverTransitionName}
+        />
+      )
+    }
 
-    {summary && <AiSummaryCard {summary} />}
+    {summary && !isJournal && <AiSummaryCard {summary} />}
 
     {
-      hasReadingNavigation && (
+      isJournal && journalHeadings.length > 0 && (
+        <nav class="journal-chapter-nav" aria-label="日记章节">
+          {journalHeadings.map((heading, index) => (
+            <a href={`#${heading.slug}`}>
+              <span aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              {heading.text}
+            </a>
+          ))}
+        </nav>
+      )
+    }
+
+    {
+      !isJournal && hasReadingNavigation && (
         <ReadingNavigation
           headings={tocHeadings}
           eyebrow="文章阅读"
@@ -193,6 +232,21 @@ const hasReadingNavigation =
     >
       <Content components={{ MediaCard }} />
     </article>
+
+    {
+      isJournal && hasJournalRelations && (
+        <ReadingNavigation
+          headings={[]}
+          eyebrow="文章关系"
+          title="相关内容"
+          outgoing={outgoingWikilinks}
+          {backlinks}
+          relationsTitle={postDetailsLabels.wikilinksTitle}
+          outgoingLabel={postDetailsLabels.wikilinksOutgoing}
+          backlinksLabel={postDetailsLabels.wikilinksBacklinks}
+        />
+      )
+    }
 
     <hr class="my-8 border-dashed" />
 

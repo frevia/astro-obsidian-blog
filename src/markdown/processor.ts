@@ -14,6 +14,7 @@ import { photoExifPlugin } from "./plugins/photoExif";
 import { contentComponentsPlugin } from "./plugins/contentComponents";
 import { linkProcessorPlugin, rssLinkProcessorPlugin } from "./plugins/links";
 import { createMediaCardPlugin } from "./plugins/mediaCards";
+import { journalHastPlugin } from "./plugins/journal";
 import {
   codeToolbarPlugin,
   figurePlugin,
@@ -49,6 +50,7 @@ export const pageHastPlugins: HastPluginDefinition[] = [
   mathPlugin,
   codeToolbarPlugin,
   figurePlugin,
+  journalHastPlugin,
 ];
 
 export const rssMdastPlugins: MdastPluginDefinition[] = [
