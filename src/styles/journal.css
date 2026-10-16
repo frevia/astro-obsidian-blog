@@ -348,7 +348,7 @@
   transform: rotate(5deg);
 }
 
-/* Journal photos keep their composition; camera metadata sits outside the image. */
+/* Keep the photo and its metadata on the same sheet of paper. */
 .journal-page .journal-spread .journal-photos img {
   max-height: min(65vh, 34rem);
   aspect-ratio: auto;
@@ -359,24 +359,72 @@
   overflow: visible;
 }
 
-.journal-page .journal-photos .photo-exif,
-.journal-page .journal-photos .photo-frame--portrait .photo-exif {
-  position: static;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 0.15rem 0.6rem;
-  padding: 0.65rem 0.15rem 0;
-  background: none;
-  color: var(--foreground-muted);
-  text-shadow: none;
-  font-size: 0.65rem;
-  line-height: 1.6;
-  text-align: start;
+.journal-page .photo-frame:has(> .journal-exif) {
+  padding: 8px 8px 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 13px rgb(0 0 0 / 5%);
 }
 
-.journal-page .journal-photos .photo-exif span + span::before {
-  content: none;
+.journal-page .photo-frame:has(> .journal-exif) > img {
+  display: block;
+  margin: 0;
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+}
+
+.journal-page .journal-exif {
+  display: block;
+  width: 100%;
+  margin: 0;
+  color: var(--foreground-muted);
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  line-height: 1.6;
+}
+
+.journal-page .journal-exif summary {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 2rem;
+  padding: 0.4rem 0.15rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.journal-page .journal-exif summary::-webkit-details-marker {
+  display: none;
+}
+
+.journal-page .journal-exif summary:hover {
+  color: var(--foreground);
+}
+
+.journal-page .journal-exif summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.journal-page .journal-exif-toggle {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.journal-page .journal-exif[open] .journal-exif-toggle {
+  transform: rotate(45deg);
+}
+
+.journal-page .journal-exif-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.85rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--line-soft);
+  margin-top: 0.3rem;
 }
 
 .journal-page .journal-spread > .journal-moment {

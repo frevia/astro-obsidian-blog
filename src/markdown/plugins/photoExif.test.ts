@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import sharp from "sharp";
+import { load } from "cheerio";
+import { journalHastPlugin } from "./journal";
 import { mkdtemp, mkdir, writeFile, rm, realpath } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -76,6 +78,23 @@ describe("photo EXIF presentation", () => {
       expect(result.metadata.localImagePaths).toEqual([
         "../attachments/photo.jpg",
       ]);
+      const journalRenderer = await createSatteriMarkdownProcessor({
+        mdastPlugins: [photoExifPlugin],
+        hastPlugins: [figurePlugin, journalHastPlugin],
+      });
+      const journal = await journalRenderer.render(
+        "## 照片\n\n![描述](../attachments/photo.jpg)",
+        {
+          fileURL: pathToFileURL(path.join(root, "src/data/blog/post.md")),
+          frontmatter: { pageLayout: "journal" },
+        }
+      );
+      const $ = load(journal.code);
+      expect($("details.journal-exif")).toHaveLength(1);
+      expect($("details.journal-exif").attr("open")).toBeUndefined();
+      expect($(".journal-exif summary").text()).toBe("Camera Test+");
+      expect($(".journal-exif-fields").text()).toContain("型号: Camera Test");
+      expect(journal.code).toContain("data-photo-exif");
     } finally {
       cwd.mockRestore();
       await rm(root, { recursive: true, force: true });
