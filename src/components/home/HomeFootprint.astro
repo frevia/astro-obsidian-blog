@@ -61,15 +61,19 @@ const pinPath = "M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z";
           ]}
         >
           {latest.data.cover && (
-            <CardCoverImage
-              src={latest.data.cover}
-              alt={latest.data.title}
-              width={960}
-              height={420}
-              sizes="(min-width: 900px) 800px, 100vw"
-              loading="lazy"
-              class="footprint-photo"
-            />
+            <figure class="footprint-print">
+              <CardCoverImage
+                src={latest.data.cover}
+                alt={latest.data.title}
+                width={960}
+                height={720}
+                preserveAspect
+                sizes="(min-width: 900px) 430px, (min-width: 640px) 52vw, 100vw"
+                loading="lazy"
+                class="footprint-photo"
+              />
+              <figcaption>{latestPlace?.name ?? "旅途一帧"}</figcaption>
+            </figure>
           )}
           <div class="footprint-copy">
             {latestPlace && (
@@ -98,6 +102,9 @@ const pinPath = "M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z";
               </time>
             </p>
             <h3>{latest.data.title}</h3>
+            {latest.data.description && (
+              <p class="footprint-description">{latest.data.description}</p>
+            )}
             <span class="footprint-read">阅读这段旅程</span>
           </div>
         </a>
@@ -138,31 +145,59 @@ const pinPath = "M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z";
 }
 <style>
   .footprint-panel {
-    overflow: hidden;
-    border-radius: var(--radius-card);
-    border: 1px solid var(--border);
-    background: var(--surface);
+    border-block: 1px solid var(--border);
   }
   .footprint-story {
     display: grid;
     text-decoration: none;
-    padding: 0.5rem;
+    gap: 1rem;
+    align-items: center;
+    padding: 1.75rem 0 1.25rem;
   }
   .footprint-story:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: -4px;
   }
+  .footprint-print {
+    position: relative;
+    min-width: 0;
+    margin: 0;
+    padding: 0.5rem 0.5rem 0.75rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 14px rgb(0 0 0 / 5%);
+  }
+  .footprint-print::before {
+    content: "";
+    position: absolute;
+    top: -0.6rem;
+    left: 1.5rem;
+    width: 3.5rem;
+    height: 1.2rem;
+    background: color-mix(in oklab, var(--foreground-muted) 18%, transparent);
+    transform: rotate(-7deg);
+    pointer-events: none;
+    z-index: 1;
+  }
   .footprint-story :global(.footprint-photo) {
+    display: block;
     width: 100%;
-    height: 13rem;
-    object-fit: cover;
-    border-radius: calc(var(--radius-card) - 0.35rem);
+    height: auto;
+    max-height: 20rem;
+    object-fit: contain;
+    border-radius: 0;
+  }
+  .footprint-print figcaption {
+    padding: 0.65rem 0.25rem 0;
+    color: var(--foreground-muted);
+    font-size: 0.75rem;
+    line-height: 1.5;
   }
   .footprint-copy {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 1.25rem;
+    padding: 0.5rem 0;
     min-width: 0;
   }
   .footprint-meta {
@@ -176,6 +211,16 @@ const pinPath = "M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z";
     font-weight: 600;
     line-height: 1.7;
     color: var(--foreground);
+  }
+  .footprint-description {
+    margin-top: 0.75rem;
+    color: var(--foreground-muted);
+    font-size: 0.9rem;
+    line-height: 1.85;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
   }
   .footprint-story:hover h3 {
     color: var(--accent-strong);
@@ -209,9 +254,8 @@ const pinPath = "M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z";
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 0.75rem 1.5rem;
-    padding: 0.875rem 1.25rem;
+    padding: 0.875rem 0;
     border-top: 1px solid var(--border);
-    background: var(--surface-raised);
   }
   .footprint-count {
     display: flex;
@@ -247,10 +291,11 @@ const pinPath = "M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z";
   }
   @media (min-width: 640px) {
     .footprint-story.has-photo {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.9fr);
+      gap: 2rem;
     }
     .footprint-story :global(.footprint-photo) {
-      height: 13rem;
+      max-height: 18rem;
     }
   }
 </style>
