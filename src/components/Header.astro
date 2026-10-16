@@ -102,7 +102,7 @@ const headerLabels = {
         class="hidden lg:flex lg:items-center"
         aria-label={headerLabels.mainNav}
       >
-        <ul class="flex items-center">
+        <ul class="flex items-center gap-1">
           {
             navItems.map(item => (
               <li>
@@ -383,7 +383,7 @@ const headerLabels = {
   </div>
   {
     SITE.showCalendar && (
-      <div class="calendar-chime-on-progress pointer-events-none absolute top-full right-30 z-[96] hidden -translate-y-4 sm:block [&_.date-chime-root]:pointer-events-auto">
+      <div class="calendar-chime-on-progress pointer-events-none absolute top-full right-30 z-[96] hidden -translate-y-4 xl:block [&_.date-chime-root]:pointer-events-auto">
         <DateDisplay />
       </div>
     )
