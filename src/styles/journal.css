@@ -1,0 +1,348 @@
+@layer components {
+  .journal-page .journal-hero {
+    display: grid;
+    gap: 1.5rem;
+    margin-block: 1.25rem 2rem;
+    align-items: center;
+  }
+
+  .journal-page .journal-hero-copy {
+    min-width: 0;
+  }
+
+  .journal-page .journal-hero--text-only {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .journal-page .journal-hero-category {
+    margin: 0 0 0.75rem;
+    color: var(--foreground-muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+  }
+
+  .journal-page .journal-hero-title {
+    margin: 0;
+    color: var(--foreground);
+    font-size: clamp(1.9rem, 3vw, 2.25rem);
+    font-weight: 650;
+    line-height: 1.28;
+    text-wrap: balance;
+  }
+
+  .journal-page .journal-hero-date {
+    display: block;
+    margin-top: 1rem;
+    color: var(--foreground-muted);
+    font-size: 0.8rem;
+  }
+
+  .journal-page .journal-hero-description {
+    max-width: 38rem;
+    margin: 1rem 0 0;
+    color: var(--foreground-muted);
+    font-size: 1rem;
+    line-height: 1.8;
+    text-wrap: pretty;
+  }
+
+  .journal-page .journal-hero-cover-wrap {
+    width: 100%;
+    max-height: 27rem;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .journal-page .journal-hero-cover {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 27rem;
+    object-fit: contain;
+  }
+
+  .journal-page .journal-hero--text-only .journal-hero-copy {
+    max-width: 48rem;
+  }
+
+  .journal-page .journal-chapter-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin-block: 1.75rem;
+    padding-block: 0.8rem;
+    border-block: 1px solid var(--border);
+    color: var(--foreground-muted);
+    font-size: 0.8rem;
+  }
+
+  .journal-page .journal-chapter-nav a {
+    text-decoration: none;
+  }
+
+  .journal-page .journal-chapter-nav a:hover {
+    color: var(--foreground);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+
+  .journal-page #article {
+    width: 100%;
+    max-width: none;
+  }
+
+  .journal-page .journal-chapter {
+    padding-inline: 0;
+    padding-block: clamp(1.5rem, 4vw, 2.75rem);
+    border-top: 1px solid var(--line-soft);
+    scroll-margin-top: 5rem;
+  }
+
+  .journal-page .journal-chapter > h2 {
+    margin: 0 0 1.25rem;
+    font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.45;
+  }
+
+  .journal-page .journal-chapter > :where(p, ul, ol, blockquote, pre, table) {
+    max-width: 48rem;
+  }
+
+  .journal-page .journal-photos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    justify-items: center;
+    gap: 1rem;
+    margin-block: 1.5rem;
+  }
+
+  .journal-page .journal-photos > .rehype-figure {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+  }
+
+  .journal-page .journal-photos .photo-frame {
+    width: 100%;
+  }
+
+  .journal-page .journal-photos img {
+    width: 100%;
+    max-height: min(65vh, 34rem);
+    object-fit: contain !important;
+  }
+
+  .journal-page .journal-photos figcaption {
+    margin-top: 0.5rem;
+    color: var(--foreground-muted);
+    padding: 0.65rem 2px 0;
+    font-size: 0.8rem;
+    text-align: start;
+    line-height: 1.75;
+  }
+
+  .journal-page .journal-spread {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(14rem, 0.85fr);
+    align-items: center;
+    gap: clamp(1rem, 3vw, 2rem);
+    margin-block: 1.75rem;
+  }
+
+  .journal-page .journal-spread .journal-photos {
+    margin: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .journal-page .journal-spread .journal-photos > .rehype-figure {
+    max-width: none;
+  }
+
+  .journal-page .journal-spread .journal-photos img {
+    aspect-ratio: 3 / 4;
+    object-fit: cover !important;
+  }
+
+  .journal-page .journal-moment {
+    min-width: 0;
+    margin: 0;
+    padding: 1.15rem 1.25rem;
+    border-inline-start: 2px solid var(--line-soft);
+    background: color-mix(in oklab, var(--surface-muted) 80%, transparent);
+    color: var(--foreground-muted);
+  }
+
+  .journal-page .journal-moment-label {
+    margin-bottom: 0.5rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+  }
+
+  .journal-page .journal-moment > :last-child {
+    margin-bottom: 0;
+  }
+
+  @media (min-width: 768px) {
+    .journal-page .journal-hero:not(.journal-hero--text-only) {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+      min-height: 20rem;
+    }
+
+    .journal-page .journal-hero-cover-wrap {
+      max-height: 25rem;
+    }
+
+    .journal-page .journal-hero-cover {
+      max-height: 25rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .journal-page .journal-hero {
+      gap: 1rem;
+      margin-block: 0.75rem 1.5rem;
+    }
+
+    .journal-page .journal-hero-cover-wrap,
+    .journal-page .journal-hero-cover {
+      max-height: 18rem;
+    }
+
+    .journal-page .journal-chapter-nav {
+      gap: 0.4rem 1rem;
+      margin-block: 1.25rem;
+    }
+
+    .journal-page .journal-spread,
+    .journal-page .journal-spread .journal-photos {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}
+
+.journal-page #sidebar.reading-navigation-desktop {
+  position: static;
+  display: block;
+  width: auto;
+  height: auto;
+  max-height: none;
+  margin-block: 2rem;
+}
+
+.journal-page .reading-navigation-mobile {
+  display: none;
+}
+
+/* Typography puts object-fit in the base layer with !important; override there
+   so journal crops do not leave letterboxing inside their photo frames. */
+@layer base {
+  .journal-page .app-prose .journal-spread .journal-photos img {
+    object-fit: cover !important;
+  }
+}
+
+.journal-page .journal-photos[data-photo-count="1"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.journal-page .journal-photos > :not(figure) {
+  grid-column: 1 / -1;
+}
+
+.journal-page .journal-photos .rehype-figure {
+  min-width: 0;
+}
+
+.journal-page .journal-spread .rehype-figure img {
+  max-height: 22rem;
+  border: 8px solid var(--surface);
+  border-radius: 0;
+  outline: 1px solid var(--line-soft);
+}
+
+.journal-page .journal-photo-label {
+  margin: 0;
+  color: var(--foreground-muted);
+  font-size: 0.8rem;
+}
+
+.journal-page .journal-chapter:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.journal-page .journal-chapter-nav a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+/* The photo paper and stagger follow the journal prototype. */
+.journal-page #article {
+  counter-reset: journal-photo;
+}
+
+.journal-page #article .rehype-figure {
+  counter-increment: journal-photo;
+}
+
+.journal-page .journal-photos {
+  align-items: start;
+  column-gap: clamp(1rem, 2.5vw, 2rem);
+  padding-top: 0.75rem;
+}
+
+.journal-page .journal-photos .rehype-figure {
+  position: relative;
+}
+
+.journal-page .journal-photos img {
+  border: 8px solid var(--surface);
+  border-radius: 0;
+  outline: 1px solid var(--border);
+  box-shadow: 0 4px 13px rgb(0 0 0 / 5%);
+}
+
+.journal-page .journal-photos figcaption::before {
+  content: counter(journal-photo, decimal-leading-zero) " ／ ";
+}
+
+.journal-page .journal-photos[data-photo-count="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.journal-page .journal-photos[data-photo-count="2"] > figure:nth-of-type(2) {
+  margin-top: clamp(1.5rem, 3vw, 2.75rem);
+}
+
+.journal-page
+  .journal-photos[data-photo-count="2"]
+  > figure:first-of-type::before,
+.journal-page .journal-moment::before {
+  content: "";
+  position: absolute;
+  top: -0.6rem;
+  left: 1.4rem;
+  width: 4.3rem;
+  height: 1.45rem;
+  z-index: 1;
+  background: color-mix(in oklab, var(--foreground-muted) 18%, transparent);
+  transform: rotate(-8deg);
+  pointer-events: none;
+}
+
+.journal-page .journal-moment {
+  position: relative;
+  border-inline-start: 0;
+  transform: rotate(-0.6deg);
+}
+
+.journal-page .journal-moment::before {
+  width: 3.5rem;
+  height: 1.1rem;
+  transform: rotate(5deg);
+}

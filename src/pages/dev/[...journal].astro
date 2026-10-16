@@ -1,0 +1,91 @@
+---
+import { markdownToHtml } from "satteri";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import ArticleLightbox from "@/components/ArticleLightbox.astro";
+import JournalHero from "@/components/article/JournalHero.astro";
+import {
+  markdownFeatures,
+  pageHastPlugins,
+  pageMdastPlugins,
+} from "@/markdown/processor";
+import sampleSource from "@/markdown/fixtures/journal/sample.md?raw";
+import canal from "@/markdown/fixtures/journal/canal.jpg";
+import xixingAlley from "@/markdown/fixtures/journal/xixing-4.jpg";
+import xixingRiverside from "@/markdown/fixtures/journal/xixing-3.jpg";
+import "@/styles/article-reading.css";
+import "@/styles/journal.css";
+
+export function getStaticPaths() {
+  return import.meta.env.DEV ? [{ params: { journal: "journal" } }] : [];
+}
+
+const fixtureUrl = new URL(
+  "../../markdown/fixtures/journal/sample.md",
+  import.meta.url
+);
+const { html } = await markdownToHtml(sampleSource, {
+  features: markdownFeatures,
+  fileURL: fixtureUrl,
+  mdastPlugins: pageMdastPlugins,
+  hastPlugins: pageHastPlugins,
+  data: {
+    astro: {
+      frontmatter: { pageLayout: "journal" },
+      headings: [],
+      localImagePaths: new Set(),
+      remoteImagePaths: new Set(),
+    },
+  },
+});
+const articleHtml = html
+  .replaceAll('src="./canal.jpg"', `src="${canal.src}"`)
+  .replaceAll('src="./xixing-4.jpg"', `src="${xixingAlley.src}"`)
+  .replaceAll('src="./xixing-3.jpg"', `src="${xixingRiverside.src}"`);
+const published = new Date("2026-03-27T00:00:00+08:00");
+const title = "沿着运河，慢慢走";
+const description =
+  "一篇用于预览旅行手帐布局的虚构样例，沿着杭州运河与西兴老街记录散步片段。";
+---
+
+<Layout
+  title={`${title} · 手帐预览`}
+  {description}
+  {published}
+  cover={canal.src}
+  noindex
+  includeRss={false}
+  includeStructuredData={false}
+>
+  <Header />
+  <main
+    id="main-content"
+    class="article-page page-shell journal-page mx-auto mt-4 w-full max-w-app px-4 pb-24 sm:pb-12"
+    data-pagefind-body
+    data-pagefind-weight="5"
+  >
+    <JournalHero
+      {title}
+      category="旅行"
+      {description}
+      {published}
+      timezone="Asia/Shanghai"
+      cover={canal.src}
+      titleTransitionName="journal-preview-title"
+      coverTransitionName="journal-preview-cover"
+    />
+    <nav class="journal-chapter-nav" aria-label="日记章节">
+      <a href="#运河的早晨">01 运河的早晨</a>
+      <a href="#西兴的午后">02 西兴的午后</a>
+      <a href="#关于影像">03 关于影像</a>
+    </nav>
+    <article
+      id="article"
+      class="article-reading-body js-toc-content app-prose relative mx-auto mt-8 max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
+      set:html={articleHtml}
+    />
+  </main>
+  <ArticleLightbox />
+  <Footer />
+</Layout>
