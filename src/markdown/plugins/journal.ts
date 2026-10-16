@@ -17,6 +17,48 @@ function isWhitespace(node: RootContent): boolean {
 
 function cloneNode<T extends RootContent | ElementContent>(node: T): T {
   if (isElement(node)) {
+    if (hasClass(node, "photo-exif")) {
+      const values = node.children.flatMap(child =>
+        isElement(child)
+          ? child.children
+              .filter(item => item.type === "text")
+              .map(item => item.value)
+          : []
+      );
+      const model = values
+        .find(value => value.startsWith("型号:"))
+        ?.replace(/^型号:\s*/, "");
+      return {
+        ...node,
+        tagName: "details",
+        properties: { className: ["journal-exif"] },
+        children: [
+          {
+            type: "element",
+            tagName: "summary",
+            properties: { ariaLabel: `${model ?? "照片"}，拍摄参数` },
+            children: [
+              { type: "text", value: model ?? "拍摄信息" },
+              {
+                type: "element",
+                tagName: "span",
+                properties: {
+                  className: ["journal-exif-toggle"],
+                  ariaHidden: "true",
+                },
+                children: [{ type: "text", value: "+" }],
+              },
+            ],
+          },
+          {
+            type: "element",
+            tagName: "div",
+            properties: { className: ["journal-exif-fields"] },
+            children: node.children.map(child => cloneNode(child)),
+          },
+        ],
+      } as T;
+    }
     return {
       ...node,
       properties: { ...node.properties },
