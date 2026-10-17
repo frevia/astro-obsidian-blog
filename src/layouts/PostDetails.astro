@@ -85,7 +85,6 @@ let displayCover = await resolveArticleCoverUrl(
       : optimized.thumbnail;
   }
 );
-const journalCover = initOgImage ? displayCover : undefined;
 
 // Use dynamic OG image if enabled and no remote|local cover
 if (!displayCover && SITE.dynamicOgImage) {
@@ -173,9 +172,7 @@ const hasJournalRelations =
           {description}
           {published}
           {timezone}
-          cover={journalCover}
           {titleTransitionName}
-          {coverTransitionName}
         />
       ) : (
         <ArticleHero

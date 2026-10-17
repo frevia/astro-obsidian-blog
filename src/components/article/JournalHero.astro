@@ -7,9 +7,7 @@ export interface Props {
   description: string;
   published: Date;
   timezone?: string;
-  cover?: string;
   titleTransitionName: string;
-  coverTransitionName: string;
 }
 
 const {
@@ -18,15 +16,22 @@ const {
   description,
   published,
   timezone,
-  cover,
   titleTransitionName,
-  coverTransitionName,
 } = Astro.props;
 ---
 
-<header class:list={["journal-hero", { "journal-hero--text-only": !cover }]}>
+<header class="journal-hero">
   <div class="journal-hero-copy">
-    <p class="journal-hero-category">{category} · 手记</p>
+    <div class="journal-hero-meta">
+      <p class="journal-hero-category">{category} · 手记</p>
+      <Datetime
+        {published}
+        {timezone}
+        layout="meta"
+        compact
+        class="journal-hero-date"
+      />
+    </div>
     <h1
       transition:name={titleTransitionName}
       class="journal-hero-title"
@@ -34,32 +39,6 @@ const {
     >
       {title}
     </h1>
-    <Datetime
-      {published}
-      {timezone}
-      layout="meta"
-      compact
-      class="journal-hero-date"
-    />
-    <p class="journal-hero-description">{description}</p>
   </div>
-
-  {
-    cover && (
-      <figure class="journal-hero-cover-wrap">
-        <img
-          transition:name={coverTransitionName}
-          class="journal-hero-cover"
-          src={cover}
-          alt={title}
-          width="1280"
-          height="853"
-          sizes="(min-width: 768px) 48vw, 100vw"
-          loading="eager"
-          decoding="async"
-          fetchpriority="high"
-        />
-      </figure>
-    )
-  }
+  {description && <p class="journal-hero-description">{description}</p>}
 </header>
