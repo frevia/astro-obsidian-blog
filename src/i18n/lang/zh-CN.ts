@@ -11,6 +11,7 @@ export default {
     search: "搜索",
     fragments: "Notes",
     footprint: "足迹",
+    album: "相册",
     feeds: "邻居",
     mainLabel: "主导航",
     mobileLabel: "移动端主导航",

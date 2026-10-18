@@ -9,6 +9,7 @@ export interface UIStrings {
     search: string;
     fragments: string;
     footprint: string;
+    album: string;
     feeds: string;
     mainLabel: string;
     mobileLabel: string;
