@@ -1,0 +1,36 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Main from "@/layouts/Main.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import AlbumGallery from "@/components/AlbumGallery.astro";
+import ArticleLightbox from "@/components/ArticleLightbox.astro";
+import { getAlbumPhotos } from "@/utils/getAlbumPhotos";
+
+export function getStaticPaths() {
+  return import.meta.env.DEV ? [{ params: { preview: undefined } }] : [];
+}
+// Preview existing public Journals without changing their source opt-in flags.
+const posts = (await getCollection("blog"))
+  .filter(post => post.data.pageLayout === "journal")
+  .map(post => ({ ...post, data: { ...post.data, album: true } }));
+const photos = await getAlbumPhotos(posts);
+---
+
+<Layout
+  title="相册预览"
+  noindex
+  includeRss={false}
+  includeStructuredData={false}
+>
+  <Header />
+  <Main
+    pageTitle="相册预览"
+    pageDesc="仅用于本地预览，尚未修改文章的相册收录标记。"
+  >
+    <AlbumGallery photos={photos} />
+  </Main>
+  <ArticleLightbox />
+  <Footer />
+</Layout>

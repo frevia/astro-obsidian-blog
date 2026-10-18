@@ -11,6 +11,7 @@ export default {
     search: "Search",
     fragments: "Notes",
     footprint: "Footprint",
+    album: "Album",
     feeds: "Neighbors",
     mainLabel: "Main navigation",
     mobileLabel: "Mobile main navigation",

@@ -39,6 +39,25 @@ export function isEligibleArticleImage(image: HTMLImageElement) {
   return !image.closest("a") && Boolean(image.currentSrc || image.src);
 }
 
+export function loadLightboxImage(
+  image: HTMLImageElement,
+  trigger: HTMLImageElement
+) {
+  const preview = trigger.currentSrc || trigger.src;
+  const original = trigger.dataset.lightboxSrc;
+  image.src = preview;
+  if (!original || original === preview) return () => {};
+
+  const pending = new Image();
+  pending.onload = () => {
+    image.src = original;
+  };
+  pending.src = original;
+  return () => {
+    pending.onload = null;
+  };
+}
+
 export function getNextLightboxIndex(
   currentIndex: number,
   offset: number,
@@ -238,6 +257,7 @@ export function initArticleLightbox(
   let lastFocusedElement: HTMLElement | null = null;
   let unlockBodyScroll: (() => void) | null = null;
   let cleanedUp = false;
+  let cancelImageLoad: (() => void) | undefined;
 
   const updateControls = () => {
     const hasMultipleImages = eligibleImages.length > 1;
@@ -251,7 +271,18 @@ export function initArticleLightbox(
     const trigger = eligibleImages[activeIndex];
     if (!trigger) return;
 
-    image.src = trigger.currentSrc || trigger.src;
+    cancelImageLoad?.();
+    cancelImageLoad = loadLightboxImage(image, trigger);
+    const sources = root.querySelector<HTMLElement>("[data-lightbox-sources]");
+    if (sources) {
+      const links =
+        trigger.closest("figure")?.querySelectorAll("a[data-photo-source]") ??
+        [];
+      sources.replaceChildren(
+        ...Array.from(links, link => link.cloneNode(true))
+      );
+      sources.hidden = links.length === 0;
+    }
     image.alt = "";
     image.style.transform = `scale(${scale})`;
     const description = getImageCaption(
@@ -282,6 +313,7 @@ export function initArticleLightbox(
   };
 
   const close = () => {
+    cancelImageLoad?.();
     if (root.hidden) return;
 
     root.hidden = true;

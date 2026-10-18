@@ -7,6 +7,7 @@ import {
   getNextLightboxIndex,
   isEligibleArticleImage,
   lockBodyScroll,
+  loadLightboxImage,
   restoreLightboxFocus,
   trapLightboxFocus,
 } from "./article-lightbox";
@@ -175,5 +176,43 @@ describe("ArticleLightbox component wiring", () => {
     expect(helperSource).toContain("if (event.target === root) close()");
     expect(helperSource).toContain("scale = 1");
     expect(helperSource).toContain("eligibleImages.includes(trigger)");
+  });
+});
+
+describe("lightbox original loading", () => {
+  it("shows each preview immediately and ignores a cancelled original load", () => {
+    const pending: { onload: (() => void) | null; src: string }[] = [];
+    vi.stubGlobal(
+      "Image",
+      class {
+        onload: (() => void) | null = null;
+        src = "";
+        constructor() {
+          pending.push(this);
+        }
+      }
+    );
+    try {
+      const image = { src: "" } as HTMLImageElement;
+      const trigger = (name: string) =>
+        ({
+          src: `${name}-preview.jpg`,
+          currentSrc: "",
+          dataset: { lightboxSrc: `${name}-original.jpg` },
+        }) as unknown as HTMLImageElement;
+      const cancel = loadLightboxImage(image, trigger("first"));
+      expect(image.src).toBe("first-preview.jpg");
+      cancel();
+      const cancelSecond = loadLightboxImage(image, trigger("second"));
+      expect(image.src).toBe("second-preview.jpg");
+      pending[0].onload?.();
+      expect(image.src).toBe("second-preview.jpg");
+      pending[1].onload?.();
+      expect(image.src).toBe("second-original.jpg");
+      cancelSecond();
+      expect(pending[1].onload).toBeNull();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

@@ -26,7 +26,7 @@ const labels = useTranslations(SITE.lang).lightbox;
   </button>
   <button
     type="button"
-    class="absolute top-1/2 left-4 z-10 hidden -translate-y-1/2 rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+    class="absolute top-1/2 left-4 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
     data-lightbox-prev
     aria-label={labels.previous}
     hidden
@@ -53,10 +53,16 @@ const labels = useTranslations(SITE.lang).lightbox;
       aria-live="polite"
     >
     </figcaption>
+    <div
+      data-lightbox-sources
+      class="flex max-h-[10vh] max-w-[90vw] flex-wrap justify-center gap-2 overflow-y-auto text-sm text-white/85 underline underline-offset-4"
+      hidden
+    >
+    </div>
   </figure>
   <button
     type="button"
-    class="absolute top-1/2 right-4 z-10 hidden -translate-y-1/2 rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+    class="absolute top-1/2 right-4 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
     data-lightbox-next
     aria-label={labels.next}
     hidden

@@ -82,6 +82,7 @@ const blog = defineCollection({
         published: z.preprocess(parsePublishedDate, z.date()),
         title: z.string(),
         pageLayout: z.enum(["journal"]).optional(),
+        album: z.boolean().default(false),
         tags: z.array(z.string()).default(["其他"]),
         cover: image().or(z.string()).optional(),
         description: z.string(),

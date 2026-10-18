@@ -1,0 +1,22 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Main from "@/layouts/Main.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import AlbumGallery from "@/components/AlbumGallery.astro";
+import ArticleLightbox from "@/components/ArticleLightbox.astro";
+import { getAlbumPhotos } from "@/utils/getAlbumPhotos";
+import { SITE } from "@/config";
+
+const photos = await getAlbumPhotos(await getCollection("blog"));
+---
+
+<Layout title={`相册 | ${SITE.title}`}>
+  <Header />
+  <Main pageTitle="相册">
+    <AlbumGallery photos={photos} />
+  </Main>
+  <ArticleLightbox />
+  <Footer />
+</Layout>
