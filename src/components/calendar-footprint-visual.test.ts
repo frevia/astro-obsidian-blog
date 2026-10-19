@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import Calendar from "./Calendar";
-import FootprintMap from "./FootprintMap";
+import FootprintMap, { wheelZoomDelta } from "./FootprintMap";
 
 describe("calendar and footprint visual integration", () => {
   it("renders the compact calendar entry as a today panel with day context", () => {
@@ -81,5 +81,36 @@ describe("calendar and footprint visual integration", () => {
     expect(panel).toContain('data-astro-prefetch="tap"');
     expect(source).toContain("loadAMap()");
     expect(source).toContain("地图暂时无法加载");
+  });
+});
+
+describe("map wheel normalization", () => {
+  it("supports mouse and fractional trackpad deltas in both directions", () => {
+    expect(wheelZoomDelta({ deltaY: -100, deltaMode: 0, ctrlKey: false })).toBe(
+      0.5
+    );
+    expect(wheelZoomDelta({ deltaY: 2, deltaMode: 0, ctrlKey: false })).toBe(
+      -0.01
+    );
+    expect(wheelZoomDelta({ deltaY: -2, deltaMode: 0, ctrlKey: true })).toBe(
+      0.05
+    );
+    expect(wheelZoomDelta({ deltaY: 3, deltaMode: 1, ctrlKey: false })).toBe(
+      -0.24
+    );
+  });
+  it("caps page jumps and ignores zero or invalid input", () => {
+    expect(wheelZoomDelta({ deltaY: 1, deltaMode: 2, ctrlKey: false })).toBe(
+      -1
+    );
+    expect(
+      wheelZoomDelta({ deltaY: -10000, deltaMode: 0, ctrlKey: false })
+    ).toBe(1);
+    expect(
+      Math.abs(wheelZoomDelta({ deltaY: 0, deltaMode: 0, ctrlKey: false }))
+    ).toBe(0);
+    expect(wheelZoomDelta({ deltaY: NaN, deltaMode: 0, ctrlKey: false })).toBe(
+      0
+    );
   });
 });
