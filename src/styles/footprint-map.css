@@ -355,17 +355,39 @@ html[data-theme="dark"] .footprint-amap {
   border-radius: 8px;
 }
 .footprint-photo-button {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 53px;
 }
 .footprint-photo-marker {
-  width: 56px;
-  height: 56px;
-  padding: 3px;
-  border-radius: 7px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 50% calc(100% + 5px);
+  width: 48px;
+  height: 48px;
+  padding: 2px;
+  border-radius: 6px;
   background: #fff;
   opacity: 1;
-  filter: drop-shadow(0 2px 4px rgb(15 23 42 / 28%));
+  filter: drop-shadow(0 1px 2px rgb(15 23 42 / 24%));
+}
+/* Include the pointer in the marker button height so its tip is the map anchor. */
+.footprint-photo-marker::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-inline: 4px solid transparent;
+  border-top: 5px solid #fff;
+}
+.footprint-marker-icon-wrap:hover .footprint-photo-marker:not(.is-selected) {
+  transform: scale(1.04);
+}
+.footprint-photo-marker.is-selected {
+  transform: scale(1.05);
+  outline: 1px solid color-mix(in srgb, var(--footprint-pin) 65%, #fff);
+  filter: drop-shadow(0 2px 3px rgb(15 23 42 / 28%));
 }
 .footprint-photo-marker img {
   display: block;
@@ -394,8 +416,11 @@ html[data-theme="dark"] .footprint-amap {
 @media (max-width: 639px) {
   .footprint-photo-button,
   .footprint-photo-marker {
-    width: 48px;
-    height: 48px;
+    width: 42px;
+    height: 42px;
+  }
+  .footprint-photo-button {
+    height: 47px;
   }
 }
 
@@ -416,6 +441,10 @@ html[data-theme="dark"] .footprint-amap {
   border-radius: 14px;
   background: var(--surface);
   box-shadow: 0 8px 28px rgb(0 0 0 / 14%);
+}
+/* The panel only receives programmatic focus; keyboard entry focuses Close. */
+.footprint-photo-panel:focus {
+  outline: none;
 }
 .footprint-photo-panel-header {
   display: flex;

@@ -9,6 +9,7 @@ type Props = {
   posts: FootprintRecord[];
   photos: AlbumPhoto[];
   onClose: () => void;
+  focusClose?: boolean;
 };
 
 export default function FootprintPhotoPanel({
@@ -16,7 +17,9 @@ export default function FootprintPhotoPanel({
   posts,
   photos,
   onClose,
+  focusClose = true,
 }: Props) {
+  const panelRef = useRef<HTMLElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const selectedPhotos = useMemo(
     () => photosAtPlace(photos, posts),
@@ -26,7 +29,9 @@ export default function FootprintPhotoPanel({
     window.__articleLightboxCleanup?.();
     const cleanup = initArticleLightbox({ open: "查看大图" });
     window.__articleLightboxCleanup = cleanup;
-    closeRef.current?.focus({ preventScroll: true });
+    (focusClose ? closeRef.current : panelRef.current)?.focus({
+      preventScroll: true,
+    });
     if (window.matchMedia("(max-width: 767px)").matches) {
       closeRef.current?.scrollIntoView({ block: "nearest" });
     }
@@ -45,10 +50,12 @@ export default function FootprintPhotoPanel({
         window.__articleLightboxCleanup = undefined;
       document.removeEventListener("keydown", onKeydown, true);
     };
-  }, [selectedPhotos, onClose]);
+  }, [selectedPhotos, onClose, focusClose]);
 
   return (
     <aside
+      ref={panelRef}
+      tabIndex={-1}
       className="footprint-photo-panel"
       aria-labelledby="footprint-photo-title"
     >

@@ -136,6 +136,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
   const mapRef = useRef<AMapInstance | null>(null);
   const markersRef = useRef<AMapMarker[]>([]);
   const [selection, setSelection] = useState<PlaceItem | null>(null);
+  const focusPhotoCloseRef = useRef(false);
   const selectionRef = useRef<PlaceItem | null>(null);
   const selectedButtonRef = useRef<HTMLButtonElement | null>(null);
   const closeSelection = useCallback(() => {
@@ -260,6 +261,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
             });
             button.addEventListener("click", event => {
               event.stopPropagation();
+              focusPhotoCloseRef.current = event.detail === 0;
               selectionRef.current = null;
               setSelection(null);
               if (group.length > 1 && map!.getZoom() < 20) {
@@ -435,6 +437,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
           </div>
           {selection && (
             <FootprintPhotoPanel
+              focusClose={focusPhotoCloseRef.current}
               key={selection.key}
               name={selection.name}
               posts={selection.posts}
