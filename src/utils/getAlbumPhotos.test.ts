@@ -27,13 +27,14 @@ vi.mock("./postFilter", () => ({
     post.data.published.getTime() < Date.now(),
 }));
 
-import { getAlbumPhotos } from "./getAlbumPhotos";
+import { getAlbumPhotos, getPostPhotos } from "./getAlbumPhotos";
 
 const post = (
   id: string,
   date: string,
   body: string,
-  album = true
+  album = true,
+  pageLayout: "journal" | null = "journal"
 ): CollectionEntry<"blog"> => ({
   id,
   collection: "blog",
@@ -45,7 +46,7 @@ const post = (
     published: new Date(date),
     description: "",
     tags: [],
-    pageLayout: "journal",
+    pageLayout: pageLayout ?? undefined,
     album,
   },
 });
@@ -97,6 +98,49 @@ describe("album source resolution", () => {
         ].join("\n")
       ),
     ]);
+    expect(photos).toEqual([]);
+  });
+
+  it("extracts photos from non-album and non-journal posts only through photos callouts", async () => {
+    const posts = [
+      post(
+        "album-off",
+        "2025-01-01",
+        "> [!photos]\n> ![未收录相册](../../attachments/off.jpg)",
+        false
+      ),
+      post(
+        "ordinary-layout",
+        "2025-02-01",
+        [
+          "![普通正文图片](../../attachments/body.jpg)",
+          "",
+          "> [!photos]",
+          "> ![普通布局照片](../../attachments/callout.jpg)",
+        ].join("\n"),
+        true,
+        null
+      ),
+    ];
+
+    expect(await getAlbumPhotos(posts)).toEqual([]);
+    const photos = await getPostPhotos(posts);
+    expect(photos).toHaveLength(2);
+    expect(photos.map(photo => photo.alt)).toEqual([
+      "普通布局照片",
+      "未收录相册",
+    ]);
+  });
+
+  it("continues to filter future posts for general post photos", async () => {
+    const photos = await getPostPhotos([
+      post(
+        "future",
+        "2999-01-01",
+        "> [!photos]\n> ![未发布](../../attachments/future.jpg)"
+      ),
+    ]);
+
     expect(photos).toEqual([]);
   });
 });

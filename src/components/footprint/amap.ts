@@ -4,6 +4,14 @@ export interface AMapMarker {
 export interface AMapInstance {
   on(event: string, callback: () => void): void;
   add(marker: AMapMarker): void;
+  remove(markers: AMapMarker[]): void;
+  getZoom(): number;
+  panBy(x: number, y: number): void;
+  setZoomAndCenter(zoom: number, center: [number, number]): void;
+  lngLatToContainer(position: [number, number]): {
+    getX(): number;
+    getY(): number;
+  };
   addControl(control: object): void;
   setFitView(
     markers: AMapMarker[],
@@ -16,19 +24,12 @@ export interface AMapInstance {
   zoomOut(): void;
   destroy(): void;
 }
-export interface AMapInfoWindow {
-  on(event: string, callback: () => void): void;
-  setContent(content: HTMLElement): void;
-  open(map: AMapInstance, position: [number, number]): void;
-  close(): void;
-}
 interface AMapAPI {
   Map: new (
     element: HTMLElement,
     options: Record<string, unknown>
   ) => AMapInstance;
   Marker: new (options: Record<string, unknown>) => AMapMarker;
-  InfoWindow: new (options: Record<string, unknown>) => AMapInfoWindow;
   Pixel: new (x: number, y: number) => object;
   Scale: new () => object;
 }

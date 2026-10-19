@@ -49,10 +49,10 @@ export function groupAlbumPhotos(photos: AlbumPhoto[]) {
   for (const photo of [...photos].sort((a, b) =>
     b.sources[0].date.localeCompare(a.sources[0].date)
   )) {
-    const month = photo.sources[0].date.slice(0, 7);
-    const group = groups.get(month) ?? [];
+    const date = photo.sources[0].date;
+    const group = groups.get(date) ?? [];
     group.push(photo);
-    groups.set(month, group);
+    groups.set(date, group);
   }
-  return Array.from(groups, ([month, photos]) => ({ month, photos }));
+  return Array.from(groups, ([date, photos]) => ({ date, photos }));
 }

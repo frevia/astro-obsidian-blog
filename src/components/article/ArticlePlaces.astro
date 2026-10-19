@@ -1,0 +1,58 @@
+---
+import { toPlaceRecords, footprintPlaceUrl } from "@/utils/footprintPlaces";
+interface Props {
+  post: { data: { locations?: string[] } };
+}
+const places = toPlaceRecords(Astro.props.post);
+---
+
+{
+  places.length > 0 && (
+    <nav class="article-places" aria-label="在足迹地图查看文章地点">
+      {places.map(place => (
+        <a
+          href={footprintPlaceUrl(place)}
+          title={`在足迹地图查看${place.name}`}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z" />
+            <circle cx="12" cy="10" r="2.5" />
+          </svg>
+          {place.name}
+        </a>
+      ))}
+    </nav>
+  )
+}
+<style>
+  .article-places {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-block: 0.75rem 1.5rem;
+    font-size: 0.8125rem;
+  }
+  .article-places a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--foreground-muted);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .article-places a:hover {
+    color: var(--accent);
+  }
+  .article-places a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+  .article-places svg {
+    width: 15px;
+    height: 15px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+  }
+</style>

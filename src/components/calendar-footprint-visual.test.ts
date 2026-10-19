@@ -57,23 +57,28 @@ describe("calendar and footprint visual integration", () => {
     expect(source).not.toContain("data-footprint-place-rail");
   });
 
-  it("keeps popup navigation and map failure links without a sidebar", () => {
+  it("keeps photo panel navigation and map failure links", () => {
     const source = readFileSync(
       resolve(import.meta.dirname, "FootprintMap.tsx"),
       "utf-8"
     );
 
     expect(source).toContain('aria-label="足迹文章"');
-    expect(source).toContain("item.posts.forEach");
+    const panel = readFileSync(
+      resolve(import.meta.dirname, "footprint/FootprintPhotoPanel.tsx"),
+      "utf-8"
+    );
+    expect(panel).toContain("posts.map");
+    expect(panel).toContain("data-photo-source");
+    expect(panel).toContain("initArticleLightbox");
     expect(source).not.toContain("item.posts.slice");
 
     expect(source).toContain('button.type = "button"');
-    expect(source).toContain("popup.open(map!, position)");
+    expect(source).toContain("<FootprintPhotoPanel");
     expect(source).toContain("footprint-marker-pin-base");
     expect(source).toContain("footprint-marker-pin-hole");
-    expect(source).toContain("footprint-popup-post-image");
     expect(source).toContain('data-astro-prefetch="tap"');
-    expect(source).toContain('link.dataset.astroPrefetch = "tap"');
+    expect(panel).toContain('data-astro-prefetch="tap"');
     expect(source).toContain("loadAMap()");
     expect(source).toContain("地图暂时无法加载");
   });
