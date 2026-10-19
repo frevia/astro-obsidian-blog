@@ -6,6 +6,7 @@ export interface AMapInstance {
   add(marker: AMapMarker): void;
   remove(markers: AMapMarker[]): void;
   getZoom(): number;
+  setZoom(zoom: number, immediately?: boolean): void;
   panBy(x: number, y: number): void;
   setZoomAndCenter(zoom: number, center: [number, number]): void;
   lngLatToContainer(position: [number, number]): {

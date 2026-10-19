@@ -80,6 +80,15 @@ function formatDate(value?: string): string {
     : dateFormatter.format(date);
 }
 
+// Normalize pixel, line and page wheel deltas; trackpad pinch uses ctrlKey.
+export function wheelZoomDelta(
+  event: Pick<WheelEvent, "deltaY" | "deltaMode" | "ctrlKey">
+): number {
+  const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 400 : 1;
+  const delta = -event.deltaY * unit * (event.ctrlKey ? 0.025 : 0.005);
+  return Number.isFinite(delta) ? Math.max(-1, Math.min(1, delta)) : 0;
+}
+
 function createMarkerButton(
   name: string,
   thumbnail?: FootprintRecord["thumbnail"],
@@ -185,6 +194,30 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
     let styleLifecycle: ReturnType<typeof manageMapStyle> | undefined;
     let themeObserver: MutationObserver | undefined;
     let readyTimer: ReturnType<typeof setTimeout> | undefined;
+    let wheelFrame: number | undefined;
+    let wheelDelta = 0;
+    const onWheel = (event: WheelEvent) => {
+      if (!map || cancelled) return;
+      const delta = wheelZoomDelta(event);
+      if (!delta) return;
+      event.preventDefault();
+      // Only handle this map's standard wheel event, once, before SDK listeners.
+      event.stopImmediatePropagation();
+      wheelDelta = Math.max(-1, Math.min(1, wheelDelta + delta));
+      if (wheelFrame !== undefined) return;
+      wheelFrame = requestAnimationFrame(() => {
+        wheelFrame = undefined;
+        if (!cancelled && map) {
+          const zoom = Math.max(2, Math.min(20, map.getZoom() + wheelDelta));
+          map.setZoom(zoom, true);
+        }
+        wheelDelta = 0;
+      });
+    };
+    element.addEventListener("wheel", onWheel, {
+      passive: false,
+      capture: true,
+    });
     setMapReady(false);
     setMapError(null);
 
@@ -196,6 +229,8 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
           center: [105, 25],
           zoom: 4,
           scrollWheel: true,
+          zoomEnable: true,
+          touchZoom: true,
           resizeEnable: true,
           animateEnable: !window.matchMedia("(prefers-reduced-motion: reduce)")
             .matches,
@@ -333,6 +368,8 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
 
     return () => {
       cancelled = true;
+      element.removeEventListener("wheel", onWheel, true);
+      if (wheelFrame !== undefined) cancelAnimationFrame(wheelFrame);
       clearTimeout(readyTimer);
       themeObserver?.disconnect();
       selectedButtonRef.current = null;
