@@ -12,10 +12,14 @@ const groups = groupAlbumPhotos(photos);
     groups.length === 0 ? (
       <p class="album-empty">还没有收录照片。</p>
     ) : (
-      groups.map(({ month, photos }) => (
-        <section class="album-month" aria-labelledby={`month-${month}`}>
-          <header class="album-month-heading">
-            <h2 id={`month-${month}`}>{month.replace("-", " 年 ")} 月</h2>
+      groups.map(({ date, photos }) => (
+        <section class="album-date" aria-labelledby={`date-${date}`}>
+          <header class="album-date-heading">
+            <h2 id={`date-${date}`}>
+              <time datetime={date}>
+                {date.replace("-", " 年 ").replace("-", " 月 ")} 日
+              </time>
+            </h2>
             <span>{photos.length} 张 · 按发布日期</span>
           </header>
           <div class="album-grid">
@@ -57,21 +61,21 @@ const groups = groupAlbumPhotos(photos);
     padding-block: 3rem;
     color: var(--foreground-muted);
   }
-  .album-month {
+  .album-date {
     margin-bottom: 3rem;
   }
-  .album-month-heading {
+  .album-date-heading {
     display: flex;
     align-items: baseline;
     flex-wrap: wrap;
     gap: 0.5rem 1rem;
     margin-bottom: 1rem;
   }
-  .album-month-heading h2 {
+  .album-date-heading h2 {
     font-size: 1.25rem;
     font-weight: 600;
   }
-  .album-month-heading span {
+  .album-date-heading span {
     font-size: 0.75rem;
     color: var(--foreground-muted);
   }

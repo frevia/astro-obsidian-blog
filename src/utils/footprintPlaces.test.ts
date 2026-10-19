@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { parseLocationText, toPlaceRecords } from "./footprintPlaces";
+import {
+  parseLocationText,
+  toPlaceRecords,
+  footprintPlaceUrl,
+  findLinkedPlace,
+} from "./footprintPlaces";
 
 describe("footprint locations shared by home and map", () => {
   it("preserves place names and longitude/latitude order", () => {
@@ -25,5 +30,21 @@ describe("footprint locations shared by home and map", () => {
     expect(
       toPlaceRecords({ data: { locations: ["错误", "原点,0,0"] } })
     ).toEqual([{ name: "原点", lng: 0, lat: 0 }]);
+  });
+});
+
+describe("article to map links", () => {
+  const places = [
+    { name: "河边 & 老街", lng: 120, lat: 30 },
+    { name: "河边 & 老街", lng: 121, lat: 31 },
+  ];
+  it("round trips names and selects coordinates rather than ambiguous names", () => {
+    const url = new URL(footprintPlaceUrl(places[1]), "https://example.com");
+    expect(findLinkedPlace(places, url.search)).toEqual(places[1]);
+  });
+  it("ignores missing or invalid targets", () => {
+    expect(findLinkedPlace(places, "")).toBeUndefined();
+    expect(findLinkedPlace(places, "?place=%broken")).toBeUndefined();
+    expect(findLinkedPlace([], "?place=anything")).toBeUndefined();
   });
 });

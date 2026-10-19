@@ -45,7 +45,7 @@ describe("album collection", () => {
   it("uses site-local publication dates, not host timezone", () => {
     expect(albumDate(new Date("2026-03-31T18:00:00Z"))).toBe("2026-04-01");
   });
-  it("groups newest publication month first", () => {
+  it("groups by exact publication day, newest first", () => {
     const photo = (date: string): AlbumPhoto => ({
       src: "a.jpg",
       original: "a.jpg",
@@ -60,10 +60,12 @@ describe("album collection", () => {
         photo("2024-03-06"),
         photo("2026-04-01"),
         photo("2026-04-02"),
-      ]).map(group => [group.month, group.photos.length])
+        photo("2026-04-01"),
+      ]).map(group => [group.date, group.photos.length])
     ).toEqual([
-      ["2026-04", 2],
-      ["2024-03", 1],
+      ["2026-04-02", 1],
+      ["2026-04-01", 2],
+      ["2024-03-06", 1],
     ]);
   });
 });

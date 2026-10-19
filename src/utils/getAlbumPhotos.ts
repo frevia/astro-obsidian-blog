@@ -17,6 +17,12 @@ import postFilter from "./postFilter";
 export async function getAlbumPhotos(
   posts: CollectionEntry<"blog">[]
 ): Promise<AlbumPhoto[]> {
+  return getPostPhotos(posts.filter(post => isAlbumPost(post.data)));
+}
+
+export async function getPostPhotos(
+  posts: CollectionEntry<"blog">[]
+): Promise<AlbumPhoto[]> {
   const photos = new Map<string, AlbumPhoto>();
   const roots = await Promise.all(
     ["src/data/attachments", "src/data/attachment"].map(root =>
@@ -25,7 +31,6 @@ export async function getAlbumPhotos(
   );
   for (const post of posts
     .filter(postFilter)
-    .filter(post => isAlbumPost(post.data))
     .sort((a, b) => b.data.published.getTime() - a.data.published.getTime())) {
     if (!post.filePath) continue;
     const fileURL = pathToFileURL(path.resolve(post.filePath));

@@ -3,6 +3,8 @@ import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Main from "@/layouts/Main.astro";
+import ArticleLightbox from "@/components/ArticleLightbox.astro";
+import { getPostPhotos } from "@/utils/getAlbumPhotos";
 import FootprintMap from "@/components/FootprintMap.tsx";
 import { SITE } from "@/config";
 import { getCollection } from "astro:content";
@@ -80,6 +82,8 @@ async function getPostThumbnail(
   };
 }
 
+const photos = await getPostPhotos(footprintPosts);
+
 const thumbnailEntries = await Promise.all(
   footprintPosts.map(
     async post => [post.id, await getPostThumbnail(post)] as const
@@ -128,7 +132,9 @@ const places = Array.from(
       client:visible
       places={places}
       records={postLocationRecords}
+      photos={photos}
     />
   </Main>
+  <ArticleLightbox />
   <Footer />
 </Layout>

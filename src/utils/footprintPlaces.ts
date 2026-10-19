@@ -1,3 +1,5 @@
+import { withBase } from "./withBase";
+
 export type PlaceRecord = {
   name: string;
   lng: number;
@@ -29,4 +31,22 @@ export function toPlaceRecords(post: {
     .filter(Boolean)
     .map(parseLocationText)
     .filter((place): place is PlaceRecord => place !== null);
+}
+
+export function footprintPlaceKey(place: PlaceRecord): string {
+  return `${place.name}:${place.lng},${place.lat}`;
+}
+
+export function footprintPlaceUrl(place: PlaceRecord): string {
+  return withBase(
+    `/footprint?place=${encodeURIComponent(footprintPlaceKey(place))}`
+  );
+}
+
+export function findLinkedPlace<T extends PlaceRecord>(
+  places: T[],
+  search: string
+): T | undefined {
+  const key = new URLSearchParams(search).get("place");
+  return places.find(place => footprintPlaceKey(place) === key);
 }

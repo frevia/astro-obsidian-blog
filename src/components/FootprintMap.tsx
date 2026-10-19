@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "@/styles/footprint-map.css";
+import { footprintPlaceKey, findLinkedPlace } from "@/utils/footprintPlaces";
+export { footprintPlaceKey } from "@/utils/footprintPlaces";
+import type { AlbumPhoto } from "@/utils/album";
+import FootprintPhotoPanel from "./footprint/FootprintPhotoPanel";
+import { groupNearbyPlaces } from "./footprint/photoClusters";
 import { manageMapStyle } from "./footprint/mapStyleLifecycle";
-import {
-  loadAMap,
-  type AMapInstance,
-  type AMapMarker,
-  type AMapInfoWindow,
-} from "./footprint/amap";
+import { loadAMap, type AMapInstance, type AMapMarker } from "./footprint/amap";
 
 export interface FootprintPlace {
   name: string;
@@ -30,6 +30,7 @@ export interface FootprintRecord {
 export interface FootprintMapProps {
   places?: FootprintPlace[];
   records?: FootprintRecord[];
+  photos?: AlbumPhoto[];
 }
 
 type PlaceItem = FootprintPlace & {
@@ -51,10 +52,6 @@ const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
   month: "short",
   day: "numeric",
 });
-
-export function footprintPlaceKey(place: FootprintPlace): string {
-  return `${place.name}:${place.lng},${place.lat}`;
-}
 
 function recordsAtPlace(
   place: FootprintPlace,
@@ -83,94 +80,72 @@ function formatDate(value?: string): string {
     : dateFormatter.format(date);
 }
 
-function formatCoordinate(value: number): string {
-  return value.toFixed(4);
-}
-
-function createMarkerButton(name: string): HTMLButtonElement {
+function createMarkerButton(
+  name: string,
+  thumbnail?: FootprintRecord["thumbnail"],
+  count = 1
+): HTMLButtonElement {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "footprint-marker-icon-wrap footprint-marker-button";
-  button.setAttribute("aria-label", `查看${name}的文章`);
+  button.setAttribute("aria-label", `查看${name}的照片`);
   button.innerHTML = `<span class="footprint-marker-icon" aria-hidden="true"><svg viewBox="0 0 32 42" focusable="false"><ellipse class="footprint-marker-pin-base" cx="16" cy="37" rx="9" ry="2.8"></ellipse><path class="footprint-marker-pin-body" d="${MAP_PIN_PATH}"></path><circle class="footprint-marker-pin-hole" cx="16" cy="14" r="4.1"></circle></svg></span>`;
-  return button;
-}
-
-function createPopupContent(item: PlaceItem): HTMLElement {
-  const root = document.createElement("div");
-  root.className = "footprint-popup-content";
-
-  const eyebrow = document.createElement("p");
-  eyebrow.className = "footprint-popup-eyebrow";
-  eyebrow.textContent = `${item.posts.length} 篇文章`;
-  root.append(eyebrow);
-
-  const title = document.createElement("h3");
-  title.className = "footprint-popup-title";
-  title.textContent = item.name;
-  root.append(title);
-
-  const coordinate = document.createElement("p");
-  coordinate.className = "footprint-popup-coordinate";
-  coordinate.textContent = `${formatCoordinate(item.lat)}, ${formatCoordinate(item.lng)}`;
-  root.append(coordinate);
-
-  if (item.posts.length > 0) {
-    const list = document.createElement("ul");
-    list.className = "footprint-popup-posts";
-    item.posts.forEach(post => {
-      const listItem = document.createElement("li");
-      const link = document.createElement("a");
-      link.href = post.url;
-      link.dataset.astroPrefetch = "tap";
-
-      if (post.thumbnail) {
-        const image = document.createElement("img");
-        image.className = "footprint-popup-post-image";
-        image.src = post.thumbnail.src;
-        image.alt = post.thumbnail.alt;
-        image.width = 112;
-        image.height = 70;
-        image.loading = "lazy";
-        image.decoding = "async";
-        link.append(image);
-      }
-
-      const copy = document.createElement("span");
-      copy.className = "footprint-popup-post-copy";
-
-      const postTitle = document.createElement("span");
-      postTitle.className = "footprint-popup-post-title";
-      postTitle.textContent = post.title;
-      copy.append(postTitle);
-
-      const postDate = document.createElement("time");
-      postDate.className = "footprint-popup-post-date";
-      postDate.textContent = formatDate(post.date);
-      if (post.date) postDate.dateTime = post.date;
-      copy.append(postDate);
-
-      link.append(copy);
-      listItem.append(link);
-      list.append(listItem);
-    });
-    root.append(list);
+  if (thumbnail) {
+    button.classList.add("footprint-photo-button");
+    const frame = document.createElement("span");
+    frame.className = "footprint-marker-icon footprint-photo-marker";
+    const image = document.createElement("img");
+    image.src = thumbnail.src;
+    image.alt = "";
+    image.width = 50;
+    image.height = 50;
+    image.decoding = "async";
+    image.addEventListener(
+      "error",
+      () => {
+        button.classList.remove("footprint-photo-button");
+        frame.classList.remove("footprint-photo-marker");
+        frame.innerHTML = `<svg viewBox="0 0 32 42" aria-hidden="true"><path class="footprint-marker-pin-body" d="${MAP_PIN_PATH}"></path><circle class="footprint-marker-pin-hole" cx="16" cy="14" r="4.1"></circle></svg>`;
+      },
+      { once: true }
+    );
+    frame.append(image);
+    button.replaceChildren(frame);
   }
-
-  return root;
+  if (count > 1) {
+    const badge = document.createElement("span");
+    badge.className = "footprint-marker-count";
+    badge.textContent = String(count);
+    badge.setAttribute("aria-hidden", "true");
+    button.append(badge);
+    button.setAttribute("aria-label", `放大查看 ${count} 个地点`);
+  }
+  return button;
 }
 
 const EMPTY_PLACES: FootprintPlace[] = [];
 const EMPTY_RECORDS: FootprintRecord[] = [];
+const EMPTY_PHOTOS: AlbumPhoto[] = [];
 
 const FootprintMap: React.FC<FootprintMapProps> = ({
   places = EMPTY_PLACES,
   records = EMPTY_RECORDS,
+  photos = EMPTY_PHOTOS,
 }) => {
   const mapElementRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<AMapInstance | null>(null);
   const markersRef = useRef<AMapMarker[]>([]);
-  const popupRef = useRef<AMapInfoWindow | null>(null);
+  const [selection, setSelection] = useState<PlaceItem | null>(null);
+  const selectionRef = useRef<PlaceItem | null>(null);
+  const selectedButtonRef = useRef<HTMLButtonElement | null>(null);
+  const closeSelection = useCallback(() => {
+    selectionRef.current = null;
+    setSelection(null);
+    const button = selectedButtonRef.current;
+    button?.querySelector("span")?.classList.remove("is-selected");
+    button?.setAttribute("aria-expanded", "false");
+    if (button?.isConnected) button.focus({ preventScroll: true });
+  }, []);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
 
@@ -197,9 +172,9 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
   }, undefined);
 
   const clearSelection = useCallback(() => {
-    popupRef.current?.close();
+    closeSelection();
     mapRef.current?.setFitView(markersRef.current, true, [48, 48, 48, 48], 12);
-  }, []);
+  }, [closeSelection]);
 
   useEffect(() => {
     const element = mapElementRef.current;
@@ -237,44 +212,109 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
           setMapReady(true);
           setMapError(null);
         });
-        const popup = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -42) });
-        popupRef.current = popup;
-        const buttons: HTMLButtonElement[] = [];
-        popup.on("close", () =>
-          buttons.forEach(button => {
-            button.querySelector("span")?.classList.remove("is-selected");
-            button.setAttribute("aria-expanded", "false");
-          })
+        let buttons: HTMLButtonElement[] = [];
+        let visibleMarkers: AMapMarker[] = [];
+        // Keep all positions for the “fit all” control, even while clustered.
+        markersRef.current = placeItems.map(
+          item =>
+            new AMap.Marker({
+              position: [item.lng, item.lat],
+            })
         );
-        markersRef.current = placeItems.map(item => {
-          // Article coordinates come from AMap and are already GCJ-02.
-          const position: [number, number] = [item.lng, item.lat];
-          const button = createMarkerButton(item.name);
-          button.setAttribute("aria-expanded", "false");
-          buttons.push(button);
-          const marker = new AMap.Marker({
-            position,
-            content: button,
-            anchor: "bottom-center",
-            title: item.name,
-          });
-          button.addEventListener("click", event => {
-            event.stopPropagation();
-            popup.close();
-            buttons.forEach(other => {
-              other
-                .querySelector("span")
-                ?.classList.toggle("is-selected", other === button);
-              other.setAttribute("aria-expanded", String(other === button));
+        const renderMarkers = () => {
+          if (cancelled || !map) return;
+          map.remove(visibleMarkers);
+          selectedButtonRef.current = null;
+          buttons = [];
+          const groups = groupNearbyPlaces(
+            placeItems.map(item => {
+              const pixel = map!.lngLatToContainer([item.lng, item.lat]);
+              return { item, x: pixel.getX(), y: pixel.getY() };
+            })
+          );
+          visibleMarkers = groups.map(group => {
+            const item = group[0];
+            const thumbnail = group
+              .flatMap(place => place.posts)
+              .find(post => post.thumbnail)?.thumbnail;
+            const button = createMarkerButton(
+              item.name,
+              thumbnail,
+              group.length
+            );
+            const isSelected = group.some(
+              place => place.key === selectionRef.current?.key
+            );
+            button.setAttribute("aria-expanded", String(isSelected));
+            button
+              .querySelector("span")
+              ?.classList.toggle("is-selected", isSelected);
+            if (isSelected) selectedButtonRef.current = button;
+            buttons.push(button);
+            const position: [number, number] = [item.lng, item.lat];
+            const marker = new AMap.Marker({
+              position,
+              content: button,
+              anchor: "bottom-center",
+              title: group.map(place => place.name).join("、"),
             });
-            popup.setContent(createPopupContent(item));
-            popup.open(map!, position);
+            button.addEventListener("click", event => {
+              event.stopPropagation();
+              selectionRef.current = null;
+              setSelection(null);
+              if (group.length > 1 && map!.getZoom() < 20) {
+                map!.setZoomAndCenter(
+                  Math.min(20, map!.getZoom() + 2),
+                  position
+                );
+                return;
+              }
+              buttons.forEach(other => {
+                other
+                  .querySelector("span")
+                  ?.classList.toggle("is-selected", other === button);
+                other.setAttribute("aria-expanded", String(other === button));
+              });
+              if (!window.matchMedia("(max-width: 767px)").matches) {
+                const pixel = map!.lngLatToContainer(position);
+                map!.panBy(element.clientWidth * 0.3 - pixel.getX(), 0);
+              }
+              selectedButtonRef.current = button;
+              const selected =
+                group.length === 1
+                  ? item
+                  : {
+                      ...item,
+                      name: group.map(place => place.name).join("、"),
+                      posts: Array.from(
+                        new Map(
+                          group
+                            .flatMap(place => place.posts)
+                            .map(post => [post.url, post])
+                        ).values()
+                      ),
+                    };
+              selectionRef.current = selected;
+              setSelection(selected);
+            });
+            map!.add(marker);
+            return marker;
           });
-          map!.add(marker);
-          return marker;
-        });
+        };
+        map.on("zoomend", renderMarkers);
+        map.on("resize", renderMarkers);
+        map.on("complete", renderMarkers);
         if (markersRef.current.length)
-          map.setFitView(markersRef.current, true, [48, 48, 48, 48], 12);
+          map.setFitView(markersRef.current, true, [64, 64, 64, 64], 12);
+        const linkedPlace = findLinkedPlace(placeItems, window.location.search);
+        if (linkedPlace) {
+          selectionRef.current = linkedPlace;
+          setSelection(linkedPlace);
+          map.setZoomAndCenter(14, [linkedPlace.lng, linkedPlace.lat]);
+          if (!window.matchMedia("(max-width: 767px)").matches)
+            map.panBy(-element.clientWidth * 0.2, 0);
+        }
+        renderMarkers();
         map.addControl(new AMap.Scale());
         themeObserver = new MutationObserver(() =>
           styleLifecycle?.update(currentMapStyle())
@@ -293,8 +333,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
       cancelled = true;
       clearTimeout(readyTimer);
       themeObserver?.disconnect();
-      popupRef.current?.close();
-      popupRef.current = null;
+      selectedButtonRef.current = null;
       markersRef.current = [];
       if (styleLifecycle) styleLifecycle.dispose();
       else map?.destroy();
@@ -330,7 +369,9 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
           足迹地图
         </h2>
 
-        <div className="footprint-map-body">
+        <div
+          className={`footprint-map-body ${selection ? "has-photo-panel" : ""}`}
+        >
           <div className="footprint-map-frame">
             <div
               ref={mapElementRef}
@@ -392,6 +433,15 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
               </div>
             ) : null}
           </div>
+          {selection && (
+            <FootprintPhotoPanel
+              key={selection.key}
+              name={selection.name}
+              posts={selection.posts}
+              photos={photos}
+              onClose={closeSelection}
+            />
+          )}
           {mapError ? (
             <ul className="footprint-fallback-links" aria-label="足迹文章">
               {Array.from(
@@ -446,7 +496,8 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
           </svg>
           <span>拖动浏览 · 滚轮缩放</span>
           <span className="sr-only">
-            。点击地点查看照片与文章；键盘可用 Tab 选择标记，Enter 打开。
+            。点击地点打开照片列表，点击照片查看大图与来源文章；键盘可用 Tab
+            选择标记，Enter 打开。
           </span>
         </p>
       </footer>

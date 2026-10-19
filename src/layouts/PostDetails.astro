@@ -17,6 +17,7 @@ import Twikoo from "@/components/Twikoo.astro";
 import AiSummaryCard from "@/components/AiSummaryCard.astro";
 import ArticleLightbox from "@/components/ArticleLightbox.astro";
 import ArticleHero from "@/components/article/ArticleHero.astro";
+import ArticlePlaces from "@/components/article/ArticlePlaces.astro";
 import JournalHero from "@/components/article/JournalHero.astro";
 import ReadingNavigation from "@/components/reading/ReadingNavigation.astro";
 import {
@@ -189,6 +190,8 @@ const hasJournalRelations =
         />
       )
     }
+
+    <ArticlePlaces post={post} />
 
     {summary && !isJournal && <AiSummaryCard {summary} />}
 

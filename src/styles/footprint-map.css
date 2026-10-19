@@ -314,83 +314,6 @@ html[data-theme="dark"] .footprint-amap {
   transform: translateY(-2px) scale(1.1);
 }
 
-.footprint-popup-eyebrow {
-  color: var(--accent);
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.footprint-popup-title {
-  margin-top: 0.25rem;
-  color: var(--foreground);
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.footprint-popup-coordinate {
-  margin-top: 0.25rem;
-  color: color-mix(in oklab, var(--foreground) 68%, transparent);
-  font-size: 0.6875rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.footprint-popup-posts {
-  display: grid;
-  gap: 0.3rem;
-  margin: 0.65rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.footprint-popup-posts a {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  overflow: hidden;
-  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
-  border-radius: 0.55rem;
-  padding: 0.3rem;
-  color: var(--accent);
-  font-size: 0.75rem;
-  line-height: 1.45;
-  text-decoration: none;
-}
-
-.footprint-popup-posts a:hover,
-.footprint-popup-posts a:focus-visible {
-  border-color: color-mix(in oklab, var(--accent) 42%, var(--border));
-  background: var(--footprint-accent-soft);
-}
-
-.footprint-popup-post-image {
-  width: 4.2rem;
-  height: 2.7rem;
-  flex: 0 0 auto;
-  border-radius: 0.38rem;
-  object-fit: cover;
-  background: var(--surface-muted);
-}
-
-.footprint-popup-post-copy {
-  display: grid;
-  min-width: 0;
-  gap: 0.14rem;
-}
-
-.footprint-popup-post-title {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.footprint-popup-post-date {
-  color: color-mix(in oklab, var(--foreground) 45%, transparent);
-  font-size: 0.625rem;
-}
-
 .footprint-fallback-links {
   display: grid;
   gap: 0.75rem;
@@ -431,18 +354,198 @@ html[data-theme="dark"] .footprint-amap {
   outline-offset: 4px;
   border-radius: 8px;
 }
-.footprint-amap .amap-info-content {
-  background: var(--surface);
-  color: var(--foreground);
+.footprint-photo-button {
+  width: 56px;
+  height: 56px;
+}
+.footprint-photo-marker {
+  width: 56px;
+  height: 56px;
+  padding: 3px;
+  border-radius: 7px;
+  background: #fff;
+  opacity: 1;
+  filter: drop-shadow(0 2px 4px rgb(15 23 42 / 28%));
+}
+.footprint-photo-marker img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.footprint-marker-button {
+  position: relative;
+}
+.footprint-marker-count {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  min-width: 21px;
+  height: 21px;
+  padding-inline: 4px;
+  border: 2px solid var(--surface);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--background);
+  font: 600 11px/17px sans-serif;
+  text-align: center;
+}
+@media (max-width: 639px) {
+  .footprint-photo-button,
+  .footprint-photo-marker {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+.footprint-map-body {
+  position: relative;
+}
+.footprint-photo-panel {
+  position: absolute;
+  z-index: 20;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: min(320px, 44%);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 18px 24px 18px 18px;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 14%);
 }
-.footprint-amap .amap-info-close {
-  color: var(--foreground);
+.footprint-photo-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: none;
+  gap: 8px;
+  padding: 14px 12px 12px 16px;
+  border-bottom: 1px solid var(--border);
 }
-.footprint-popup-content {
-  width: min(280px, calc(100vw - 100px));
-  max-height: 240px;
+.footprint-photo-panel-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.footprint-photo-panel-header p {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: var(--foreground-muted);
+}
+.footprint-photo-panel-header button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.footprint-photo-panel-header button:hover {
+  background: var(--surface-muted);
+}
+.footprint-photo-panel-header svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+.footprint-photo-panel-body {
+  padding: 14px;
   overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.footprint-place-photos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+.footprint-place-photos figure {
+  margin: 0;
+  min-width: 0;
+}
+.footprint-place-photos img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 3px;
+}
+.footprint-photo-panel :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.footprint-photo-articles {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.footprint-photo-articles a {
+  display: grid;
+  gap: 4px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  text-decoration: none;
+}
+.footprint-photo-articles small {
+  color: var(--accent);
+  font-size: 0.75rem;
+}
+.has-photo-panel .footprint-map-toolbar {
+  right: auto;
+  left: 12px;
+}
+@media (max-width: 767px) {
+  .footprint-photo-panel {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    margin-top: 12px;
+    max-height: 420px;
+    box-shadow: none;
+  }
+}
+
+.footprint-photo-articles a > span {
+  font-weight: 600;
+}
+.footprint-photo-articles a:hover > span {
+  color: var(--accent);
+}
+.footprint-photo-articles small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--foreground-muted);
+}
+.footprint-photo-articles small svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+
+.footprint-photo-story {
+  margin: 0;
+  padding: 0;
+  max-width: none;
+}
+.footprint-photo-story + .footprint-photo-story {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.footprint-photo-date {
+  color: var(--foreground-muted);
+  font-size: 0.6875rem;
 }

@@ -14,7 +14,9 @@ describe("footprint AMap theme", () => {
   });
 
   it("keeps vector canvas rendering native and the map background theme-aware", () => {
-    expect(stylesheet).toContain(".footprint-amap .amap-info-content");
+    expect(stylesheet).toMatch(
+      /\.footprint-photo-panel\s*\{[^}]*background: var\(--surface\)/
+    );
     expect(stylesheet).toContain("background: var(--footprint-map-background)");
     expect(stylesheet).not.toContain("footprint-map-tile-filter");
     expect(stylesheet).not.toContain(".leaflet-tile-pane");
@@ -31,6 +33,6 @@ describe("footprint AMap theme", () => {
     expect(stylesheet).toContain(".footprint-marker-pin-body");
     expect(stylesheet).toContain(".footprint-marker-pin-base");
     expect(stylesheet).toContain(".footprint-marker-pin-hole");
-    expect(stylesheet).toContain(".footprint-popup-post-image");
+    expect(stylesheet).toContain(".footprint-place-photos img");
   });
 });
