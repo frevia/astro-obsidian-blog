@@ -230,6 +230,16 @@ export function initArticleLightbox(
     photo
       .closest(".photo-frame")
       ?.classList.toggle("photo-frame--portrait", width > 0 && height > width);
+    const figure = photo.closest<HTMLElement>(
+      '.journal-photos:not([data-photo-layout="wide"]) > .rehype-figure'
+    );
+    if (figure) {
+      const portrait = width > 0 && height > width;
+      figure.classList.toggle("journal-portrait", portrait);
+      if (portrait)
+        figure.style.setProperty("--photo-ratio", String(width / height));
+      else figure.style.removeProperty("--photo-ratio");
+    }
   };
   const onPhotoLoad = (event: Event) => {
     if (event.target instanceof HTMLImageElement)

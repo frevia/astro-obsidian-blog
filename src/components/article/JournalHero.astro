@@ -1,5 +1,6 @@
 ---
 import Datetime from "@/components/Datetime.astro";
+import IconCalendar from "@/assets/icons/IconCalendar.svg";
 
 export interface Props {
   title: string;
@@ -22,18 +23,22 @@ const { title, description, published, timezone, titleTransitionName } =
     {title}
   </h1>
   <div class="journal-hero-intro">
-    {description && <p class="journal-hero-description">{description}</p>}
     <div class="journal-hero-context">
+      <div class="journal-hero-published">
+        <IconCalendar aria-hidden="true" />
+        <Datetime
+          {published}
+          {timezone}
+          layout="meta"
+          compact
+          class="journal-hero-date"
+        />
+      </div>
       <div class="journal-hero-places">
+        <span aria-hidden="true">·</span>
         <slot name="places" />
       </div>
-      <Datetime
-        {published}
-        {timezone}
-        layout="meta"
-        compact
-        class="journal-hero-date"
-      />
     </div>
+    {description && <p class="journal-hero-description">{description}</p>}
   </div>
 </header>
