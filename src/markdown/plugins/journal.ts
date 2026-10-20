@@ -160,16 +160,35 @@ function journalCallout(
   const label = headerText(node, ctx);
   if (type === "photos") {
     const photos = flattenFigures(body);
-    const count = photos.filter(
+    const figures = photos.filter(
       child => isElement(child) && child.tagName === "figure"
-    ).length;
+    );
+    const count = figures.length;
     const isCollapsible = body.some(
       child => isElement(child) && child.tagName === "details"
     );
+    const metadata = node.properties["data-callout-metadata"];
+    const requestedLayout =
+      typeof metadata === "string" ? metadata.toLowerCase() : "";
+    const supportedPairLayout =
+      (requestedLayout === "left" ||
+        requestedLayout === "equal" ||
+        requestedLayout === "right" ||
+        requestedLayout === "portraits") &&
+      count === 2;
+    const supportedSingleLayout = requestedLayout === "wide" && count === 1;
+    const layout =
+      !isCollapsible && (supportedPairLayout || supportedSingleLayout)
+        ? requestedLayout
+        : undefined;
     return {
       type: "element",
       tagName: "div",
-      properties: { className: ["journal-photos"], "data-photo-count": count },
+      properties: {
+        className: ["journal-photos"],
+        "data-photo-count": count,
+        ...(layout ? { "data-photo-layout": layout } : {}),
+      },
       children: [
         ...(label && !isCollapsible
           ? [

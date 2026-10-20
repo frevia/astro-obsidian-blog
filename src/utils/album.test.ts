@@ -42,6 +42,23 @@ describe("album collection", () => {
       { src: "./river.jpg", alt: "河" },
     ]);
   });
+  it("keeps metadata photo callouts in source order", async () => {
+    const images = await extractAlbumImages(
+      [
+        "> [!photos|EQUAL] Equal pair",
+        "> ![桥](./bridge.jpg) ![河](./river.jpg)",
+        "",
+        "> [!photos|wide] Full frame",
+        "> ![山谷](./valley.jpg)",
+      ].join("\n")
+    );
+
+    expect(images).toEqual([
+      { src: "./bridge.jpg", alt: "桥" },
+      { src: "./river.jpg", alt: "河" },
+      { src: "./valley.jpg", alt: "山谷" },
+    ]);
+  });
   it("uses site-local publication dates, not host timezone", () => {
     expect(albumDate(new Date("2026-03-31T18:00:00Z"))).toBe("2026-04-01");
   });

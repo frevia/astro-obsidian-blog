@@ -84,12 +84,115 @@ describe("Astro Satteri markdown integration", () => {
     expect($(".journal-chapter").last().text()).toContain("最后一段。");
   });
 
+  it("keeps the legacy layout as default and supports explicit left layout", async () => {
+    const renderer = await createPageRenderer();
+    const result = await renderer.render(
+      [
+        "## 对照",
+        "",
+        "> [!photos] 原效果",
+        "> ![茶园](./tea.jpg) ![村庄](./village.jpg)",
+        "",
+        "> [!photos|left] 显式左主图",
+        "> ![茶园](./tea.jpg) ![村庄](./village.jpg)",
+        "",
+        "> [!photos|left] 单图回退",
+        "> ![山谷](./valley.jpg)",
+      ].join("\n"),
+      { fileURL: fixtureUrl, frontmatter: { pageLayout: "journal" } }
+    );
+    const $ = load(result.code);
+    const groups = $(".journal-photos");
+
+    expect(groups).toHaveLength(3);
+    expect(groups.eq(0).attr("data-photo-count")).toBe("2");
+    expect(groups.eq(0).attr("data-photo-layout")).toBeUndefined();
+    expect(groups.eq(1).attr("data-photo-layout")).toBe("left");
+    expect(groups.eq(2).attr("data-photo-layout")).toBeUndefined();
+    expect(groups.eq(0).find(".journal-photo-label").text()).toBe("原效果");
+    expect(groups.eq(1).find(".journal-photo-label").text()).toBe("显式左主图");
+    expect(
+      groups
+        .eq(0)
+        .find("figcaption")
+        .map((_, caption) => $(caption).text())
+        .get()
+    ).toEqual(["茶园", "村庄"]);
+    expect(
+      groups
+        .eq(1)
+        .find("figcaption")
+        .map((_, caption) => $(caption).text())
+        .get()
+    ).toEqual(["茶园", "村庄"]);
+    expect(result.metadata.localImagePaths).toEqual([
+      "./tea.jpg",
+      "./village.jpg",
+      "./valley.jpg",
+    ]);
+  });
+
+  it("applies only supported photo layouts to matching direct figure groups", async () => {
+    const renderer = await createPageRenderer();
+    const result = await renderer.render(
+      [
+        "## 图组",
+        "",
+        "> [!photos|EQUAL] 等宽照片",
+        "> ![桥](./bridge.jpg) ![河](./river.jpg)",
+        "",
+        "> [!photos|right] 右侧主图",
+        "> ![茶园](./tea.jpg) ![村庄](./village.jpg)",
+        "",
+        "> [!photos|portraits] 竖图",
+        "> ![人物](./person.jpg) ![同行者](./companion.jpg)",
+        "",
+        "> [!photos|wide] 宽幅",
+        "> ![山谷](./valley.jpg)",
+        "",
+        "> [!photos|wide] 数量不匹配",
+        "> ![左](./left.jpg) ![右](./right.jpg)",
+        "",
+        "> [!photos|arbitrary] 未知布局",
+        "> ![留存](./kept.jpg)",
+        "",
+        "> [!photos|wide]- 可折叠照片",
+        "> 说明仍须完整保留。",
+        "> ![折叠图](./folded.jpg)",
+      ].join("\n"),
+      { fileURL: fixtureUrl, frontmatter: { pageLayout: "journal" } }
+    );
+    const $ = load(result.code);
+    const groups = $(".journal-photos");
+
+    expect(groups).toHaveLength(7);
+    expect(groups.eq(0).attr("data-photo-layout")).toBe("equal");
+    expect(groups.eq(1).attr("data-photo-layout")).toBe("right");
+    expect(groups.eq(2).attr("data-photo-layout")).toBe("portraits");
+    expect(groups.eq(3).attr("data-photo-layout")).toBe("wide");
+    expect(result.metadata.localImagePaths.slice(0, 2)).toEqual([
+      "./bridge.jpg",
+      "./river.jpg",
+    ]);
+    expect(groups.eq(0).find(".rehype-figure")).toHaveLength(2);
+    expect(groups.eq(0).find(".journal-photo-label").text()).toBe("等宽照片");
+    expect(groups.eq(1).find(".journal-photo-label").text()).toBe("右侧主图");
+    expect(groups.eq(4).attr("data-photo-layout")).toBeUndefined();
+    expect(groups.eq(5).attr("data-photo-layout")).toBeUndefined();
+    expect(groups.eq(4).find(".rehype-figure")).toHaveLength(2);
+    expect(groups.eq(5).find(".rehype-figure")).toHaveLength(1);
+    expect(groups.eq(6).attr("data-photo-layout")).toBeUndefined();
+    expect(groups.eq(6).text()).toContain("可折叠照片");
+    expect(groups.eq(6).text()).toContain("说明仍须完整保留");
+    expect(result.metadata.localImagePaths).toContain("./folded.jpg");
+  });
+
   it("leaves ordinary page markup and RSS content outside the journal layout", async () => {
     const renderer = await createPageRenderer();
     const source = [
       "## 普通章节",
       "",
-      "> [!photos]",
+      "> [!photos|wide]",
       "> ![图](./photo.jpg)",
       "",
       "> [!moment] 09:30",
