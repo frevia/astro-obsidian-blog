@@ -23,9 +23,12 @@ export function formatPhotoExif(bytes: Buffer): string {
         ? String(description).replace(/\0/g, "").trim().slice(0, 160)
         : "";
     };
+    const make = value("Make");
+    // Some files repeat the brand inside Model even when Make is absent.
+    const model = value("Model").replace(/^(\S+)(?:\s+\1)+(?=\s)/i, "$1");
     return [
-      ["品牌", value("Make")],
-      ["型号", value("Model")],
+      ["品牌", make],
+      ["型号", model],
       ["焦距", value("FocalLength")],
       ["光圈", value("FNumber")],
       ["快门", value("ExposureTime") && `${value("ExposureTime")}秒`],

@@ -48,6 +48,20 @@ describe("photo EXIF presentation", () => {
     expect(text).not.toContain("PRIVATE-SERIAL");
   });
 
+  it.each(["Canon EOS RP", "Canon Canon EOS RP"])(
+    "does not repeat the camera make in %s",
+    async model => {
+      const bytes = await sharp({
+        create: { width: 1, height: 1, channels: 3, background: "white" },
+      })
+        .jpeg()
+        .withExif({ IFD0: { Model: model } })
+        .toBuffer();
+      expect(formatPhotoExif(bytes)).toContain("型号: Canon EOS RP");
+      expect(formatPhotoExif(bytes)).not.toContain("Canon Canon");
+    }
+  );
+
   it("preserves metadata through Astro image replacement", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "photo-exif-"));
     const attachments = path.join(root, "src/data/attachments");
