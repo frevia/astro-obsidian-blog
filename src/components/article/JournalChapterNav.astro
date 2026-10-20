@@ -1,0 +1,28 @@
+---
+interface Props {
+  headings: { text: string; slug: string }[];
+}
+const { headings } = Astro.props;
+---
+
+{
+  headings.length > 0 && (
+    <nav class="journal-chapter-nav" aria-label="日记章节">
+      <p class="journal-chapter-nav-label" aria-hidden="true">
+        章节
+      </p>
+      <ol>
+        {headings.map((heading, index) => (
+          <li>
+            <a href={`#${heading.slug}`}>
+              <span class="journal-chapter-number" aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <span>{heading.text}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}

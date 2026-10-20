@@ -12,8 +12,9 @@ describe("journal header", () => {
     expect(hero).toContain('class="journal-hero-description"');
     expect(hero).not.toContain("<img");
     expect(hero).not.toContain("coverTransitionName");
-    expect(hero).toContain("eventDate?: string;");
-    expect(hero).toContain("<EventDate");
+    expect(hero).not.toContain("<EventDate");
+    expect(hero).toContain('<slot name="places"');
+    expect(hero).not.toContain("<span>地点</span>");
     expect(layout).toContain("cover: socialCover");
     expect(layout).toContain("cover={displayCover}");
   });

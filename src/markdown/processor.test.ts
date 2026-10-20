@@ -288,6 +288,67 @@ describe("processor contract", () => {
     expect(first.html).not.toContain("properties=");
   });
 
+  it("renders dated timeline headings only in journal layouts", async () => {
+    const renderer = await createSatteriMarkdownProcessor({
+      features: markdownFeatures,
+      mdastPlugins: pageMdastPlugins,
+      hastPlugins: pageHastPlugins,
+    });
+    const source = [
+      "## 2024-07-20 傍晚｜到山顶的村子",
+      "",
+      "村口的灯亮了。",
+      "",
+      "![山村](assets/village.png)",
+      "",
+      "## 2024-02-30 上午｜无效日期",
+      "",
+      "普通标题仍保留。",
+      "",
+      "## 2024-07-20 上午｜",
+      "",
+      "## **2024-07-20 上午｜加粗标题**",
+    ].join("\n");
+    const journal = await renderer.render(source, {
+      fileURL: fixtureUrl,
+      frontmatter: { pageLayout: "journal" },
+    });
+    const ordinary = await renderer.render(source, { fileURL: fixtureUrl });
+    const $ = load(journal.code);
+    const chapter = $(".journal-timeline-chapter");
+    const heading = chapter.children("h2");
+
+    expect(chapter).toHaveLength(1);
+    expect(
+      chapter.children(".journal-timeline-date").find("time").attr("datetime")
+    ).toBe("2024-07-20");
+    expect(chapter.children(".journal-timeline-date").text()).toBe(
+      "2024-07-20傍晚"
+    );
+    expect(heading.text()).toBe("到山顶的村子");
+    expect(heading.attr("id")).toBe("2024-07-20-傍晚到山顶的村子");
+    expect(heading.find("a.heading-anchor").attr("href")).toBe(
+      `#${heading.attr("id")}`
+    );
+    expect(journal.metadata.headings).toContainEqual(
+      expect.objectContaining({
+        depth: 2,
+        slug: heading.attr("id"),
+        text: "到山顶的村子",
+      })
+    );
+    expect(chapter.text()).toContain("村口的灯亮了。");
+    expect(chapter.html()).toContain("assets/village.png");
+    expect($(".journal-timeline-date")).toHaveLength(1);
+    expect($("h2").eq(1).text()).toBe("2024-02-30 上午｜无效日期");
+    expect($("h2").eq(2).text()).toBe("2024-07-20 上午｜");
+    expect($("h2").eq(3).find("strong").text()).toBe(
+      "2024-07-20 上午｜加粗标题"
+    );
+    expect(ordinary.code).not.toContain("journal-timeline-date");
+    expect(ordinary.code).toContain("2024-07-20 傍晚｜到山顶的村子");
+  });
+
   it("renders a readable code toolbar before client JavaScript runs", async () => {
     const result = await markdownToHtml("```ts\nconst answer = 42;\n```", {
       features: markdownFeatures,

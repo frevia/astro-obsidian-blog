@@ -1,81 +1,124 @@
 @layer components {
   .journal-page .journal-hero {
-    margin-block: 1.25rem 1.75rem;
-  }
-
-  .journal-page .journal-hero-copy {
-    min-width: 0;
-  }
-
-  .journal-page .journal-hero-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.4rem 1rem;
-    margin-bottom: 0.85rem;
-    color: var(--foreground-muted);
-    font-family: var(--font-sans);
-    font-size: 0.8125rem;
-    line-height: 1.5;
-  }
-
-  .journal-page .journal-hero-category {
-    margin: 0;
-    color: var(--foreground-muted);
-    font-size: inherit;
-    letter-spacing: 0.04em;
+    margin-block: 1rem 1.5rem;
   }
 
   .journal-page .journal-hero-title {
     margin: 0;
     color: var(--foreground);
-    font-size: clamp(1.85rem, 3.2vw, 2.5rem);
-    font-weight: 700;
-    line-height: 1.28;
+    max-width: 22em;
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    font-weight: 600;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
     text-wrap: balance;
   }
 
-  .journal-page .journal-hero-date {
-    display: block;
-    margin: 0;
-    color: var(--foreground-muted);
-    font-size: 0.75rem;
+  .journal-page .journal-hero-intro {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 0.875rem;
   }
 
   .journal-page .journal-hero-description {
-    margin: 1rem 0 0;
+    margin: 0;
     color: var(--foreground-subtle);
-    font-size: 1.0625rem;
+    font-size: 1rem;
     line-height: 1.85;
-    text-wrap: wrap;
+    text-wrap: pretty;
+  }
+
+  .journal-page .journal-hero-context {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.625rem 1.25rem;
+    min-width: 0;
+    color: var(--foreground-muted);
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    line-height: 1.7;
+  }
+
+  .journal-page .journal-hero-places {
+    display: none;
+  }
+
+  .journal-page .journal-hero-places:has(.article-places) {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
   }
 
   .journal-page .journal-chapter-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.25rem;
-    margin-block: 0 2rem;
-    padding-block: 0 1rem;
-    border-bottom: 1px solid var(--line-soft);
+    padding-block: 0.75rem 0;
+    margin-bottom: 1.5rem;
+    border-top: 1px solid var(--line-soft);
     font-family: var(--font-sans);
-    color: var(--foreground-muted);
-    font-size: 0.8rem;
+    font-size: 0.8125rem;
   }
 
-  .journal-page .journal-hero + .journal-chapter-nav {
-    margin-top: 0;
-    padding-top: 0;
-    border-top: 0;
+  .journal-page .journal-chapter-nav-label {
+    margin: 0 0 0.25rem;
+    color: var(--foreground-muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+  }
+
+  .journal-page .journal-chapter-nav ol {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem 1rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .journal-page .journal-chapter-nav li {
+    min-width: 0;
   }
 
   .journal-page .journal-chapter-nav a {
+    display: grid;
+    grid-template-columns: 1.25rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding-block: 0.625rem;
+    color: var(--foreground);
+    line-height: 1.7;
     text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .journal-page .journal-chapter-number {
+    color: var(--foreground-muted);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.75rem;
   }
 
   .journal-page .journal-chapter-nav a:hover {
-    color: var(--foreground);
+    color: var(--accent);
     text-decoration: underline;
     text-underline-offset: 0.25em;
+  }
+
+  .journal-page .journal-chapter-nav a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (min-width: 1024px) {
+    .journal-page .journal-chapter-nav ol {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 359px) {
+    .journal-page .journal-chapter-nav ol {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 
   .journal-page #article {
@@ -97,8 +140,39 @@
     line-height: 1.45;
   }
 
+  .journal-page .journal-timeline-chapter {
+    border-top: 0;
+  }
+
+  .journal-page .journal-timeline-chapter > h2 {
+    scroll-margin-top: 8rem;
+  }
+
+  .journal-page .journal-timeline-date {
+    position: sticky;
+    top: var(--site-header-height, 4rem);
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0 0 0.75rem;
+    padding-block: 0.5rem;
+    background: var(--background);
+    color: var(--foreground-muted);
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    font-variant-numeric: tabular-nums;
+  }
+
   .journal-page .journal-chapter > :where(p, ul, ol, blockquote, pre, table) {
     max-width: 48rem;
+  }
+
+  .journal-page .journal-chapter > .journal-timeline-date {
+    max-width: none;
+    width: 100%;
   }
 
   .journal-page .journal-photos {
@@ -177,12 +251,11 @@
 
   @media (max-width: 640px) {
     .journal-page .journal-hero {
-      margin-block: 0.75rem 1.5rem;
+      margin-block: 0.5rem 1.25rem;
     }
 
     .journal-page .journal-chapter-nav {
-      gap: 0.4rem 1rem;
-      margin-block: 0 1.75rem;
+      margin-bottom: 1.25rem;
     }
 
     .journal-page .journal-spread,
@@ -190,6 +263,32 @@
       grid-template-columns: minmax(0, 1fr);
     }
   }
+}
+
+.journal-page .journal-hero-context :is(.article-event-date, .article-places) {
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.journal-page .journal-hero-context .article-event-date > span {
+  font-size: inherit;
+}
+
+.journal-page .journal-hero-date {
+  margin: 0;
+  color: var(--foreground-muted);
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.journal-page .journal-hero-places .article-places svg {
+  width: 1em;
+  height: 1em;
+}
+
+.journal-page .journal-hero-date .datetime-meta-label {
+  color: inherit;
 }
 
 .journal-page #sidebar.reading-navigation-desktop {
@@ -241,12 +340,6 @@
 .journal-page .journal-chapter:first-of-type {
   padding-top: 0;
   border-top: 0;
-}
-
-.journal-page .journal-chapter-nav a {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.5rem;
 }
 
 /* The photo paper and stagger follow the journal prototype. */

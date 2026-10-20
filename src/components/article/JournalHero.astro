@@ -1,34 +1,32 @@
 ---
 import Datetime from "@/components/Datetime.astro";
-import EventDate from "@/components/article/EventDate.astro";
 
 export interface Props {
   title: string;
-  category: string;
   description: string;
   published: Date;
-  eventDate?: string;
-  eventEndDate?: string;
   timezone?: string;
   titleTransitionName: string;
 }
 
-const {
-  title,
-  category,
-  description,
-  published,
-  eventDate,
-  eventEndDate,
-  timezone,
-  titleTransitionName,
-} = Astro.props;
+const { title, description, published, timezone, titleTransitionName } =
+  Astro.props;
 ---
 
 <header class="journal-hero">
-  <div class="journal-hero-copy">
-    <div class="journal-hero-meta">
-      <p class="journal-hero-category">{category} · 手记</p>
+  <h1
+    transition:name={titleTransitionName}
+    class="journal-hero-title"
+    data-pagefind-meta="title"
+  >
+    {title}
+  </h1>
+  <div class="journal-hero-intro">
+    {description && <p class="journal-hero-description">{description}</p>}
+    <div class="journal-hero-context">
+      <div class="journal-hero-places">
+        <slot name="places" />
+      </div>
       <Datetime
         {published}
         {timezone}
@@ -37,14 +35,5 @@ const {
         class="journal-hero-date"
       />
     </div>
-    <EventDate {eventDate} {eventEndDate} />
-    <h1
-      transition:name={titleTransitionName}
-      class="journal-hero-title"
-      data-pagefind-meta="title"
-    >
-      {title}
-    </h1>
   </div>
-  {description && <p class="journal-hero-description">{description}</p>}
 </header>
