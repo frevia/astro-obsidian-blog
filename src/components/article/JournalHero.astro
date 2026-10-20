@@ -1,11 +1,14 @@
 ---
 import Datetime from "@/components/Datetime.astro";
+import EventDate from "@/components/article/EventDate.astro";
 
 export interface Props {
   title: string;
   category: string;
   description: string;
   published: Date;
+  eventDate?: string;
+  eventEndDate?: string;
   timezone?: string;
   titleTransitionName: string;
 }
@@ -15,6 +18,8 @@ const {
   category,
   description,
   published,
+  eventDate,
+  eventEndDate,
   timezone,
   titleTransitionName,
 } = Astro.props;
@@ -32,6 +37,7 @@ const {
         class="journal-hero-date"
       />
     </div>
+    <EventDate {eventDate} {eventEndDate} />
     <h1
       transition:name={titleTransitionName}
       class="journal-hero-title"

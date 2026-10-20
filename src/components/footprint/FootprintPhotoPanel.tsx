@@ -3,6 +3,11 @@ import type { AlbumPhoto } from "@/utils/album";
 import type { FootprintRecord } from "../FootprintMap";
 import { initArticleLightbox } from "../article-lightbox";
 import { photosAtPlace } from "./placePhotos";
+import {
+  formatEventPeriod,
+  getEventPeriod,
+  publicationDay,
+} from "@/utils/contentDates";
 
 type Props = {
   name: string;
@@ -92,19 +97,19 @@ export default function FootprintPhotoPanel({
                   {post.name}
                 </small>
               </a>
-              {posts.length > 1 &&
-                post.date &&
-                !Number.isNaN(Date.parse(post.date)) && (
-                  <time dateTime={post.date} className="footprint-photo-date">
-                    发布于{" "}
-                    {new Intl.DateTimeFormat("zh-CN", {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                      timeZone: "Asia/Shanghai",
-                    }).format(new Date(post.date))}
-                  </time>
+              <p className="footprint-photo-date">
+                {getEventPeriod(post) && (
+                  <span>
+                    发生于 {formatEventPeriod(getEventPeriod(post)!)} ·{" "}
+                  </span>
                 )}
+                <time dateTime={post.date}>
+                  发布于{" "}
+                  {post.date && !Number.isNaN(Date.parse(post.date))
+                    ? publicationDay(new Date(post.date), post.timezone)
+                    : "日期未记录"}
+                </time>
+              </p>
             </div>
             <div className="footprint-place-photos">
               {selectedPhotos

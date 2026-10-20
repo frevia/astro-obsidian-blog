@@ -2,6 +2,7 @@ import { defineCollection } from "astro:content";
 import { z } from "astro/zod";
 import { glob } from "astro/loaders";
 import { SITE, BLOG_PATH, DIARY_PATH, WIKI_PATH } from "@/config";
+import { normalizeEventFields, parsePublishedDate } from "@/utils/contentDates";
 
 const normalizeAuthor = (
   author?: string | string[] | null,
@@ -15,51 +16,6 @@ const normalizeAuthor = (
   return pick(author) || pick(authors) || SITE.author;
 };
 
-const parsePublishedDate = (value: unknown) => {
-  if (value instanceof Date) return value;
-  if (typeof value !== "string") return value;
-  const raw = value.trim();
-  if (!raw) return value;
-
-  // Support common frontmatter datetime formats like:
-  // 2024-01-28 19:12, 2024-01-28 19:12:00, 2024/01/28 19:12
-  const dateTime = raw.match(
-    /^(\d{4})[-/](\d{2})[-/](\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/
-  );
-  if (dateTime) {
-    const [, y, m, d, hh, mm, ss = "00"] = dateTime;
-    const parsed = new Date(
-      Number(y),
-      Number(m) - 1,
-      Number(d),
-      Number(hh),
-      Number(mm),
-      Number(ss)
-    );
-    if (!Number.isNaN(parsed.getTime())) return parsed;
-  }
-
-  const ymd = raw.match(/^(\d{4})[-/](\d{2})[-/](\d{2})$/);
-  if (ymd) {
-    const [, year, month, day] = ymd;
-    const parsed = new Date(Number(year), Number(month) - 1, Number(day));
-    if (!Number.isNaN(parsed.getTime())) return parsed;
-  }
-
-  const ym = raw.match(/^(\d{4})-(\d{2})$/);
-  if (ym) {
-    const year = Number(ym[1]);
-    const month = Number(ym[2]);
-    return new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
-  }
-
-  // Keep default Date parsing as a fallback for ISO-like values.
-  const fallback = new Date(raw);
-  if (!Number.isNaN(fallback.getTime())) return fallback;
-
-  return value;
-};
-
 const blog = defineCollection({
   loader: glob({
     pattern: "**/[^_]*.{md,mdx}",
@@ -69,35 +25,79 @@ const blog = defineCollection({
     deferRender: true,
   }),
   schema: ({ image }) =>
-    z
-      .object({
-        author: z
-          .union([z.string(), z.array(z.string())])
-          .nullable()
-          .optional(),
-        authors: z
-          .union([z.string(), z.array(z.string())])
-          .nullable()
-          .optional(),
-        published: z.preprocess(parsePublishedDate, z.date()),
-        title: z.string(),
-        pageLayout: z.enum(["journal"]).optional(),
-        album: z.boolean().default(false),
-        tags: z.array(z.string()).default(["其他"]),
-        cover: image().or(z.string()).optional(),
-        description: z.string(),
-        canonicalURL: z.string().optional(),
-        hideEditPost: z.boolean().optional(),
-        timezone: z.string().optional(),
-        summary: z.string().optional(),
-        keywords: z.array(z.string()).optional(),
-        mainPoints: z.array(z.string()).optional(),
-        locations: z.array(z.string()).optional(),
-      })
-      .transform(data => ({
-        ...data,
-        author: normalizeAuthor(data.author, data.authors),
-      })),
+    z.preprocess(
+      input => {
+        if (!input || typeof input !== "object") return input;
+        const data = input as Record<string, unknown>;
+        return {
+          ...data,
+          published: parsePublishedDate(
+            data.published,
+            typeof data.timezone === "string" ? data.timezone : undefined
+          ),
+        };
+      },
+      z
+        .object({
+          author: z
+            .union([z.string(), z.array(z.string())])
+            .nullable()
+            .optional(),
+          authors: z
+            .union([z.string(), z.array(z.string())])
+            .nullable()
+            .optional(),
+          published: z.date(),
+          eventDate: z.unknown().optional(),
+          eventEndDate: z.unknown().optional(),
+          title: z.string(),
+          pageLayout: z.enum(["journal"]).optional(),
+          album: z.boolean().default(false),
+          tags: z.array(z.string()).default(["其他"]),
+          cover: image().or(z.string()).optional(),
+          description: z.string(),
+          canonicalURL: z.string().optional(),
+          hideEditPost: z.boolean().optional(),
+          timezone: z
+            .string()
+            .optional()
+            .refine(value => {
+              if (!value) return true;
+              try {
+                new Intl.DateTimeFormat("en", { timeZone: value });
+                return true;
+              } catch {
+                return false;
+              }
+            }, "timezone 必须是有效的 IANA 时区"),
+          summary: z.string().optional(),
+          keywords: z.array(z.string()).optional(),
+          mainPoints: z.array(z.string()).optional(),
+          locations: z.array(z.string()).optional(),
+        })
+        .superRefine((data, ctx) => {
+          try {
+            normalizeEventFields(data);
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : String(error);
+            ctx.addIssue({
+              code: "custom",
+              message,
+              path: [
+                message.startsWith("eventEndDate")
+                  ? "eventEndDate"
+                  : "eventDate",
+              ],
+            });
+          }
+        })
+        .transform(({ eventDate, eventEndDate, ...data }) => ({
+          ...data,
+          ...normalizeEventFields({ eventDate, eventEndDate }),
+          author: normalizeAuthor(data.author, data.authors),
+        }))
+    ),
 });
 
 const diary = defineCollection({

@@ -1,12 +1,22 @@
 import { markdownToHtml } from "satteri";
 import { load } from "cheerio";
 import { calloutMdastPlugin } from "@/markdown/plugins/callouts";
-import { toSiteYMD } from "./calendarDate";
+import { publicationDay } from "./contentDates";
+import {
+  compareEventPeriods,
+  getEventPeriod,
+  periodKey,
+  type EventPeriod,
+} from "./contentDates";
 
 export interface AlbumSource {
   title: string;
   url: string;
   date: string;
+  /** Publication instant, kept separately from the article-local display date. */
+  published?: string;
+  eventDate?: string;
+  eventEndDate?: string;
 }
 
 export interface AlbumPhoto {
@@ -40,19 +50,65 @@ export async function extractAlbumImages(body: string) {
     .filter(image => Boolean(image.src));
 }
 
-export function albumDate(date: Date) {
-  return toSiteYMD(date);
+export function albumDate(date: Date, timezone?: string) {
+  return publicationDay(date, timezone);
 }
 
-export function groupAlbumPhotos(photos: AlbumPhoto[]) {
-  const groups = new Map<string, AlbumPhoto[]>();
-  for (const photo of [...photos].sort((a, b) =>
-    b.sources[0].date.localeCompare(a.sources[0].date)
-  )) {
-    const date = photo.sources[0].date;
-    const group = groups.get(date) ?? [];
-    group.push(photo);
-    groups.set(date, group);
+export interface AlbumPhotoGroup {
+  kind: "event" | "published";
+  start: string;
+  end?: string;
+  /** Compatibility field for consumers that previously keyed groups by date. */
+  date: string;
+  photos: AlbumPhoto[];
+}
+
+function preferredSource(photo: AlbumPhoto): AlbumSource | undefined {
+  const periods = new Set(
+    photo.sources.flatMap(source => {
+      const period = getEventPeriod(source);
+      return period ? [periodKey(period)] : [];
+    })
+  );
+  if (periods.size > 1)
+    console.warn(
+      "[album] 来源事件日期不一致，请核对",
+      photo.sources.map(source => source.url)
+    );
+  return [...photo.sources].sort((a, b) => {
+    const eventA = getEventPeriod(a);
+    const eventB = getEventPeriod(b);
+    if (Boolean(eventA) !== Boolean(eventB)) return eventA ? -1 : 1;
+    return (
+      Date.parse(b.published ?? b.date) - Date.parse(a.published ?? a.date) ||
+      b.date.localeCompare(a.date)
+    );
+  })[0];
+}
+
+export function groupAlbumPhotos(photos: AlbumPhoto[]): AlbumPhotoGroup[] {
+  const groups = new Map<string, AlbumPhotoGroup>();
+  for (const photo of photos) {
+    const source = preferredSource(photo);
+    if (!source) continue;
+    const eventPeriod = getEventPeriod(source);
+    const period: EventPeriod = eventPeriod ?? { start: source.date };
+    const kind = eventPeriod ? "event" : "published";
+    const key = `${kind}:${periodKey(period)}`;
+    const group = groups.get(key) ?? {
+      kind,
+      start: period.start,
+      end: period.end,
+      date: period.start,
+      photos: [],
+    };
+    group.photos.push(photo);
+    groups.set(key, group);
   }
-  return Array.from(groups, ([date, photos]) => ({ date, photos }));
+  return Array.from(groups.values()).sort((a, b) =>
+    compareEventPeriods(
+      { start: b.start, end: b.end },
+      { start: a.start, end: a.end }
+    )
+  );
 }

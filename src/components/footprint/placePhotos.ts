@@ -19,7 +19,14 @@ export function photosAtPlace(
     )
       continue;
     const existing = selected.find(photo => photo.src === post.thumbnail!.src);
-    const source = { title: post.title, url: post.url, date: post.date || "" };
+    const source = {
+      title: post.title,
+      url: post.url,
+      date: post.date || "",
+      published: post.date,
+      eventDate: post.eventDate,
+      eventEndDate: post.eventEndDate,
+    };
     if (existing) existing.sources.push(source);
     else
       selected.push({

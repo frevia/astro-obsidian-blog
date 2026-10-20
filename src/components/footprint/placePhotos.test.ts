@@ -32,4 +32,15 @@ describe("photos at selected place", () => {
     expect(result[0].src).toBe("cover.webp");
     expect(result[0].sources.map(item => item.url)).toEqual(["/c", "/d"]);
   });
+  it("preserves event dates when a thumbnail becomes a fallback photo source", () => {
+    const record = {
+      ...post("/e"),
+      eventDate: "2024-03",
+      eventEndDate: "2024-03-14",
+    };
+    expect(photosAtPlace([], [record])[0].sources[0]).toMatchObject({
+      eventDate: "2024-03",
+      eventEndDate: "2024-03-14",
+    });
+  });
 });

@@ -7,6 +7,7 @@ import IconFavorite from "@/assets/icons/IconFavorite.svg";
 import { SITE } from "@/config";
 import { useTranslations } from "@/i18n";
 import { SITE_TIMEZONE } from "@/utils/calendarDate";
+import { publicationDay } from "@/utils/contentDates";
 import "dayjs/locale/zh-cn";
 
 dayjs.extend(utc);
@@ -31,7 +32,6 @@ const {
   created,
   size = "sm",
   layout = "inline",
-  compact = false,
   class: className = "",
   timezone: postTimezone,
   showCreated = false,
@@ -41,54 +41,20 @@ const {
 const t = useTranslations(SITE.lang);
 const dayjsLocale = SITE.lang.toLowerCase().startsWith("zh") ? "zh-cn" : "en";
 
-const hasExplicitTime = (value: string | Date | undefined | null) => {
-  if (!value) return false;
-  if (typeof value === "string") {
-    return /[T\s]\d{2}:\d{2}/.test(value.trim());
-  }
-  if (value instanceof Date) {
-    return !(
-      value.getUTCHours() === 0 &&
-      value.getUTCMinutes() === 0 &&
-      value.getUTCSeconds() === 0 &&
-      value.getUTCMilliseconds() === 0
-    );
-  }
-  return false;
-};
-
-const formatDate = (
-  date: string | Date,
-  timezone: string | undefined,
-  compact = false
-) => {
-  const datetime = dayjs(date).tz(timezone || SITE_TIMEZONE);
-  if (compact) {
-    return datetime
-      .locale(dayjsLocale)
-      .format(hasExplicitTime(date) ? "YYYY-MM-DD HH:mm" : "YYYY-MM-DD");
-  }
-  return datetime
-    .locale(dayjsLocale)
-    .format(
-      hasExplicitTime(date) ? "ddd / YYYY-MM-DD HH:mm" : "ddd / YYYY-MM-DD"
-    );
+const formatDate = (date: string | Date, timezone: string | undefined) => {
+  return publicationDay(
+    date instanceof Date ? date : dayjs(date).toDate(),
+    timezone || SITE_TIMEZONE
+  );
 };
 
 const formatDateTitle = (date: string | Date, timezone: string | undefined) => {
   const datetime = dayjs(date).tz(timezone || SITE_TIMEZONE);
-  return datetime
-    .locale(dayjsLocale)
-    .format(
-      hasExplicitTime(date) ? "ddd / YYYY-MM-DD HH:mm" : "ddd / YYYY-MM-DD"
-    );
+  return `${datetime.locale(dayjsLocale).format("ddd")} / ${publicationDay(date instanceof Date ? date : datetime.toDate(), timezone || SITE_TIMEZONE)}`;
 };
 
-const useCompact = compact || layout === "stack" || layout === "meta";
-const publishedDate = formatDate(published, postTimezone, useCompact);
-const createdDate = created
-  ? formatDate(created, postTimezone, useCompact)
-  : null;
+const publishedDate = formatDate(published, postTimezone);
+const createdDate = created ? formatDate(created, postTimezone) : null;
 const publishedTitle = formatDateTitle(published, postTimezone);
 const createdTitle = created ? formatDateTitle(created, postTimezone) : null;
 
