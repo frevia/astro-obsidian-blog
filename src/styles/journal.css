@@ -321,6 +321,48 @@
   aspect-ratio: auto;
 }
 
+.journal-page .journal-photos[data-photo-layout="equal"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.journal-page .journal-photos[data-photo-layout="right"] {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+}
+
+.journal-page
+  .journal-photos[data-photo-layout="equal"]
+  > figure:nth-of-type(2),
+.journal-page
+  .journal-photos[data-photo-layout="right"]
+  > figure:nth-of-type(2),
+.journal-page
+  .journal-photos[data-photo-layout="portraits"]
+  > figure:nth-of-type(2) {
+  margin-top: 0;
+}
+
+.journal-page .journal-photos[data-photo-layout="portraits"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  max-width: 42rem;
+  margin-inline: auto;
+}
+
+.journal-page .journal-photos[data-photo-layout="wide"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.journal-page .journal-photos[data-photo-layout="wide"] > .rehype-figure,
+.journal-page .journal-photos[data-photo-layout="wide"] .photo-frame,
+.journal-page .journal-photos[data-photo-layout="wide"] img {
+  width: 100%;
+}
+
+.journal-page .journal-photos[data-photo-layout="wide"] img {
+  height: auto;
+  max-height: none;
+}
+
 .journal-page .journal-photos .photo-frame {
   border-radius: 0;
   overflow: visible;
@@ -413,4 +455,11 @@
 .journal-page .journal-spread > .journal-moment--placed {
   position: absolute;
   margin: 0;
+}
+
+@media (max-width: 640px) {
+  .journal-page .journal-photos[data-photo-layout="equal"],
+  .journal-page .journal-photos[data-photo-layout="right"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

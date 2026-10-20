@@ -1,0 +1,175 @@
+---
+import { getCollection } from "astro:content";
+import type { AlbumPhoto } from "@/utils/album";
+import { getPostPhotos } from "@/utils/getAlbumPhotos";
+
+type PhotoLayout = "left" | "right" | "equal" | "portraits" | "wide";
+interface LayoutVariant {
+  id: string;
+  label: string;
+  marker: string;
+  photoIndexes: number[];
+  layout?: PhotoLayout;
+}
+
+const sourceSlug = "959d87632a464d40adb30b47071c8d5b";
+const posts = await getCollection("blog");
+const post = posts.find(entry => entry.id === sourceSlug);
+const photos: AlbumPhoto[] = post ? await getPostPhotos([post]) : [];
+const available = Boolean(post && photos.length >= 15);
+const sourceUrl = photos[0]?.sources[0]?.url;
+
+const variants: LayoutVariant[] = [
+  {
+    id: "default",
+    label: "原效果（默认左大右小）",
+    marker: "[!photos]",
+    photoIndexes: [11, 12],
+  },
+  {
+    id: "left",
+    label: "显式左侧主图（同原效果）",
+    marker: "[!photos|left]",
+    photoIndexes: [11, 12],
+    layout: "left",
+  },
+  {
+    id: "right",
+    label: "右侧主图",
+    marker: "[!photos|right]",
+    photoIndexes: [11, 12],
+    layout: "right",
+  },
+  {
+    id: "equal",
+    label: "等宽双图",
+    marker: "[!photos|equal]",
+    photoIndexes: [11, 12],
+    layout: "equal",
+  },
+  {
+    id: "portraits",
+    label: "竖图组合",
+    marker: "[!photos|portraits]",
+    photoIndexes: [5, 6],
+    layout: "portraits",
+  },
+  {
+    id: "wide",
+    label: "单幅宽图",
+    marker: "[!photos|wide]",
+    photoIndexes: [2],
+    layout: "wide",
+  },
+];
+
+const sections = variants.map(variant => ({
+  ...variant,
+  selectedPhotos: variant.photoIndexes.map(index => photos[index]),
+}));
+
+function cameraModel(photo: AlbumPhoto) {
+  return photo.exif
+    .split(" · ")
+    .find(field => field.startsWith("型号:"))
+    ?.replace(/^型号:\s*/, "");
+}
+---
+
+<main
+  id="main-content"
+  class="article-page page-shell journal-page mx-auto mt-4 w-full max-w-app px-4 pb-24 sm:pb-12"
+>
+  <header class="journal-hero">
+    <div class="journal-hero-copy">
+      <h1 class="journal-hero-title">下岩贝照片布局对照</h1>
+    </div>
+    <p class="journal-hero-description">
+      仅供本地比较照片布局。原文继续使用默认排版；这里的标记只用于演示。
+    </p>
+    {
+      sourceUrl && (
+        <p>
+          <a href={sourceUrl}>查看《下岩贝》原文</a>
+        </p>
+      )
+    }
+  </header>
+
+  {
+    available ? (
+      <>
+        <nav class="journal-chapter-nav" aria-label="照片布局对照">
+          {sections.map((section, index) => (
+            <a href={`#layout-${section.id}`}>
+              {String(index + 1).padStart(2, "0")} {section.label}
+            </a>
+          ))}
+        </nav>
+        <article
+          id="article"
+          class="article-reading-body js-toc-content app-prose relative mx-auto mt-8 max-w-app"
+        >
+          {sections.map(section => (
+            <section
+              class="journal-chapter"
+              aria-labelledby={`layout-${section.id}`}
+            >
+              <h2 id={`layout-${section.id}`}>{section.label}</h2>
+              <p>
+                Markdown 标记：<code>{section.marker}</code>
+              </p>
+              <div
+                class="journal-photos"
+                data-photo-count={section.selectedPhotos.length}
+                data-photo-layout={section.layout}
+              >
+                {section.selectedPhotos.map(photo => (
+                  <figure class="rehype-figure">
+                    <div class="photo-frame">
+                      <img
+                        src={photo.src}
+                        width={photo.width}
+                        height={photo.height}
+                        alt={photo.alt}
+                        loading="lazy"
+                        decoding="async"
+                        data-lightbox-src={photo.original}
+                        data-photo-exif={photo.exif}
+                      />
+                      {photo.exif && (
+                        <details class="journal-exif">
+                          <summary
+                            aria-label={`${cameraModel(photo) ?? "照片"}，拍摄参数`}
+                          >
+                            {cameraModel(photo) ?? "拍摄参数"}
+                            <span
+                              class="journal-exif-toggle"
+                              aria-hidden="true"
+                            >
+                              +
+                            </span>
+                          </summary>
+                          <div class="journal-exif-fields">
+                            {photo.exif.split(" · ").map(field => (
+                              <span>{field}</span>
+                            ))}
+                          </div>
+                        </details>
+                      )}
+                    </div>
+                    {photo.alt && <figcaption>{photo.alt}</figcaption>}
+                  </figure>
+                ))}
+              </div>
+            </section>
+          ))}
+        </article>
+      </>
+    ) : (
+      <p role="status">
+        布局对照暂不可用：未找到《下岩贝》文章或其 15 张已导出照片。
+      </p>
+    )
+  }
+</main>

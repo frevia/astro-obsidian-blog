@@ -3,7 +3,7 @@ import type { Blockquote, Paragraph, Text } from "mdast";
 import type { Element, ElementContent } from "hast";
 import type { HastPluginDefinition, MdastPluginDefinition } from "satteri";
 
-const marker = /^\[!([a-zA-Z0-9_-]+)\]([+-]?)/;
+const marker = /^\[!([a-zA-Z0-9_-]+)(?:\|([a-zA-Z0-9_-]+))?\]([+-]?)/;
 
 function iconChild(
   tagName: string,
@@ -180,7 +180,8 @@ export const calloutMdastPlugin: MdastPluginDefinition = defineMdastPlugin({
     if (!textNode || !matched) return;
 
     const calloutType = matched[1].toLowerCase();
-    const expandSign = matched[2] || "";
+    const metadata = matched[2]?.toLowerCase();
+    const expandSign = matched[3] || "";
     const withoutMarker = textNode.value
       .slice(matched[0].length)
       .replace(/^[ \t]*/, "");
@@ -216,6 +217,7 @@ export const calloutMdastPlugin: MdastPluginDefinition = defineMdastPlugin({
         ...((node.data?.hProperties as Record<string, unknown>) ?? {}),
         className: ["callout", `callout-${calloutType}`],
         "data-callout": calloutType,
+        ...(metadata ? { "data-callout-metadata": metadata } : {}),
         "data-expandable": String(Boolean(expandSign)),
         "data-expanded": String(expandSign === "+"),
         "data-callout-title": title,
