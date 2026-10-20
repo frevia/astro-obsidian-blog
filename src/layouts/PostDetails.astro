@@ -19,6 +19,7 @@ import ArticleLightbox from "@/components/ArticleLightbox.astro";
 import ArticleHero from "@/components/article/ArticleHero.astro";
 import ArticlePlaces from "@/components/article/ArticlePlaces.astro";
 import JournalHero from "@/components/article/JournalHero.astro";
+import JournalChapterNav from "@/components/article/JournalChapterNav.astro";
 import ReadingNavigation from "@/components/reading/ReadingNavigation.astro";
 import {
   getArticleAccent,
@@ -171,14 +172,13 @@ const hasJournalRelations =
       isJournal ? (
         <JournalHero
           {title}
-          category={articleCategory}
           {description}
           {published}
-          {eventDate}
-          {eventEndDate}
           {timezone}
           {titleTransitionName}
-        />
+        >
+          <ArticlePlaces slot="places" post={post} />
+        </JournalHero>
       ) : (
         <ArticleHero
           {title}
@@ -197,24 +197,11 @@ const hasJournalRelations =
       )
     }
 
-    <ArticlePlaces post={post} />
+    {!isJournal && <ArticlePlaces post={post} />}
 
     {summary && !isJournal && <AiSummaryCard {summary} />}
 
-    {
-      isJournal && journalHeadings.length > 0 && (
-        <nav class="journal-chapter-nav" aria-label="日记章节">
-          {journalHeadings.map((heading, index) => (
-            <a href={`#${heading.slug}`}>
-              <span aria-hidden="true">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              {heading.text}
-            </a>
-          ))}
-        </nav>
-      )
-    }
+    {isJournal && <JournalChapterNav headings={journalHeadings} />}
 
     {
       !isJournal && hasReadingNavigation && (

@@ -1,6 +1,7 @@
 import { defineHastPlugin } from "satteri";
 import type { Element, ElementContent, RootContent } from "hast";
 import type { HastPluginDefinition, HastVisitorContext } from "satteri";
+import { parseJournalTimelineHeading } from "@/utils/journalTimeline";
 
 function hasClass(node: Readonly<Element>, name: string): boolean {
   const value = node.properties.className;
@@ -13,6 +14,26 @@ function isElement(node: RootContent | ElementContent): node is Element {
 
 function isWhitespace(node: RootContent): boolean {
   return node.type === "text" && /^\s*$/.test(node.value);
+}
+
+function timelineHeading(node: Readonly<Element>) {
+  const anchors: ElementContent[] = [];
+  let text = "";
+  for (const child of node.children) {
+    if (child.type === "text") {
+      text += child.value;
+    } else if (
+      isElement(child) &&
+      child.tagName === "a" &&
+      hasClass(child, "heading-anchor")
+    ) {
+      anchors.push(child);
+    } else {
+      return undefined;
+    }
+  }
+  const parsed = parseJournalTimelineHeading(text.trim());
+  return parsed ? { ...parsed, anchors } : undefined;
 }
 
 function cloneNode<T extends RootContent | ElementContent>(node: T): T {
@@ -280,6 +301,7 @@ function transformRoot(
   for (let index = 0; index < children.length; ) {
     const node = children[index];
     if (isElement(node) && node.tagName === "h2") {
+      const timeline = timelineHeading(node);
       let end = index + 1;
       while (end < children.length) {
         const sibling = children[end];
@@ -288,17 +310,62 @@ function transformRoot(
       }
       const id =
         typeof node.properties.id === "string" ? node.properties.id : "";
+      const heading = timeline
+        ? {
+            ...node,
+            children: [
+              { type: "text" as const, value: timeline.title },
+              ...timeline.anchors,
+            ],
+          }
+        : node;
       transformed.push({
         type: "element",
         tagName: "section",
         properties: {
-          className: ["journal-chapter"],
+          className: [
+            "journal-chapter",
+            ...(timeline ? ["journal-timeline-chapter"] : []),
+          ],
           ...(id ? { ariaLabelledby: id } : {}),
         },
-        children: transformCallouts(
-          children.slice(index, end),
-          ctx
-        ) as ElementContent[],
+        children: [
+          ...(timeline
+            ? [
+                {
+                  type: "element" as const,
+                  tagName: "p" as const,
+                  properties: { className: ["journal-timeline-date"] },
+                  children: [
+                    {
+                      type: "element" as const,
+                      tagName: "time" as const,
+                      properties: { dateTime: timeline.date },
+                      children: [
+                        { type: "text" as const, value: timeline.date },
+                      ],
+                    },
+                    ...(timeline.period
+                      ? [
+                          {
+                            type: "element" as const,
+                            tagName: "span" as const,
+                            properties: {},
+                            children: [
+                              { type: "text" as const, value: timeline.period },
+                            ],
+                          },
+                        ]
+                      : []),
+                  ],
+                },
+              ]
+            : []),
+          ...(transformCallouts(
+            [heading, ...children.slice(index + 1, end)],
+            ctx
+          ) as ElementContent[]),
+        ],
       });
       index = end;
       continue;

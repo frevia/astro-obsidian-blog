@@ -6,6 +6,7 @@ import Footer from "@/components/Footer.astro";
 import ArticleLightbox from "@/components/ArticleLightbox.astro";
 import JournalLayoutComparison from "@/components/dev/JournalLayoutComparison.astro";
 import JournalHero from "@/components/article/JournalHero.astro";
+import JournalChapterNav from "@/components/article/JournalChapterNav.astro";
 import {
   markdownFeatures,
   pageHastPlugins,
@@ -79,17 +80,18 @@ const description = isLayoutComparison
       >
         <JournalHero
           title="沿着运河，慢慢走"
-          category="旅行"
           description={description}
           published={published}
           timezone="Asia/Shanghai"
           titleTransitionName="journal-preview-title"
         />
-        <nav class="journal-chapter-nav" aria-label="日记章节">
-          <a href="#运河的早晨">01 运河的早晨</a>
-          <a href="#西兴的午后">02 西兴的午后</a>
-          <a href="#关于影像">03 关于影像</a>
-        </nav>
+        <JournalChapterNav
+          headings={[
+            { slug: "运河的早晨", text: "运河的早晨" },
+            { slug: "西兴的午后", text: "西兴的午后" },
+            { slug: "关于影像", text: "关于影像" },
+          ]}
+        />
         <article
           id="article"
           class="article-reading-body js-toc-content app-prose relative mx-auto mt-8 max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
