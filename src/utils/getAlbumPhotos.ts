@@ -37,7 +37,10 @@ export async function getPostPhotos(
     const source = {
       title: post.data.title,
       url: getPath(post.id, post.filePath),
-      date: albumDate(post.data.published),
+      date: albumDate(post.data.published, post.data.timezone),
+      published: post.data.published.toISOString(),
+      eventDate: post.data.eventDate,
+      eventEndDate: post.data.eventEndDate,
     };
     for (const image of await extractAlbumImages(post.body ?? "")) {
       // Only exported local attachments participate; never scan private or remote files.

@@ -5,6 +5,11 @@ import { toPlaceRecords } from "@/utils/footprintPlaces";
 import { getPath } from "@/utils/getPath";
 import CardCoverImage from "@/components/CardCoverImage.astro";
 import { withBase } from "@/utils/withBase";
+import {
+  formatEventPeriod,
+  getEventPeriod,
+  publicationDay,
+} from "@/utils/contentDates";
 
 interface Props {
   posts: CollectionEntry<"blog">[];
@@ -22,6 +27,10 @@ const places = [
 ];
 const latest = posts[0];
 const latestPlace = latest ? toPlaceRecords(latest)[0] : undefined;
+const latestEvent = latest ? getEventPeriod(latest.data) : undefined;
+const latestPublishedDay = latest
+  ? publicationDay(latest.data.published, latest.data.timezone)
+  : undefined;
 const pinPath = "M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z";
 ---
 
@@ -106,8 +115,11 @@ const pinPath = "M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z";
                 </span>
               )}
               <p class="footprint-meta">
-                <time datetime={latest.data.published.toISOString()}>
-                  {latest.data.published.toISOString().slice(0, 10)}
+                {latestEvent && (
+                  <span>发生于 {formatEventPeriod(latestEvent)} · </span>
+                )}
+                <time datetime={latestPublishedDay}>
+                  发布于 {latestPublishedDay}
                 </time>
               </p>
             </div>

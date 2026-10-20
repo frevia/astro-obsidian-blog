@@ -13,5 +13,8 @@ describe("article hero presentation", () => {
     expect(hero).not.toContain("summary?.trim()");
     expect(hero).toContain("{excerpt}");
     expect(hero).toContain("data-article-hero");
+    expect(hero).toContain("eventDate?: string;");
+    expect(hero).toContain("eventEndDate?: string;");
+    expect(hero).toContain("<EventDate");
   });
 });

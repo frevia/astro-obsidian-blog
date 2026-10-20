@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { spawnSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 
 const stylesheet = readFileSync(
@@ -8,6 +9,16 @@ const stylesheet = readFileSync(
 );
 
 describe("footprint AMap theme", () => {
+  it("runs the verification command against the current photo-panel styles", () => {
+    const root = resolve(import.meta.dirname, "../..");
+    const result = spawnSync(
+      process.execPath,
+      [resolve(root, "scripts/verify-footprint-theme.mjs")],
+      { cwd: root, encoding: "utf8" }
+    );
+    expect(result.status, result.stderr).toBe(0);
+  });
+
   it("follows the site's data-theme contract for dark mode", () => {
     expect(stylesheet).toContain('html[data-theme="dark"] .footprint-amap');
     expect(stylesheet).not.toContain(".dark .footprint-amap");

@@ -7,6 +7,12 @@ import FootprintPhotoPanel from "./footprint/FootprintPhotoPanel";
 import { groupNearbyPlaces } from "./footprint/photoClusters";
 import { manageMapStyle } from "./footprint/mapStyleLifecycle";
 import { loadAMap, type AMapInstance, type AMapMarker } from "./footprint/amap";
+import {
+  compareEventPeriods,
+  getEventPeriod,
+  publicationDay,
+  formatEventPeriod,
+} from "@/utils/contentDates";
 
 export interface FootprintPlace {
   name: string;
@@ -21,6 +27,9 @@ export interface FootprintRecord {
   lng: number;
   lat: number;
   date?: string;
+  eventDate?: string;
+  eventEndDate?: string;
+  timezone?: string;
   thumbnail?: {
     src: string;
     alt: string;
@@ -47,12 +56,6 @@ function currentMapStyle() {
     : "amap://styles/normal";
 }
 
-const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
-
 function recordsAtPlace(
   place: FootprintPlace,
   records: FootprintRecord[]
@@ -63,7 +66,7 @@ function recordsAtPlace(
         Math.abs(record.lng - place.lng) < 1e-5 &&
         Math.abs(record.lat - place.lat) < 1e-5
     )
-    .sort((a, b) => recordTime(b) - recordTime(a));
+    .sort(compareRecordsNewestFirst);
 }
 
 function recordTime(record?: FootprintRecord): number {
@@ -72,12 +75,20 @@ function recordTime(record?: FootprintRecord): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function formatDate(value?: string): string {
+function compareRecordsNewestFirst(a?: FootprintRecord, b?: FootprintRecord) {
+  const eventA = getEventPeriod(a ?? {});
+  const eventB = getEventPeriod(b ?? {});
+  if (Boolean(eventA) !== Boolean(eventB)) return eventA ? -1 : 1;
+  if (eventA && eventB)
+    return compareEventPeriods(eventB, eventA) || recordTime(b) - recordTime(a);
+  return recordTime(b) - recordTime(a);
+}
+
+function formatDate(value?: string, timezone?: string): string {
   if (!value) return "日期未记录";
   const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? "日期未记录"
-    : dateFormatter.format(date);
+  if (Number.isNaN(date.getTime())) return "日期未记录";
+  return formatEventPeriod({ start: publicationDay(date, timezone) });
 }
 
 // Normalize pixel, line and page wheel deltas; trackpad pinch uses ctrlKey.
@@ -167,19 +178,24 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
           key: footprintPlaceKey(place),
           posts: recordsAtPlace(place, records),
         }))
-        .sort((a, b) => {
-          const latestA = recordTime(a.posts[0]);
-          const latestB = recordTime(b.posts[0]);
-          return latestB - latestA || a.name.localeCompare(b.name, "zh-CN");
-        }),
+        .sort(
+          (a, b) =>
+            compareRecordsNewestFirst(a.posts[0], b.posts[0]) ||
+            a.name.localeCompare(b.name, "zh-CN")
+        ),
     [places, records]
   );
   const articleCount = new Set(records.map(record => record.url)).size;
-  const latestDate = records.reduce<string | undefined>((latest, record) => {
-    if (!record.date) return latest;
-    if (!latest || recordTime(record) > Date.parse(latest)) return record.date;
-    return latest;
-  }, undefined);
+  const latestRecord = records.reduce<FootprintRecord | undefined>(
+    (latest, record) => {
+      if (!record.date || !Number.isFinite(Date.parse(record.date)))
+        return latest;
+      return !latest || recordTime(record) > recordTime(latest)
+        ? record
+        : latest;
+    },
+    undefined
+  );
 
   const clearSelection = useCallback(() => {
     closeSelection();
@@ -524,9 +540,11 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
                 <rect x="4" y="5" width="16" height="16" rx="2" />
                 <path d="M8 3v4M16 3v4M4 11h16M8 15h2M14 15h2" />
               </svg>
-              最近记录
+              最近发表
             </dt>
-            <dd className="footprint-stat-date">{formatDate(latestDate)}</dd>
+            <dd className="footprint-stat-date">
+              {formatDate(latestRecord?.date, latestRecord?.timezone)}
+            </dd>
           </div>
         </dl>
         <p className="footprint-map-help" id="footprint-map-help">

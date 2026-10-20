@@ -68,4 +68,91 @@ describe("album collection", () => {
       ["2024-03-06", 1],
     ]);
   });
+  it("groups by the preferred explicit event period and separates publication fallback", () => {
+    const photo = (
+      url: string,
+      date: string,
+      eventDate?: string,
+      eventEndDate?: string
+    ): AlbumPhoto => ({
+      src: `${url}.jpg`,
+      original: `${url}.jpg`,
+      width: 1,
+      height: 1,
+      alt: "",
+      exif: "",
+      sources: [{ title: url, url, date, eventDate, eventEndDate }],
+    });
+    const groups = groupAlbumPhotos([
+      photo("published", "2026-06-01"),
+      photo("event", "2026-06-02", "2024-03"),
+      photo("event-range", "2026-06-03", "2024-03", "2024-04"),
+    ]);
+    expect(
+      groups.map(group => [
+        group.kind,
+        group.start,
+        group.end,
+        group.photos.length,
+      ])
+    ).toEqual(
+      expect.arrayContaining([
+        ["published", "2026-06-01", undefined, 1],
+        ["event", "2024-03", "2024-04", 1],
+        ["event", "2024-03", undefined, 1],
+      ])
+    );
+    expect(groups[0].kind).toBe("published");
+  });
+  it("uses an explicit event source before newer publication sources for shared photos", () => {
+    const photo: AlbumPhoto = {
+      src: "shared.jpg",
+      original: "shared.jpg",
+      width: 1,
+      height: 1,
+      alt: "",
+      exif: "",
+      sources: [
+        { title: "newer publish", url: "/new", date: "2026-05-01" },
+        {
+          title: "event",
+          url: "/event",
+          date: "2024-01-01",
+          eventDate: "2024-03",
+        },
+      ],
+    };
+    expect(groupAlbumPhotos([photo])[0]).toMatchObject({
+      kind: "event",
+      start: "2024-03",
+      photos: [photo],
+    });
+  });
+  it("chooses the latest publication instant even when article-local dates order differently", () => {
+    const photo: AlbumPhoto = {
+      src: "shared.jpg",
+      original: "shared.jpg",
+      width: 1,
+      height: 1,
+      alt: "",
+      exif: "",
+      sources: [
+        {
+          title: "older Shanghai post",
+          url: "/older",
+          date: "2026-04-01",
+          published: "2026-03-31T18:00:00Z",
+          eventDate: "2024",
+        },
+        {
+          title: "newer Los Angeles post",
+          url: "/newer",
+          date: "2026-03-31",
+          published: "2026-04-01T01:00:00Z",
+          eventDate: "2025",
+        },
+      ],
+    };
+    expect(groupAlbumPhotos([photo])[0].start).toBe("2025");
+  });
 });

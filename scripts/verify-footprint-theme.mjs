@@ -2,8 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 
 const SOURCE = "src/styles/footprint-map.css";
 const REQUIRED = [
-  "html[data-theme=\"dark\"] .footprint-amap",
-  ".footprint-amap .amap-info-content",
+  'html[data-theme="dark"] .footprint-amap',
+  ".footprint-photo-panel",
   ".footprint-marker-icon.is-selected",
 ];
 const FORBIDDEN = ["invert("];
@@ -23,7 +23,10 @@ for (const token of REQUIRED) {
 
 for (const token of FORBIDDEN) {
   if (text.includes(token)) {
-    console.error("map color inversion is incompatible with native AMap themes", token);
+    console.error(
+      "map color inversion is incompatible with native AMap themes",
+      token
+    );
     process.exit(1);
   }
 }

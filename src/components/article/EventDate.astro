@@ -1,0 +1,27 @@
+---
+import { getEventPeriod, formatEventPeriod } from "@/utils/contentDates";
+
+interface Props {
+  eventDate?: string;
+  eventEndDate?: string;
+}
+
+const { eventDate, eventEndDate } = Astro.props;
+const period = getEventPeriod({ eventDate, eventEndDate });
+---
+
+{
+  period && (
+    <p class="article-event-date">
+      <span>发生于</span> {formatEventPeriod(period)}
+    </p>
+  )
+}
+
+<style>
+  .article-event-date {
+    margin: 0.45rem 0 0;
+    color: var(--foreground-muted);
+    font-size: 0.875rem;
+  }
+</style>

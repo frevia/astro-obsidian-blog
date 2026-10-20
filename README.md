@@ -266,13 +266,15 @@ cp .env.example .env
 
 ### 博客文章
 
-在 `src/data/blog/` 中创建 `.md` 或 `.mdx` 文件。内容目录属于子模块，修改后需要在子模块中单独提交，再回到主仓库更新子模块指针。
+内容源在 Obsidian Vault。使用 `Create New File` 模板创建 `.md`，默认保存到私有 `draft/blog/<分类>/`，模板只记录 `created`，`published` 留空。准备公开时，人工填写首次发表时间并将文章移入 Vault 的 `site/blog/`，检查附件公开范围与相对路径，再通过日期预检和发布导出流程同步到独立 `blog-data` checkout。本项目的 `src/data/` 是下游子模块，不直接作为内容编辑源；编辑、导出、提交、推送与部署分别授权。
 
 ```markdown
 ---
 title: "文章标题"
 author: "作者名称"
+created: 2026-10-20T12:00:00+08:00
 published: 2025-01-01T12:00:00+08:00
+eventDate: "2024" # 可选，实际事件发生时间；只知道年份就保留年份
 tags:
   - "标签1"
   - "标签2"
@@ -284,7 +286,15 @@ canonicalURL: "https://example.com/original" # 可选
 文章内容...
 ```
 
-支持 Markdown、MDX、数学公式、Mermaid、Obsidian wikilink、附件图片和媒体卡片。标题目录和文章阅读栏会根据页面内容自动生成。
+`created` 是本地建文时间，`published` 是首次发表时间，二者不替代事件日期。原有文章的发表时间不会因编辑或再次导出自动改变，也不从 Git、文件修改时间或照片 EXIF 推断。
+
+可选的 `eventDate` / `eventEndDate` 适用于所有博客文章，使用带引号的文本，支持 `YYYY`、`YYYY-MM`、`YYYY-MM-DD`，未知部分不补齐。结束日期需要开始日期，二者精度相同且结束不早于开始；空值表示未记录。文章详情分别显示发生与发表；列表、归档、RSS、SEO 和内容日历继续使用发表时间。相册按事件期间分组，缺失时明确按发布日期分组；足迹区分发生时间与发表时间，首页足迹卡仍选最近发表的文章。
+
+无时区的旧 `published` 日期或日期时间按文章 `timezone`（默认 `Asia/Shanghai`）解释，显式时区偏移的时间按原始时刻解析；显示日期不受构建机或浏览器时区影响。新内容建议使用带时区的 ISO 8601 日期时间。生产构建沿用现有未来发表过滤规则（15 分钟容差），详情与分享图路由也遵守同一规则。
+
+导出脚本在任何文件同步之前运行 Vault 的 `system/scripts/publish/check-blog-dates.py site/blog`；任一公开源日期无效或缺少 `published` 就中止整次导出，不跳过文章或自动生成日期。Clip 的 `published` 仍为原文日期，Notes 仍按文件日期，不套用此流程。
+
+支持 Markdown、数学公式、Mermaid、Obsidian wikilink、附件图片和媒体卡片；既有 MDX 仍可读取，但 Vault 新文章统一使用 `.md`。标题目录和文章阅读栏会根据页面内容自动生成。
 
 ### 碎片
 

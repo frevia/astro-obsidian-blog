@@ -14,6 +14,7 @@ import postFilter from "@/utils/postFilter";
 import { getPath } from "@/utils/getPath";
 import { optimizeImage } from "@/utils/optimizeImages";
 import { firstContentImage } from "@/utils/footprintImage";
+import { getEventPeriod } from "@/utils/contentDates";
 
 const blogPosts = await getCollection("blog");
 const publishedPosts = blogPosts.filter(postFilter);
@@ -33,6 +34,9 @@ type PostLocationRecord = {
   lng: number;
   lat: number;
   date: string;
+  eventDate?: string;
+  eventEndDate?: string;
+  timezone?: string;
   thumbnail?: {
     src: string;
     alt: string;
@@ -101,6 +105,9 @@ const postLocationRecords = footprintPosts.flatMap(post =>
         lng: loc.lng,
         lat: loc.lat,
         date: post.data.published.toISOString(),
+        eventDate: getEventPeriod(post.data)?.start,
+        eventEndDate: getEventPeriod(post.data)?.end,
+        timezone: post.data.timezone,
         thumbnail: thumbnailsByPost.get(post.id),
       }) satisfies PostLocationRecord
   )

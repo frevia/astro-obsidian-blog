@@ -1,5 +1,6 @@
 ---
 import { groupAlbumPhotos, type AlbumPhoto } from "@/utils/album";
+import { formatEventPeriod } from "@/utils/contentDates";
 interface Props {
   photos: AlbumPhoto[];
 }
@@ -12,15 +13,23 @@ const groups = groupAlbumPhotos(photos);
     groups.length === 0 ? (
       <p class="album-empty">还没有收录照片。</p>
     ) : (
-      groups.map(({ date, photos }) => (
-        <section class="album-date" aria-labelledby={`date-${date}`}>
+      groups.map(({ kind, start, end, photos }) => (
+        <section
+          class="album-date"
+          aria-labelledby={`date-${kind}-${start}-${end ?? ""}`}
+        >
           <header class="album-date-heading">
-            <h2 id={`date-${date}`}>
-              <time datetime={date}>
-                {date.replace("-", " 年 ").replace("-", " 月 ")} 日
-              </time>
+            <h2 id={`date-${kind}-${start}-${end ?? ""}`}>
+              <span>
+                {kind === "event"
+                  ? formatEventPeriod({ start, end })
+                  : `发布于 ${formatEventPeriod({ start })}`}
+              </span>
             </h2>
-            <span>{photos.length} 张 · 按发布日期</span>
+            <span>
+              {photos.length} 张 ·{" "}
+              {kind === "event" ? "按事件期间" : "事件日期未记录，按发布日期"}
+            </span>
           </header>
           <div class="album-grid">
             {photos.map(photo => (

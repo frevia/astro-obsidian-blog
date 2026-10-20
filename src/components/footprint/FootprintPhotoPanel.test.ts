@@ -13,6 +13,8 @@ it("keeps each story's photos and source link together, including shared photos"
     lng: 120,
     lat: 30,
     date: "2024-01-01T00:00:00Z",
+    eventDate: "2023-12",
+    eventEndDate: "2024-01",
   }));
   const photo = (src: string, ids: string[]): AlbumPhoto => ({
     src,
@@ -57,4 +59,32 @@ it("keeps each story's photos and source link together, including shared photos"
       .get()
   ).toEqual(["/posts/old", "/posts/old"]);
   expect($("section time")).toHaveLength(2);
+  expect($("section .footprint-photo-date").text()).toContain("发生于");
+  expect($("section .footprint-photo-date").text()).toContain("发布于");
+});
+
+it("shows event and publication dates for a single post", () => {
+  const html = renderToStaticMarkup(
+    React.createElement(FootprintPhotoPanel, {
+      name: "杭州",
+      posts: [
+        {
+          title: "旅行",
+          url: "/posts/trip",
+          name: "杭州",
+          lng: 120,
+          lat: 30,
+          date: "2024-04-01T00:00:00Z",
+          eventDate: "2024-03-01",
+          eventEndDate: "2024-03-14",
+        },
+      ],
+      photos: [],
+      onClose: () => {},
+    })
+  );
+  const $ = load(html);
+  expect($(".footprint-photo-date").text()).toContain("发生于");
+  expect($(".footprint-photo-date").text()).toContain("发布于");
+  expect($(".footprint-photo-date time")).toHaveLength(1);
 });

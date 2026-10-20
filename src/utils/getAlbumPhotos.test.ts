@@ -34,7 +34,9 @@ const post = (
   date: string,
   body: string,
   album = true,
-  pageLayout: "journal" | null = "journal"
+  pageLayout: "journal" | null = "journal",
+  eventDate?: string,
+  eventEndDate?: string
 ): CollectionEntry<"blog"> => ({
   id,
   collection: "blog",
@@ -44,6 +46,8 @@ const post = (
     title: id,
     author: "Frevia",
     published: new Date(date),
+    eventDate,
+    eventEndDate,
     description: "",
     tags: [],
     pageLayout: pageLayout ?? undefined,
@@ -83,6 +87,24 @@ describe("album source resolution", () => {
       "/posts/old",
     ]);
     expect(photos[0].original).toBe("/full.webp");
+  });
+  it("carries event dates through photo sources while preserving publication date", async () => {
+    const photos = await getAlbumPhotos([
+      post(
+        "event",
+        "2025-01-01",
+        "> [!photos]\n> ![相片](../../attachments/event.jpg)",
+        true,
+        "journal",
+        "2024-03",
+        "2024-03-14"
+      ),
+    ]);
+    expect(photos[0].sources[0]).toMatchObject({
+      date: "2025-01-01",
+      eventDate: "2024-03",
+      eventEndDate: "2024-03-14",
+    });
   });
   it("skips missing, external, out-of-bound and failed images without exposing paths", async () => {
     const photos = await getAlbumPhotos([
