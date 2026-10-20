@@ -156,8 +156,8 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.625rem;
-    margin: 0 0 0.875rem;
-    padding-block: 0.625rem;
+    margin: 0 0 0.25rem;
+    padding-block: 0.625rem 0.25rem;
     background: var(--background);
     color: var(--foreground-muted);
     font-family: var(--font-sans);
@@ -256,7 +256,7 @@
 
   .journal-page .journal-moment-label {
     margin-bottom: 0.5rem;
-    font-size: 0.7rem;
+    font-size: 0.8125rem;
     letter-spacing: 0.05em;
   }
 
@@ -512,7 +512,7 @@
   margin: 0;
   color: var(--foreground-muted);
   font-family: var(--font-sans);
-  font-size: 0.7rem;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 
@@ -682,5 +682,71 @@
     ):has(> .journal-portrait)
     > figure:not(.journal-portrait) {
     flex-grow: 1;
+  }
+}
+
+/* Keep one gap between timeline chapters instead of stacking both paddings. */
+.journal-page .journal-timeline-chapter {
+  padding-block: 1.5rem 0;
+}
+
+.journal-page .journal-timeline-chapter > :last-child {
+  margin-bottom: 0;
+}
+
+/* Override the global :target offset, including the sticky chapter date. */
+.journal-page #article .journal-timeline-chapter > h2[id] {
+  scroll-margin-top: calc(var(--site-header-height, 4rem) + 4rem);
+}
+
+.journal-page .journal-photos figcaption {
+  font-size: 0.875rem;
+}
+
+@media (max-width: 640px) {
+  body:has(.journal-page) #back-button {
+    margin-top: 0.75rem;
+    margin-bottom: 0;
+  }
+
+  .journal-page .journal-hero {
+    margin-block: 0.5rem 1rem;
+  }
+
+  .journal-page .journal-hero-intro {
+    gap: 0.875rem;
+  }
+
+  .journal-page .journal-chapter-nav {
+    padding-top: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .journal-page .journal-photos img {
+    border-width: 5px;
+  }
+
+  .journal-page .photo-frame:has(> .journal-exif) {
+    padding: 5px 5px 0;
+  }
+
+  .journal-page .journal-photos > .rehype-figure::before,
+  .journal-page .journal-photos > .rehype-figure.journal-portrait::before {
+    left: 0.75rem;
+    width: 2.5rem;
+    height: 0.875rem;
+  }
+
+  .journal-page .journal-exif summary {
+    min-height: 44px;
+  }
+}
+
+@media (min-width: 641px) {
+  .journal-page
+    .journal-photos:not([data-photo-layout="wide"]):not(
+      [data-photo-count="1"]:has(> .journal-portrait)
+    ) {
+    padding-inline: 8px;
   }
 }
