@@ -630,58 +630,58 @@ video {
   font-size: 1em !important;
 }
 
-/* Keep nested replies in the same columns without moving Twikoo's Vue nodes. */
-.twikoo-root .tk-comment {
+/* Outrank Twikoo 2.x CDN styles so its flex rules cannot break this grid. */
+.twikoo-root .twikoo .tk-comment {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
   column-gap: 10px;
   margin-top: 12px;
 }
-.twikoo-root .tk-comment > .tk-avatar {
+.twikoo-root .twikoo .tk-comment > .tk-avatar {
   width: 28px;
   height: 28px;
   margin-right: 0;
   grid-column: 1;
   grid-row: 1 / 3;
 }
-.twikoo-root .tk-comment > .tk-main {
+.twikoo-root .twikoo .tk-comment > .tk-main {
   display: contents;
 }
-.twikoo-root .tk-comment > .tk-main > * {
+.twikoo-root .twikoo .tk-comment > .tk-main > * {
   grid-column: 2;
   min-width: 0;
 }
-.twikoo-root .tk-comment > .tk-main > .tk-replies {
+.twikoo-root .twikoo .tk-comment > .tk-main > .tk-replies {
   grid-column: 1 / -1;
   margin: 0;
 }
-.twikoo-root .tk-comment .tk-content {
+.twikoo-root .twikoo .tk-comment .tk-content {
   margin-block: 4px 6px;
   overflow-wrap: anywhere;
 }
-.twikoo-root .tk-nick,
-.twikoo-root .tk-ruser {
+.twikoo-root .twikoo .tk-nick,
+.twikoo-root .twikoo .tk-ruser {
   color: var(--accent);
 }
-.twikoo-root .tk-time,
-.twikoo-root .tk-extras {
+.twikoo-root .twikoo .tk-time,
+.twikoo-root .twikoo .tk-extras {
   color: var(--foreground-subtle);
   font-size: 0.75rem;
 }
 /* Desktop uses two visual levels; deeper replies stay aligned. */
 @media (min-width: 640px) {
-  .twikoo-root .tk-comment > .tk-main > .tk-replies {
+  .twikoo-root .twikoo .tk-comment > .tk-main > .tk-replies {
     grid-column: 2;
   }
-  .twikoo-root .tk-replies .tk-comment > .tk-main > .tk-replies {
+  .twikoo-root .twikoo .tk-replies .tk-comment > .tk-main > .tk-replies {
     grid-column: 1 / -1;
   }
 }
 @media (max-width: 639px) {
-  .twikoo-root .tk-comments-container {
+  .twikoo-root .twikoo .tk-comments-container {
     margin-left: 0 !important;
   }
-  .twikoo-root .tk-comment .tk-row {
+  .twikoo-root .twikoo .tk-comment .tk-row {
     flex-wrap: wrap;
     gap: 4px 8px;
   }
@@ -1099,4 +1099,44 @@ html[data-navigation-pending] #main-nav {
 .twikoo-root .tk-comments-no,
 .twikoo-root .tk-comments-no > span {
   color: var(--foreground-muted);
+}
+
+.notes-composer-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  text-align: left;
+  cursor: text;
+}
+.notes-composer-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface-muted);
+  color: var(--foreground-muted);
+}
+.notes-composer-avatar svg {
+  width: 16px;
+  height: 16px;
+}
+.notes-composer-placeholder {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: var(--surface-muted);
+  color: var(--foreground-muted);
+  font-size: 0.875rem;
+  line-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.notes-composer-trigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }

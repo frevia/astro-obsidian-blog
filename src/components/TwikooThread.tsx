@@ -15,6 +15,9 @@ import {
 import { readCommentTarget } from "@/lib/comment-links";
 import { locateComment } from "@/lib/locate-comment";
 
+// Twikoo 2.x owns one app; serialize mounts across inline threads.
+let initialization = Promise.resolve();
+
 interface TwikooThreadProps {
   threadKey: string;
   path: string;
@@ -35,7 +38,9 @@ export default function TwikooThread({
   const hasRequiredEnv = Boolean(envId);
   const [expanded, setExpanded] = useState(!collapsedWhenEmpty);
   const shell = useRef<HTMLDivElement>(null);
-  const [activated, setActivated] = useState(true);
+  const [activated, setActivated] = useState(!collapsedWhenEmpty);
+  const draft = useRef("");
+  const focusComposer = useRef(false);
   const [status, setStatus] = useState("loading");
   const [commentCount, setCommentCount] = useState<number | null>(null);
 
@@ -66,6 +71,9 @@ export default function TwikooThread({
           : next
       );
       if (next) {
+        window.dispatchEvent(
+          new CustomEvent("comment-panel-open", { detail: threadKey })
+        );
         setExpanded(true);
         setActivated(true);
       }
@@ -131,6 +139,8 @@ export default function TwikooThread({
       attributeFilter: ["aria-label"],
     });
     const init = async () => {
+      if (cancelled) return;
+      setStatus("loading");
       try {
         ensureTwikooStyle();
         await ensureTwikooScript();
@@ -154,10 +164,18 @@ export default function TwikooThread({
             // Twikoo shares one draft across paths; never copy it into a new Notes thread.
             if (collapsedWhenEmpty && input.value) {
               const sharedDraft = localStorage.getItem("twikoo-draft");
-              input.value = "";
+              input.value = draft.current;
               input.dispatchEvent(new Event("input", { bubbles: true }));
               if (sharedDraft !== null)
                 localStorage.setItem("twikoo-draft", sharedDraft);
+            }
+            if (
+              collapsedWhenEmpty &&
+              draft.current &&
+              input.value !== draft.current
+            ) {
+              input.value = draft.current;
+              input.dispatchEvent(new Event("input", { bubbles: true }));
             }
             if (!input.placeholder)
               input.placeholder = collapsedWhenEmpty
@@ -170,13 +188,17 @@ export default function TwikooThread({
                 ?.setAttribute("data-editor-expanded", "");
           });
         setStatus("ready");
+        if (focusComposer.current) {
+          host.querySelector<HTMLTextAreaElement>("textarea")?.focus();
+          focusComposer.current = false;
+        }
         if (target)
           stopLocating = locateComment(host, target.id, setLocationMessage);
       } catch {
         if (!cancelled) setStatus("error");
       }
     };
-    void init();
+    initialization = initialization.then(init, init);
     return () => {
       cancelled = true;
       stopLocating?.();
@@ -198,11 +220,11 @@ export default function TwikooThread({
     if (!collapsedWhenEmpty) return;
     const onOpen = (event: Event) => {
       if ((event as CustomEvent<string>).detail === threadKey) return;
-      const hasDraft = [
-        ...(shell.current?.querySelectorAll<HTMLTextAreaElement>("textarea") ??
-          []),
-      ].some(input => input.value.trim());
-      if (!hasDraft) setExpanded(false);
+      const input =
+        shell.current?.querySelector<HTMLTextAreaElement>("textarea");
+      if (input) draft.current = input.value;
+      setExpanded(false);
+      setActivated(false);
     };
     window.addEventListener("comment-panel-open", onOpen);
     return () => window.removeEventListener("comment-panel-open", onOpen);
@@ -276,6 +298,24 @@ export default function TwikooThread({
         data-comments-expanded={expanded}
         className={collapsedWhenEmpty ? "notes-comment-panel" : ""}
       >
+        {collapsedWhenEmpty && !activated && (
+          <button
+            type="button"
+            className="notes-composer-trigger"
+            onClick={() => {
+              focusComposer.current = true;
+              toggle();
+            }}
+            aria-label="说点什么吧…"
+          >
+            <span className="notes-composer-avatar" aria-hidden="true">
+              <CommentIcon />
+            </span>
+            <span className="notes-composer-placeholder">
+              {draft.current || "说点什么吧…"}
+            </span>
+          </button>
+        )}
         {activated && status === "loading" && (
           <p
             className="py-4 text-center text-sm text-foreground/60"
@@ -298,6 +338,10 @@ export default function TwikooThread({
           ref={shell}
           className="twikoo-root"
           data-compact-editor=""
+          onInputCapture={event => {
+            const input = event.target as HTMLTextAreaElement;
+            if (input.matches("textarea")) draft.current = input.value;
+          }}
           onFocusCapture={event => {
             const target = event.target as HTMLElement;
             if (target.matches("textarea")) {
