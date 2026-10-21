@@ -961,7 +961,7 @@ html[data-navigation-pending] #main-nav {
 .twikoo-root[data-compact-editor]
   .tk-comments
   > .tk-submit:not([data-editor-expanded]):not(:has(textarea:focus))
-  .el-input__count {
+  :is(.el-input__count, .tk-input__count) {
   display: none !important;
 }
 .twikoo-root[data-compact-editor]
@@ -980,7 +980,7 @@ html[data-navigation-pending] #main-nav {
 }
 
 /* SVGs are block elements in prose; text-align alone cannot center them. */
-.twikoo-root .el-loading-spinner {
+.twikoo-root :is(.el-loading-spinner, .tk-loading-spinner) {
   inset: 0;
   display: flex;
   flex-direction: column;
@@ -989,7 +989,7 @@ html[data-navigation-pending] #main-nav {
   width: auto;
   margin: 0;
 }
-.twikoo-root .el-loading-spinner .circular {
+.twikoo-root :is(.el-loading-spinner, .tk-loading-spinner) .circular {
   flex: none;
   margin: 0;
 }
