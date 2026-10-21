@@ -41,7 +41,8 @@ describe("shared comment presentation", () => {
     expect($("button").attr("aria-controls")).toBe("day-panel");
     expect($("#day-panel").attr("hidden")).toBeUndefined();
     expect($("#day-panel").attr("data-comments-expanded")).toBe("false");
-    expect($("[role=status]")).toHaveLength(1);
+    expect($("[role=status]")).toHaveLength(0);
+    expect($(".notes-composer-trigger").text()).toContain("说点什么吧…");
     expect($(".twikoo-root").children()).toHaveLength(0);
   });
 });
