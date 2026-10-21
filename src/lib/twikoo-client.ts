@@ -43,8 +43,8 @@ declare global {
 }
 
 const TWIKOO_CDN =
-  "https://cdn.jsdelivr.net/npm/twikoo@1.7.3/dist/twikoo.min.js";
-const TWIKOO_CSS = "https://cdn.jsdelivr.net/npm/twikoo@1.7.3/dist/twikoo.css";
+  "https://cdn.jsdelivr.net/npm/twikoo@2.0.16/dist/twikoo.min.js";
+const TWIKOO_CSS = "https://cdn.jsdelivr.net/npm/twikoo@2.0.16/dist/twikoo.css";
 
 export function ensureTwikooScript() {
   if (typeof window === "undefined") return Promise.resolve();
