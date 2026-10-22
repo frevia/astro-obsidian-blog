@@ -41,6 +41,7 @@ export default function TwikooThread({
   const [activated, setActivated] = useState(!collapsedWhenEmpty);
   const draft = useRef("");
   const focusComposer = useRef(false);
+  const [canCollapseEditor, setCanCollapseEditor] = useState(false);
   const [status, setStatus] = useState("loading");
   const [commentCount, setCommentCount] = useState<number | null>(null);
 
@@ -126,6 +127,26 @@ export default function TwikooThread({
     let stopLocating: (() => void) | undefined;
     // Twikoo can replace textareas after loading comments or opening a reply.
     const labelInputs = () => {
+      // shortcut: Twikoo 2.0.16 exposes only SVG paths; replace when upstream provides action labels.
+      const actionIcons = [
+        ["M171.5 38.8", "点赞"],
+        ["m360 32", "点踩"],
+        ["M51.9 384.9", "回复"],
+      ];
+      host
+        .querySelectorAll<HTMLButtonElement>(".tk-comment .tk-action-link")
+        .forEach(button => {
+          const path = button
+            .querySelector(".tk-action-icon svg path")
+            ?.getAttribute("d");
+          const label = actionIcons.find(([prefix]) =>
+            path?.startsWith(prefix)
+          )?.[1];
+          if (label && button.getAttribute("aria-label") !== label) {
+            button.setAttribute("aria-label", label);
+            button.setAttribute("title", label);
+          }
+        });
       host.querySelectorAll("textarea").forEach(input => {
         if (input.getAttribute("aria-label") !== "评论内容")
           input.setAttribute("aria-label", "评论内容");
@@ -177,10 +198,7 @@ export default function TwikooThread({
               input.value = draft.current;
               input.dispatchEvent(new Event("input", { bubbles: true }));
             }
-            if (!input.placeholder)
-              input.placeholder = collapsedWhenEmpty
-                ? "说点什么吧…"
-                : "写下你的评论…";
+            if (!input.placeholder) input.placeholder = "说点什么吧…";
             input.setAttribute("aria-label", "评论内容");
             if (input.value)
               input
@@ -334,17 +352,53 @@ export default function TwikooThread({
             {locationMessage}
           </p>
         )}
+        {!collapsedWhenEmpty && canCollapseEditor && (
+          <button
+            type="button"
+            className="comment-editor-close"
+            onClick={() => {
+              const editor = shell.current?.querySelector<HTMLElement>(
+                ".tk-comments > .tk-submit"
+              );
+              const input =
+                editor?.querySelector<HTMLTextAreaElement>("textarea");
+              if (input?.value.trim()) return;
+              input?.blur();
+              editor?.removeAttribute("data-editor-expanded");
+              setCanCollapseEditor(false);
+            }}
+          >
+            收起输入框
+          </button>
+        )}
         <div
           ref={shell}
           className="twikoo-root"
+          data-comment-mode={mode}
           data-compact-editor=""
           onInputCapture={event => {
             const input = event.target as HTMLTextAreaElement;
-            if (input.matches("textarea")) draft.current = input.value;
+            if (input.matches("textarea")) {
+              draft.current = input.value;
+              if (
+                input
+                  .closest(".tk-submit")
+                  ?.parentElement?.classList.contains("tk-comments")
+              )
+                setCanCollapseEditor(!input.value.trim());
+            }
           }}
           onFocusCapture={event => {
             const target = event.target as HTMLElement;
             if (target.matches("textarea")) {
+              if (
+                target
+                  .closest(".tk-submit")
+                  ?.parentElement?.classList.contains("tk-comments")
+              )
+                setCanCollapseEditor(
+                  !(target as HTMLTextAreaElement).value.trim()
+                );
               if (collapsedWhenEmpty) setExpanded(true);
               target
                 .closest(".tk-submit")
