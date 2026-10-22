@@ -2,6 +2,7 @@ type TwikooInitOptions = {
   envId: string;
   el: string;
   path: string;
+  href?: string;
   lang?: string;
   region?: string;
   onCommentLoaded?: () => void;
