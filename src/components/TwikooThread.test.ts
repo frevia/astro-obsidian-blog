@@ -12,7 +12,7 @@ vi.mock("@/config", () => ({ SITE: { comments: { enabled: true } } }));
 import TwikooThread from "./TwikooThread";
 
 describe("shared comment presentation", () => {
-  it("shows the page panel immediately without an inline toggle", () => {
+  it("shows the page panel with the shared collapse control", () => {
     const $ = load(
       renderToStaticMarkup(
         createElement(TwikooThread, {
@@ -22,7 +22,10 @@ describe("shared comment presentation", () => {
         })
       )
     );
-    expect($("button")).toHaveLength(0);
+    expect($("button[aria-controls=page-panel]").attr("aria-expanded")).toBe(
+      "true"
+    );
+    expect($("button[aria-controls=page-panel]").text()).toBe("收起");
     expect($("#page-panel").attr("hidden")).toBeUndefined();
     expect($("[role=status]").text()).toContain("正在加载评论");
   });

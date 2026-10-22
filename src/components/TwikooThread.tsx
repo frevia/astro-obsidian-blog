@@ -44,7 +44,6 @@ export default function TwikooThread({
   const [activated, setActivated] = useState(!collapsedWhenEmpty);
   const draft = useRef("");
   const focusComposer = useRef(false);
-  const [canCollapseEditor, setCanCollapseEditor] = useState(false);
   const [status, setStatus] = useState("loading");
   const [commentCount, setCommentCount] = useState<number | null>(null);
 
@@ -89,7 +88,7 @@ export default function TwikooThread({
 
   // 获取评论数量
   useEffect(() => {
-    if (!commentsEnabled || !hasRequiredEnv || !collapsedWhenEmpty) return;
+    if (!commentsEnabled || !hasRequiredEnv) return;
     const resolvedEnvId = envId;
     if (!resolvedEnvId) return;
 
@@ -130,6 +129,10 @@ export default function TwikooThread({
     let stopLocating: (() => void) | undefined;
     // Twikoo can replace textareas after loading comments or opening a reply.
     const labelInputs = () => {
+      const count = host
+        .querySelector(".tk-comments-count")
+        ?.textContent?.match(/\d+/)?.[0];
+      if (count !== undefined) setCommentCount(Number(count));
       // shortcut: Twikoo 2.0.16 exposes only SVG paths; replace when upstream provides action labels.
       const actionIcons = [
         ["M171.5 38.8", "点赞"],
@@ -295,25 +298,25 @@ export default function TwikooThread({
         collapsedWhenEmpty ? "notes-comments mt-1" : "comments-panel mt-8"
       }
     >
-      {collapsedWhenEmpty && (
-        <div className="notes-comment-toolbar">
-          <span className="text-sm text-skin-base/60">{timestamp}</span>
-          <button
-            type="button"
-            className="flex min-h-7 items-center gap-1 text-sm text-foreground/60 hover:text-accent focus-visible:outline-2 focus-visible:outline-accent pointer-coarse:min-h-11"
-            onClick={toggle}
-            aria-label={expanded ? "收起评论" : "展开评论"}
-            aria-expanded={expanded}
-            aria-controls={`${threadKey}-panel`}
-          >
-            <CommentIcon className="h-5 w-5" />
-            <span>
-              {expanded ? "收起" : "评论"}
-              {hasComments ? ` ${commentCount}` : ""}
-            </span>
-          </button>
-        </div>
-      )}
+      <div className="notes-comment-toolbar">
+        <span className="text-sm text-skin-base/60">
+          {collapsedWhenEmpty ? timestamp : null}
+        </span>
+        <button
+          type="button"
+          className="flex min-h-7 items-center gap-1 text-sm text-foreground/60 hover:text-accent focus-visible:outline-2 focus-visible:outline-accent pointer-coarse:min-h-11"
+          onClick={toggle}
+          aria-label={expanded ? "收起评论" : "展开评论"}
+          aria-expanded={expanded}
+          aria-controls={`${threadKey}-panel`}
+        >
+          <CommentIcon className="h-5 w-5" />
+          <span>
+            {expanded ? "收起" : "评论"}
+            {hasComments ? ` ${commentCount}` : ""}
+          </span>
+        </button>
+      </div>
       <div
         id={`${threadKey}-panel`}
         hidden={!collapsedWhenEmpty && !expanded}
@@ -356,25 +359,6 @@ export default function TwikooThread({
             {locationMessage}
           </p>
         )}
-        {!collapsedWhenEmpty && canCollapseEditor && (
-          <button
-            type="button"
-            className="comment-editor-close"
-            onClick={() => {
-              const editor = shell.current?.querySelector<HTMLElement>(
-                ".tk-comments > .tk-submit"
-              );
-              const input =
-                editor?.querySelector<HTMLTextAreaElement>("textarea");
-              if (input?.value.trim()) return;
-              input?.blur();
-              editor?.removeAttribute("data-editor-expanded");
-              setCanCollapseEditor(false);
-            }}
-          >
-            收起输入框
-          </button>
-        )}
         <div
           ref={shell}
           className="twikoo-root"
@@ -384,25 +368,11 @@ export default function TwikooThread({
             const input = event.target as HTMLTextAreaElement;
             if (input.matches("textarea")) {
               draft.current = input.value;
-              if (
-                input
-                  .closest(".tk-submit")
-                  ?.parentElement?.classList.contains("tk-comments")
-              )
-                setCanCollapseEditor(!input.value.trim());
             }
           }}
           onFocusCapture={event => {
             const target = event.target as HTMLElement;
             if (target.matches("textarea")) {
-              if (
-                target
-                  .closest(".tk-submit")
-                  ?.parentElement?.classList.contains("tk-comments")
-              )
-                setCanCollapseEditor(
-                  !(target as HTMLTextAreaElement).value.trim()
-                );
               if (collapsedWhenEmpty) setExpanded(true);
               target
                 .closest(".tk-submit")
