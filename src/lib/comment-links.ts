@@ -232,3 +232,21 @@ export function readCommentTarget(
   if (!fragment || /^date-\d{4}-\d{2}-\d{2}$/.test(fragment)) return null;
   return { id: fragment, path: thread ?? path };
 }
+
+/** Twikoo appends the new comment ID to this URL when composing email. */
+export function commentNotificationHref(
+  path: string,
+  siteUrl: string
+): string | undefined {
+  const site = parseSiteUrl(siteUrl);
+  if (!site || !isRootPath(path)) return undefined;
+  const note = path.match(/^(.*)\/diary\/(\d{4})-(0[1-9]|1[0-2])-([0-3]\d)$/);
+  const href = new URL(
+    note
+      ? `${note[1]}/notes/${note[2]}-Q${Math.ceil(Number(note[3]) / 3)}`
+      : path,
+    site
+  );
+  if (note) href.searchParams.set("thread", path);
+  return href.href;
+}

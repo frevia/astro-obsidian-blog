@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   commentDestination,
   readCommentTarget,
+  commentNotificationHref,
   type CommentCatalog,
 } from "./comment-links";
 
@@ -129,5 +130,36 @@ describe("readCommentTarget", () => {
       path: "/notes",
     });
     expect(readCommentTarget("/notes", "", "#date-2026-04-04")).toBeNull();
+  });
+});
+
+describe("commentNotificationHref", () => {
+  it("keeps the Notes thread while selecting its permanent quarter page", () => {
+    expect(
+      commentNotificationHref("/diary/2026-10-15", "https://www.frevia.me")
+    ).toBe("https://www.frevia.me/notes/2026-Q4?thread=%2Fdiary%2F2026-10-15");
+  });
+  it("supports a deployment base and an email-appended comment hash", () => {
+    const href = new URL(
+      commentNotificationHref("/blog/diary/2026-04-04", "https://example.com")!
+    );
+    href.hash = "reply-2";
+    expect(href.pathname).toBe("/blog/notes/2026-Q2");
+    expect(
+      readCommentTarget("/blog/diary/2026-04-04", href.search, href.hash)
+    ).toEqual({ id: "reply-2", path: "/blog/diary/2026-04-04" });
+    expect(
+      readCommentTarget("/blog/diary/2026-04-05", href.search, href.hash)
+    ).toBeNull();
+  });
+  it("keeps ordinary articles on their own path", () => {
+    expect(
+      commentNotificationHref("/posts/example", "https://example.com")
+    ).toBe("https://example.com/posts/example");
+  });
+  it("rejects external thread paths", () => {
+    expect(
+      commentNotificationHref("//evil.example", "https://example.com")
+    ).toBeUndefined();
   });
 });

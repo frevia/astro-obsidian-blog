@@ -12,7 +12,10 @@ import {
   ensureTwikooStyle,
   type TwikooGetCommentsCountOptions,
 } from "@/lib/twikoo-client";
-import { readCommentTarget } from "@/lib/comment-links";
+import {
+  commentNotificationHref,
+  readCommentTarget,
+} from "@/lib/comment-links";
 import { locateComment } from "@/lib/locate-comment";
 
 // Twikoo 2.x owns one app; serialize mounts across inline threads.
@@ -173,6 +176,7 @@ export default function TwikooThread({
           envId,
           el: `#${mount.id}`,
           path: target?.path ?? path,
+          href: commentNotificationHref(target?.path ?? path, location.origin),
           lang: PUBLIC_TWIKOO_LANG || "zh-CN",
           ...(PUBLIC_TWIKOO_REGION ? { region: PUBLIC_TWIKOO_REGION } : {}),
         });
