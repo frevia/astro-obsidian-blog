@@ -618,16 +618,8 @@ video {
 /* Twikoo 评论：评论列表与输入框左对齐（覆盖 Twikoo 动态注入的样式） */
 #tcomment .tk-comments-container,
 .twikoo .tk-comments-container {
-  margin-left: 55px !important;
+  margin-left: 0 !important;
   min-height: 2rem !important;
-}
-
-/* Twikoo 多级评论：回复正文与昵称保持和顶级评论一致的字号 */
-#tcomment .tk-replies .tk-content,
-.twikoo .tk-replies .tk-content,
-#tcomment .tk-replies .tk-nick-link,
-.twikoo .tk-replies .tk-nick-link {
-  font-size: 1em !important;
 }
 
 /* Outrank Twikoo 2.x CDN styles so its flex rules cannot break this grid. */
@@ -656,7 +648,7 @@ video {
   margin: 0;
 }
 .twikoo-root .twikoo .tk-comment .tk-content {
-  margin-block: 4px 6px;
+  margin-block: 2px 4px;
   overflow-wrap: anywhere;
 }
 .twikoo-root .twikoo .tk-nick,
@@ -715,9 +707,9 @@ video {
   .tk-comments
   > .tk-submit:not([data-editor-expanded]):not(:has(textarea:focus))
   textarea {
-  height: 32px !important;
-  min-height: 32px !important;
-  padding: 6px 10px;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 7px 10px;
   font-size: 0.875rem;
   line-height: 20px;
 }
@@ -744,8 +736,8 @@ video {
     textarea {
     height: 44px !important;
     min-height: 44px !important;
-    margin-block: -6px;
-    border-block: 6px solid transparent;
+    margin-block: -5px;
+    border-block: 5px solid transparent;
     background-clip: padding-box;
   }
 }
@@ -1126,7 +1118,7 @@ html[data-navigation-pending] #main-nav {
 .notes-composer-placeholder {
   flex: 1;
   min-width: 0;
-  padding: 6px 10px;
+  padding: 7px 10px;
   border-radius: 4px;
   background: var(--surface-muted);
   color: var(--foreground-muted);
@@ -1139,4 +1131,231 @@ html[data-navigation-pending] #main-nav {
 .notes-composer-trigger:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* Mobile composers use the full width; published comment avatars stay visible. */
+@media (max-width: 639px) {
+  .twikoo-root
+    .twikoo
+    .tk-submit:is([data-editor-expanded], :has(textarea:focus))
+    > .tk-row
+    > .tk-avatar {
+    display: none;
+  }
+  .twikoo-root .twikoo .tk-submit > .tk-row > .tk-col {
+    min-width: 0;
+  }
+  .twikoo-root .twikoo .tk-submit > .tk-row.actions {
+    margin-left: 0;
+    gap: 8px;
+  }
+}
+
+/* Match the resting composer to the Notes entry across all comment pages. */
+.twikoo-root[data-compact-editor]
+  .tk-comments
+  > .tk-submit:not([data-editor-expanded]):not(:has(textarea:focus)) {
+  > .tk-row {
+    align-items: center;
+    min-height: 44px;
+  }
+  > .tk-row > .tk-avatar {
+    width: 28px;
+    height: 28px;
+    margin-right: 10px;
+  }
+  textarea {
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 7px 10px;
+    border: 0;
+    border-radius: 4px;
+    background: var(--surface-muted);
+    box-shadow: none;
+    font-size: 0.875rem;
+    line-height: 20px;
+  }
+  textarea::placeholder {
+    color: var(--foreground-muted);
+    opacity: 1;
+  }
+}
+
+/* Keep comment typography independent of article prose and CDN heading sizes. */
+.twikoo-root .twikoo {
+  font-size: 0.875rem;
+}
+.twikoo-root .twikoo .tk-comments-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.twikoo-root .twikoo .tk-comment .tk-content {
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+.twikoo-root .twikoo .tk-comment .tk-nick-link,
+.twikoo-root .twikoo .tk-comment .tk-nick {
+  font-size: 0.875rem;
+}
+.twikoo-root .twikoo .tk-comment .tk-nick strong {
+  font-weight: 600;
+}
+.twikoo-root .twikoo .tk-time,
+.twikoo-root .twikoo .tk-sort-item,
+.twikoo-root .twikoo .tk-action-count {
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+/* A short writing area keeps quick replies proportional to the conversation. */
+.twikoo-root .twikoo .tk-submit textarea {
+  min-height: 96px;
+  height: 96px;
+  padding: 8px 10px;
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+
+/* Shared composer geometry; Notes and article comments use the same columns. */
+.twikoo-root .twikoo .tk-submit > .tk-row > .tk-avatar {
+  width: 28px;
+  height: 28px;
+  margin-right: 10px;
+}
+.twikoo-root .twikoo .tk-submit > .tk-row.actions {
+  margin-left: 38px;
+}
+.notes-comments .twikoo .tk-comments-sort {
+  display: none;
+}
+.notes-comments .twikoo .tk-comments-title {
+  justify-content: space-between;
+  margin-block: 4px 8px;
+}
+.comment-editor-close {
+  display: block;
+  margin-left: auto;
+  min-height: 32px;
+  padding-inline: 8px;
+  color: var(--foreground-muted);
+  font-size: 0.875rem;
+}
+.comment-editor-close:focus-visible,
+.twikoo-root .twikoo button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+@media (max-width: 639px) {
+  .twikoo-root .twikoo .tk-comment > .tk-main > .tk-submit {
+    grid-column: 1 / -1;
+  }
+  .twikoo-root .twikoo .tk-comment .tk-submit > .tk-row > .tk-avatar {
+    display: none;
+  }
+  .twikoo-root .twikoo .tk-submit > .tk-row.actions {
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+  .twikoo-root .twikoo .tk-submit .tk-input__inner {
+    font-size: 1rem;
+  }
+  .twikoo-root .twikoo .tk-submit input.tk-input__inner {
+    min-height: 44px;
+  }
+  .twikoo-root .twikoo .tk-submit textarea:focus {
+    font-size: 1rem;
+  }
+  .twikoo-root .twikoo .tk-submit .tk-button,
+  .twikoo-root .twikoo .tk-comment .tk-action-link,
+  .twikoo-root .twikoo .tk-sort-item,
+  .twikoo-root .twikoo .tk-icon.__comments,
+  .twikoo-root .twikoo .OwO-logo,
+  .comment-editor-close {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    align-items: center;
+  }
+  .twikoo-root .twikoo .tk-icon.__comments svg {
+    width: 14px;
+    height: 14px;
+  }
+  .twikoo-root .twikoo .tk-comment .tk-action-link {
+    margin-left: 0;
+  }
+  .twikoo-root .twikoo .tk-comments-title,
+  .twikoo-root .twikoo .tk-comments-actions {
+    flex-wrap: wrap;
+    gap: 0;
+  }
+  .twikoo-root .twikoo .tk-comments-sort {
+    gap: 0;
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 639px) {
+  .twikoo-root .twikoo .tk-submit .tk-input-group__prepend {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  .twikoo-root .twikoo .tk-submit .tk-button {
+    font-size: 0.875rem;
+  }
+  .twikoo-root .twikoo .OwO-logo {
+    display: flex;
+  }
+  .twikoo-root .twikoo .OwO-logo svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* The admin overlay must not inherit the compact conversation's short height. */
+.twikoo-root .twikoo:has(.tk-admin.__show) {
+  min-height: min(28rem, 75svh);
+}
+.twikoo-root .twikoo .tk-login {
+  padding-inline: 1rem;
+}
+.twikoo-root .twikoo .tk-login-title {
+  margin-top: clamp(1.5rem, 6svh, 4rem);
+}
+.twikoo-root .twikoo .tk-login form {
+  max-width: 26rem;
+}
+.twikoo-root .twikoo .tk-login .tk-password {
+  width: 100%;
+}
+
+/* Keep identity above the text and actions beside the conversation, not at the far edge. */
+.twikoo-root .twikoo .tk-comment > .tk-main > .tk-row {
+  display: contents;
+}
+.twikoo-root .twikoo .tk-comment > .tk-main > .tk-row > .tk-meta {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 4px;
+}
+.twikoo-root .twikoo .tk-comment > .tk-main > .tk-content {
+  grid-row: 2;
+}
+.twikoo-root .twikoo .tk-comment > .tk-main > .tk-row > .tk-action {
+  grid-column: 2;
+  grid-row: 3;
+  justify-content: flex-start;
+  margin: 0;
+}
+.twikoo-root .twikoo .tk-comment .tk-action-link:first-child {
+  margin-left: 0;
+}
+.twikoo-root[data-comment-mode="page"] .twikoo .tk-comment .tk-content {
+  font-size: 0.9375rem;
+  line-height: 1.7;
 }
