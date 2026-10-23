@@ -171,9 +171,13 @@ const hasJournalRelations =
     {
       isJournal ? (
         <JournalHero
+          category={articleCategory}
+          {readingMinutes}
           {title}
           {description}
           {published}
+          {eventDate}
+          {eventEndDate}
           {timezone}
           {titleTransitionName}
         >

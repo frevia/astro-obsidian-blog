@@ -339,24 +339,36 @@ function transformRoot(
                   children: [
                     {
                       type: "element" as const,
-                      tagName: "time" as const,
-                      properties: { dateTime: timeline.date },
+                      tagName: "span" as const,
+                      properties: { className: ["journal-date-sign"] },
                       children: [
-                        { type: "text" as const, value: timeline.date },
+                        {
+                          type: "element" as const,
+                          tagName: "time" as const,
+                          properties: { dateTime: timeline.date },
+                          children: [
+                            { type: "text" as const, value: timeline.date },
+                          ],
+                        },
+                        ...(timeline.period
+                          ? [
+                              {
+                                type: "element" as const,
+                                tagName: "span" as const,
+                                properties: {
+                                  className: ["journal-date-period"],
+                                },
+                                children: [
+                                  {
+                                    type: "text" as const,
+                                    value: timeline.period,
+                                  },
+                                ],
+                              },
+                            ]
+                          : []),
                       ],
                     },
-                    ...(timeline.period
-                      ? [
-                          {
-                            type: "element" as const,
-                            tagName: "span" as const,
-                            properties: {},
-                            children: [
-                              { type: "text" as const, value: timeline.period },
-                            ],
-                          },
-                        ]
-                      : []),
                   ],
                 },
               ]

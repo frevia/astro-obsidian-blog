@@ -57,7 +57,10 @@ const visibleTags = tags.filter(tag => tag.trim()).slice(0, 6);
       {title}
     </h1>
     <p class="article-hero-summary">{excerpt}</p>
-    <EventDate {eventDate} {eventEndDate} />
+    <div class="article-hero-context">
+      <EventDate {eventDate} {eventEndDate} />
+      <slot name="places" />
+    </div>
     <div class="article-hero-meta" aria-label="文章信息">
       <Datetime
         {published}

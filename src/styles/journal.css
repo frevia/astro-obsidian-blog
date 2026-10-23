@@ -28,28 +28,6 @@
     text-wrap: pretty;
   }
 
-  .journal-page .journal-hero-context {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.375rem 0.625rem;
-    min-width: 0;
-    color: var(--foreground-muted);
-    font-family: var(--font-sans);
-    font-size: 0.8125rem;
-    line-height: 1.7;
-  }
-
-  .journal-page .journal-hero-places {
-    display: none;
-  }
-
-  .journal-page .journal-hero-places:has(.article-places) {
-    display: flex;
-    align-items: baseline;
-    gap: 0.625rem;
-  }
-
   .journal-page .journal-chapter-nav {
     padding-block: 0.75rem 0;
     margin-bottom: 1.5rem;
@@ -171,7 +149,7 @@
     letter-spacing: 0.025em;
   }
 
-  .journal-page .journal-timeline-date > span {
+  .journal-page .journal-timeline-date .journal-date-period {
     padding: 0.125rem 0.5rem;
     border-radius: 4px;
     background: var(--surface-muted);
@@ -278,43 +256,6 @@
       grid-template-columns: minmax(0, 1fr);
     }
   }
-}
-
-.journal-page .journal-hero-context :is(.article-event-date, .article-places) {
-  margin: 0;
-  font-size: inherit;
-  line-height: inherit;
-}
-
-.journal-page .journal-hero-context .article-event-date > span {
-  font-size: inherit;
-}
-
-.journal-page .journal-hero-date {
-  margin: 0;
-  color: var(--foreground-muted);
-  font-size: inherit;
-  line-height: inherit;
-}
-
-.journal-page .journal-hero-published {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.journal-page .journal-hero-published > svg text {
-  display: none;
-}
-
-.journal-page .journal-hero-published > svg,
-.journal-page .journal-hero-places .article-places svg {
-  width: 1em;
-  height: 1em;
-}
-
-.journal-page .journal-hero-date .datetime-meta-label {
-  display: none;
 }
 
 .journal-page #sidebar.reading-navigation-desktop {
@@ -748,5 +689,377 @@
       [data-photo-count="1"]:has(> .journal-portrait)
     ) {
     padding-inline: 8px;
+  }
+}
+
+/* The dotted trail continues between dated chapters; ordinary chapters break it. */
+.journal-page .journal-timeline-chapter {
+  position: relative;
+  padding-inline-start: 1.5rem;
+}
+
+.journal-page .journal-timeline-chapter::before {
+  content: "";
+  position: absolute;
+  top: var(--journal-thread-start, 0px);
+  inset-inline-start: 0.21875rem;
+  width: 2px;
+  height: var(--journal-thread-height, 0px);
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--foreground-muted) 30%, transparent),
+    color-mix(in oklab, var(--foreground-muted) 15%, transparent)
+  );
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='14' viewBox='0 0 2 14'%3E%3Cpath d='M1 0C.6 1.5 0 3 0 5a1 1 0 0 0 2 0c0-2-.6-3.5-1-5Z'/%3E%3C/svg%3E");
+  mask-size: 2px 14px;
+  mask-repeat: repeat-y;
+  mask-position: 0 var(--journal-thread-offset, 0px);
+  opacity: 0;
+  transition: opacity 500ms ease-out;
+  pointer-events: none;
+}
+
+/* Let the final dated section's trail fade out alongside its remaining content. */
+.journal-page
+  .journal-timeline-chapter:not(:has(+ .journal-timeline-chapter))::before {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--foreground-muted) 30%, transparent),
+    color-mix(in oklab, var(--foreground-muted) 15%, transparent) 75%,
+    transparent
+  );
+}
+
+.journal-page.journal-scrolling .journal-timeline-chapter::before {
+  opacity: 1;
+  transition-duration: 120ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journal-page.journal-scrolling .journal-timeline-chapter::before {
+    opacity: 0;
+    transition: none;
+  }
+}
+
+.journal-page .journal-timeline-date::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -1.5rem;
+  top: 1rem;
+  width: 0.5625rem;
+  height: 0.5625rem;
+  border: 1px solid var(--foreground-muted);
+  border-radius: 50% 50% 50% 0;
+  background: color-mix(
+    in oklab,
+    var(--foreground-muted) 22%,
+    var(--background)
+  );
+  transform: rotate(-45deg);
+}
+
+.journal-page .journal-timeline-date time {
+  color: var(--foreground);
+  font-size: 0.875rem;
+}
+
+/* Journal spacing and typography inherit the ordinary article decoration. */
+.journal-page .article-hero {
+  margin-block: 1rem 1.5rem;
+  padding: clamp(0.75rem, 1.5vw, 1rem) clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.journal-page .article-hero-category {
+  color: var(--foreground-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.journal-page .article-hero-title {
+  color: var(--foreground);
+  font-size: clamp(1.625rem, 3vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-wrap: wrap;
+}
+
+.journal-page .article-hero-summary {
+  display: block;
+  max-width: none;
+  text-wrap: wrap;
+  margin-top: 0.5rem;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--foreground-muted);
+}
+
+.journal-page .article-hero-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1.25rem;
+  margin-top: 0.75rem;
+}
+
+.journal-page .article-hero-context:empty {
+  display: none;
+}
+
+.journal-page .article-hero-context :is(.article-event-date, .article-places) {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.journal-page .article-hero-meta {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+}
+
+.journal-page .article-hero-reading-time,
+.journal-page .article-hero-meta-separator,
+.journal-page .article-hero-date .datetime-meta-label {
+  color: var(--foreground-muted);
+  font-weight: 400;
+}
+
+/* A single-line trail sign keeps the date and period together. */
+.journal-page .journal-date-sign {
+  --sign-paper: color-mix(in oklab, #a5af91 9%, var(--surface));
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  max-width: 100%;
+  padding: 0.2rem 1rem 0.2rem 0.65rem;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+.journal-page .journal-date-sign::before,
+.journal-page .journal-date-sign::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 50%,
+    calc(100% - 12px) 100%,
+    0 100%
+  );
+  background: color-mix(in oklab, #78856a 65%, var(--foreground-muted));
+  pointer-events: none;
+}
+
+.journal-page .journal-date-sign::after {
+  inset: 1px;
+  background: var(--sign-paper);
+}
+
+.journal-page .journal-date-sign time {
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+}
+
+.journal-page .journal-date-sign .journal-date-period {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0;
+  background: none;
+  color: var(--foreground-muted);
+  font-size: 0.75rem;
+}
+
+.journal-page .journal-date-period::before {
+  content: "·";
+  margin-inline-end: 0.45rem;
+}
+
+/* Decorative details live in the margins and never capture photo interactions. */
+.journal-page .journal-photos > .rehype-figure::before {
+  display: none;
+}
+
+.journal-page .journal-photos .photo-frame {
+  position: relative;
+}
+
+.journal-page .journal-photos .photo-frame::after {
+  --corner-paper: color-mix(in oklab, #b59b70 35%, var(--surface));
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background:
+    linear-gradient(135deg, var(--corner-paper) 48%, transparent 50%) top left,
+    linear-gradient(225deg, var(--corner-paper) 48%, transparent 50%) top right,
+    linear-gradient(45deg, var(--corner-paper) 48%, transparent 50%) bottom left,
+    linear-gradient(315deg, var(--corner-paper) 48%, transparent 50%) bottom
+      right;
+  background-size: 16px 16px;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.journal-page .journal-chapter > h2::after {
+  content: "";
+  display: block;
+  width: 2.5rem;
+  height: 2px;
+  margin-top: 0.5rem;
+  background: color-mix(in oklab, #a68c60 50%, transparent);
+  border-radius: 50%;
+  transform: rotate(-2deg);
+}
+
+.journal-page .journal-chapter:nth-of-type(3n + 1) > h2 {
+  position: relative;
+  padding-inline-end: 5.5rem;
+}
+
+.journal-page .journal-chapter:nth-of-type(3n + 1) > h2::before {
+  content: "";
+  position: absolute;
+  inset-inline-end: 0;
+  top: -0.5rem;
+  width: 5rem;
+  height: 3.2rem;
+  background: url("/images/journal/mountain-sprig.svg") center / contain
+    no-repeat;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.journal-page .journal-moment {
+  --foreground: #34372f;
+  --foreground-muted: #575e4e;
+  --accent: #465d3e;
+  isolation: isolate;
+  padding: 1.8rem 2rem;
+  background: none;
+  border: 0;
+  color: #34372f;
+  font-family: "Kaiti SC", "STKaiti", "KaiTi", var(--font-serif);
+}
+
+.journal-page .journal-moment::before {
+  content: "";
+  z-index: -1;
+  inset: 0;
+  width: auto;
+  height: auto;
+  transform: none;
+  background: var(--journal-paper-image) center / 100% 100% no-repeat;
+  clip-path: none;
+  opacity: 1;
+}
+
+.journal-page .journal-moment-label {
+  color: #575e4e;
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+}
+
+@media (max-width: 640px) {
+  .journal-page .journal-chapter:nth-of-type(3n + 1) > h2 {
+    padding-inline-end: 3.5rem;
+  }
+  .journal-page .journal-chapter:nth-of-type(3n + 1) > h2::before {
+    width: 3rem;
+    height: 2rem;
+    top: 0;
+    opacity: 0.55;
+  }
+  .journal-page .journal-moment {
+    padding: 1.4rem 1.5rem;
+  }
+}
+
+/* Extend the sticky boundary through the next chapter's date inset. */
+.journal-page .journal-timeline-chapter:has(+ .journal-timeline-chapter) {
+  --date-handoff-overlap: 1.75rem;
+  margin-bottom: calc(-1 * var(--date-handoff-overlap));
+}
+
+.journal-page
+  .journal-timeline-chapter:has(+ .journal-timeline-chapter)::after {
+  content: "";
+  display: block;
+  height: var(--date-handoff-overlap);
+  pointer-events: none;
+}
+
+/* Journal chrome stays quieter than the photographs and paper notes. */
+body:has(.journal-page) #site-header {
+  box-shadow: none;
+}
+
+body:has(.journal-page) .year-progress[data-content-themed] {
+  --year-progress-start: #a5af91;
+  --year-progress-end: #78856a;
+}
+
+body:has(.journal-page) .year-progress-bar,
+body:has(.journal-page) .year-progress-bar::after {
+  box-shadow: none;
+}
+
+body:has(.journal-page) .calendar-chime-on-progress {
+  filter: saturate(0.35);
+}
+
+[data-theme="dark"] .journal-page .journal-moment::before {
+  filter: brightness(0.78) saturate(0.65);
+}
+
+[data-theme="dark"] .journal-page .journal-moment-label {
+  color: #34372f;
+}
+
+@media (max-width: 480px) {
+  .journal-page .article-hero-title {
+    font-size: 1.5rem;
+    text-wrap: pretty;
+  }
+}
+
+/* Dock the mobile utility in the date strip, outside photo and EXIF targets. */
+@media (max-width: 767px) {
+  .journal-page .journal-timeline-date {
+    min-height: 2.75rem;
+    padding-inline-end: 3rem;
+  }
+
+  body:has(.journal-page) #btt-btn-container {
+    top: var(--site-header-height, 4rem);
+    bottom: auto;
+    z-index: 30;
+    translate: none;
+    transform: none;
+  }
+
+  body:has(.journal-page) #btt-btn-container.opacity-0 {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  body:has(.journal-page) [data-button="back-to-top"] {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.25rem;
+    box-shadow: none;
+  }
+
+  body:has(.journal-page) #progress-indicator {
+    display: none;
   }
 }

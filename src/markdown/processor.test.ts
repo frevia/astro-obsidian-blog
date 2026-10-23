@@ -325,6 +325,10 @@ describe("processor contract", () => {
     expect(chapter.children(".journal-timeline-date").text()).toBe(
       "2024-07-20傍晚"
     );
+    expect(chapter.find(".journal-date-sign > time")).toHaveLength(1);
+    expect(
+      chapter.find(".journal-date-sign > .journal-date-period").text()
+    ).toBe("傍晚");
     expect(heading.text()).toBe("到山顶的村子");
     expect(heading.attr("id")).toBe("2024-07-20-傍晚到山顶的村子");
     expect(heading.find("a.heading-anchor").attr("href")).toBe(
