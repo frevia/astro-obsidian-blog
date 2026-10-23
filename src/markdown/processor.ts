@@ -21,6 +21,7 @@ import {
   headingAnchorPlugin,
   highlightPlugin,
   mathPlugin,
+  publicVideoPlugin,
 } from "./plugins/presentation";
 
 export interface MarkdownRenderOptions {
@@ -49,6 +50,7 @@ export const pageHastPlugins: HastPluginDefinition[] = [
   highlightPlugin,
   mathPlugin,
   codeToolbarPlugin,
+  publicVideoPlugin,
   figurePlugin,
   journalHastPlugin,
 ];

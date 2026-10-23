@@ -228,6 +228,52 @@ export const mathPlugin: HastPluginDefinition = defineHastPlugin({
   },
 });
 
+export const publicVideoPlugin: HastPluginDefinition = defineHastPlugin({
+  name: "public-video",
+  element: {
+    filter: ["a"],
+    visit(node, ctx) {
+      if (
+        node.properties.dataPublicVideo !== "true" &&
+        node.properties["data-public-video"] !== "true"
+      ) {
+        return;
+      }
+      const src = node.properties.href;
+      if (typeof src !== "string") return;
+
+      const caption: Element = {
+        ...node,
+        properties: {
+          ...node.properties,
+          className: ["article-video-caption"],
+        },
+      };
+      delete caption.properties.dataPublicVideo;
+      delete caption.properties["data-public-video"];
+      ctx.replaceNode(node, {
+        type: "element",
+        tagName: "span",
+        properties: { className: ["article-video"] },
+        children: [
+          {
+            type: "element",
+            tagName: "video",
+            properties: {
+              src,
+              controls: true,
+              playsInline: true,
+              preload: "metadata",
+              ariaLabel: ctx.textContent(node) || "Article video",
+            },
+            children: [caption],
+          },
+        ],
+      });
+    },
+  },
+});
+
 export const codeToolbarPlugin: HastPluginDefinition = defineHastPlugin({
   name: "code-toolbar",
   element: {
