@@ -566,6 +566,37 @@ video {
   width: 100%;
 }
 
+.article-video {
+  display: contents;
+}
+
+.article-video .video-container {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 1rem auto;
+}
+
+.article-video video {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: min(70vh, 40rem);
+  background: #000;
+  object-fit: contain;
+}
+
+@media (hover: none) {
+  .article-video video::-webkit-media-controls,
+  .article-video video::-webkit-media-controls-panel,
+  .article-video video::-webkit-media-controls-timeline,
+  .article-video video::-webkit-media-controls-current-time-display,
+  .article-video video::-webkit-media-controls-time-remaining-display {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
 .video-play-button {
   position: absolute;
   top: 50%;

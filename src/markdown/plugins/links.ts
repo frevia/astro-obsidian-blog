@@ -8,6 +8,7 @@ import type { MdastPluginDefinition } from "satteri";
 import { processLink } from "@/utils/linkProcessor";
 import { WIKI_PATH } from "@/config";
 import { withBase } from "@/utils/withBase";
+import { resolvePublicVideo } from "@/utils/publicVideo";
 
 const imageExt = /\.(png|jpe?g|gif|webp|svg|avif)$/i;
 
@@ -67,12 +68,14 @@ export function createLinkProcessorPlugin({
 }: LinkProcessorOptions = {}): MdastPluginDefinition {
   return defineMdastPlugin({
     name: includeBase ? "link-processor" : "link-processor-rss",
-    link(node: Readonly<Link>, ctx) {
+    async link(node: Readonly<Link>, ctx) {
       if (shouldSkipLink(node.url)) return;
 
       const [pathname, hash] = splitHash(node.url);
       const target = hash ? `${pathname}#${hash}` : pathname;
-      const processedUrl = processLink(target, currentFilePath(ctx.fileURL));
+      const video = await resolvePublicVideo(target, ctx.fileURL);
+      const processedUrl =
+        video?.pathname ?? processLink(target, currentFilePath(ctx.fileURL));
       const resolvedUrl =
         processedUrl === node.url || processedUrl === target
           ? node.url.startsWith("/")
@@ -105,6 +108,15 @@ export function createLinkProcessorPlugin({
         "url",
         includeBase ? withBase(resolvedUrl, base) : resolvedUrl
       );
+      if (video && includeBase) {
+        ctx.setProperty(node, "data", {
+          ...node.data,
+          hProperties: {
+            ...((node.data?.hProperties as Record<string, unknown>) ?? {}),
+            dataPublicVideo: "true",
+          },
+        });
+      }
       if (resolvedUrl.startsWith("/posts/")) {
         ctx.setProperty(node, "data", {
           ...node.data,
