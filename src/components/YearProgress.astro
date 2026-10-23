@@ -159,7 +159,20 @@ const siteTimezone = SITE.timezone;
     }
   }
 
+  function syncYearProgressTheme() {
+    const root = document.querySelector(".year-progress");
+    if (!root) return;
+    const content = document.querySelector("main[data-content-kind]");
+    const accent = content
+      ? getComputedStyle(content).getPropertyValue("--page-accent").trim()
+      : "";
+    root.toggleAttribute("data-content-themed", Boolean(accent));
+    if (accent) root.style.setProperty("--year-progress-page-accent", accent);
+    else root.style.removeProperty("--year-progress-page-accent");
+  }
+
   function initYearProgress() {
+    syncYearProgressTheme();
     if (animating) return;
     const els = getElements();
     if (!els) return;
@@ -240,6 +253,20 @@ const siteTimezone = SITE.timezone;
     flex-shrink: 0;
   }
 
+  .year-progress[data-content-themed] {
+    --year-progress-ink: color-mix(
+      in oklab,
+      var(--year-progress-page-accent) 80%,
+      var(--foreground)
+    );
+    --year-progress-start: color-mix(
+      in oklab,
+      var(--year-progress-ink) 75%,
+      var(--surface)
+    );
+    --year-progress-end: var(--year-progress-ink);
+  }
+
   .year-progress[data-ready="1"] {
     opacity: 1;
   }
@@ -252,12 +279,11 @@ const siteTimezone = SITE.timezone;
     width: 0%;
     background: linear-gradient(
       90deg,
-      color-mix(in oklab, var(--year-progress-start) 82%, var(--accent)),
+      var(--year-progress-start),
       var(--year-progress-end)
     );
     border-radius: 0 9999px 9999px 0;
-    box-shadow: 0 0 0.4rem
-      color-mix(in oklab, var(--year-progress-end) 36%, transparent);
+    box-shadow: none;
     box-sizing: border-box;
     display: block;
     pointer-events: none;

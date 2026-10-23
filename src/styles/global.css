@@ -837,7 +837,7 @@ video {
   right: 0 !important;
   z-index: 50 !important;
   background: var(--surface-glass) !important;
-  box-shadow: 0 8px 30px -24px var(--accent);
+  box-shadow: 0 8px 30px -24px var(--border);
 }
 
 /* 足迹地图全国视图：单次渐隐/渐显 */
