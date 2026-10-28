@@ -34,14 +34,6 @@ const safeUrl = (value, fallback = "") => {
   return fallback;
 };
 
-const getHostLabel = value => {
-  try {
-    return new URL(value).hostname.replace(/^www\./, "");
-  } catch {
-    return "";
-  }
-};
-
 const getSiteRoot = value => {
   try {
     const url = new URL(value);
@@ -135,7 +127,6 @@ function createFeedCardHTML(item, fallbackOgImageGlobal, siteTimezone) {
   const postLink = safeUrl(item.link, "#");
   const siteLink = safeUrl(item.site_link, getSiteRoot(postLink));
   const avatarUrl = safeUrl(item.avatar, safeUrl(fallbackOgImageGlobal));
-  const sourceLabel = getHostLabel(postLink);
   const accessibleLabel = latestPostTitle
     ? `${blogName}：${latestPostTitle}`
     : `${blogName}：打开站点`;
@@ -176,7 +167,6 @@ function createFeedCardHTML(item, fallbackOgImageGlobal, siteTimezone) {
             </time>
           </span>
           <span class="feeds-card-article-row">
-            <span class="feeds-card-latest-label">最新</span>
             <a
               class="feeds-card-article-link feeds-card-title"
               href="${escapeHtml(postLink)}"
@@ -186,13 +176,6 @@ function createFeedCardHTML(item, fallbackOgImageGlobal, siteTimezone) {
             >
               ${escapeHtml(latestPostTitle || "暂未获取到最新文章")}
             </a>
-          </span>
-          <span class="feeds-card-foot">
-            ${
-              sourceLabel
-                ? `<a class="feeds-card-site-link feeds-card-domain" href="${escapeHtml(siteLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(sourceLabel)}</a>`
-                : ""
-            }
           </span>
         </span>
       </div>

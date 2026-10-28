@@ -4,6 +4,7 @@ import {
   isAlbumPost,
   albumDate,
   groupAlbumPhotos,
+  groupAlbumTrips,
   type AlbumPhoto,
 } from "./album";
 
@@ -171,5 +172,64 @@ describe("album collection", () => {
       ],
     };
     expect(groupAlbumPhotos([photo])[0].start).toBe("2025");
+  });
+  it("groups photos by journey source, deduplicates within a journey, and sorts periods", () => {
+    const photo = (
+      src: string,
+      sources: AlbumPhoto["sources"]
+    ): AlbumPhoto => ({
+      src,
+      original: src,
+      width: 1,
+      height: 1,
+      alt: "",
+      exif: "",
+      sources,
+    });
+    const shared = photo("shared.jpg", [
+      {
+        title: "同日旅程 A",
+        url: "/trip-a",
+        date: "2026-06-01",
+        eventDate: "2024-08",
+      },
+      {
+        title: "同日旅程 B",
+        url: "/trip-b",
+        date: "2026-06-01",
+        eventDate: "2024-08",
+      },
+    ]);
+    const duplicate = photo("duplicate.jpg", [
+      { title: "同日旅程 A", url: "/trip-a", date: "2026-06-01" },
+      { title: "同日旅程 A", url: "/trip-a", date: "2026-06-01" },
+    ]);
+    const latest = photo("latest.jpg", [
+      { title: "较新旅程", url: "/latest", date: "2026-07-01" },
+    ]);
+    const noSource = photo("none.jpg", []);
+
+    expect(
+      groupAlbumTrips([shared, { ...shared }, duplicate, latest, noSource])
+    ).toEqual([
+      expect.objectContaining({
+        source: expect.objectContaining({ url: "/latest" }),
+        kind: "published",
+        start: "2026-07-01",
+        photos: [latest],
+      }),
+      expect.objectContaining({
+        source: expect.objectContaining({ url: "/trip-a" }),
+        kind: "event",
+        start: "2024-08",
+        photos: [shared, duplicate],
+      }),
+      expect.objectContaining({
+        source: expect.objectContaining({ url: "/trip-b" }),
+        kind: "event",
+        start: "2024-08",
+        photos: [shared],
+      }),
+    ]);
   });
 });

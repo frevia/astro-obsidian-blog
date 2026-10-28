@@ -291,41 +291,25 @@ const hasTwikooEnv =
 
   .feeds-list {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.85rem;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   .feeds-card {
-    position: relative;
     min-width: 0;
-    overflow: hidden;
-    border: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
-    border-radius: 1rem;
-    background: color-mix(in oklab, var(--surface) 96%, transparent);
-    transition:
-      background-color 180ms ease,
-      border-color 180ms ease;
-  }
-
-  .feeds-card:hover,
-  .feeds-card:focus-within {
-    border-color: color-mix(in oklab, var(--accent) 32%, var(--border));
-    background: color-mix(in oklab, var(--accent) 3.5%, var(--surface));
+    border-bottom: 1px solid var(--border);
   }
 
   .feeds-card-body {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: 2.25rem minmax(0, 1fr);
     min-width: 0;
-    align-items: start;
-    gap: 0.6rem;
-    min-height: 5.7rem;
-    padding: 0.6rem;
-    color: inherit;
-    text-decoration: none;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
   }
 
   .feeds-card-site-link,
@@ -335,25 +319,19 @@ const hasTwikooEnv =
 
   .feeds-card-site-link:focus-visible,
   .feeds-card-article-link:focus-visible {
-    border-radius: 0.35rem;
     outline: 2px solid var(--accent);
     outline-offset: 3px;
   }
 
   .feeds-card-avatar {
     display: grid;
-    margin-top: 0.05rem;
     width: 2.25rem;
     height: 2.25rem;
-    flex: none;
     place-items: center;
     overflow: hidden;
-    border: 1px solid color-mix(in oklab, var(--accent) 24%, var(--border));
-    border-radius: 0.9rem;
-    color: var(--accent);
-    background: var(--accent-softer);
-    font-size: 1rem;
-    font-weight: 700;
+    border-radius: 50%;
+    color: var(--foreground-muted);
+    background: var(--surface-muted);
   }
 
   .feeds-card-avatar img {
@@ -365,101 +343,59 @@ const hasTwikooEnv =
   .feeds-card-main {
     min-width: 0;
     display: grid;
-    align-self: stretch;
-    grid-template-rows: auto minmax(1.7rem, auto) auto;
-    gap: 0.12rem;
+    grid-template-columns: minmax(8rem, 0.7fr) minmax(0, 2fr);
+    align-items: center;
+    gap: 1.5rem;
   }
 
-  .feeds-card-meta,
-  .feeds-card-foot {
+  .feeds-card-meta {
     display: flex;
     min-width: 0;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.65rem;
-  }
-
-  .feeds-card-foot {
-    justify-content: flex-start;
-  }
-
-  .feeds-card-article-row {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: 0.38rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
   }
 
   .feeds-card-source {
+    max-width: 100%;
     overflow: hidden;
-    color: var(--accent);
-    font-size: 0.76rem;
-    font-weight: 750;
-    letter-spacing: 0.04em;
+    color: var(--foreground-muted);
+    font-size: 0.84rem;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .feeds-card-date {
-    flex: none;
     color: var(--foreground-subtle);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-variant-numeric: tabular-nums;
-    white-space: nowrap;
+  }
+
+  .feeds-card-article-row {
+    min-width: 0;
   }
 
   .feeds-card-title {
-    display: -webkit-box;
-    overflow: hidden;
-    color: color-mix(in oklab, var(--foreground) 92%, transparent);
-    font-size: clamp(0.94rem, 1.5vw, 1.04rem);
-    font-weight: 620;
-    line-height: 1.45;
-    align-self: center;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    transition: color 160ms ease;
-  }
-
-  .feeds-card-latest-label {
-    align-self: center;
-    border-radius: 999px;
-    padding: 0.08rem 0.3rem;
-    color: color-mix(in oklab, var(--foreground) 68%, transparent);
-    background: var(--accent-softer);
-    font-size: 0.6rem;
-    font-weight: 700;
-    line-height: 1.35;
-    letter-spacing: 0.04em;
+    display: block;
+    color: var(--foreground);
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
   }
 
   .feeds-card-title:hover,
-  .feeds-card-title:focus-visible {
+  .feeds-card-source:hover {
     color: var(--accent);
-  }
-
-  .feeds-card-source:hover,
-  .feeds-card-domain:hover {
-    color: color-mix(in oklab, var(--accent) 74%, var(--foreground));
-  }
-
-  .feeds-card-domain {
-    overflow: hidden;
-    color: var(--foreground-subtle);
-    font-size: 0.7rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .feeds-skeleton-card {
     display: flex;
-    min-height: 6.25rem;
-    align-items: flex-start;
-    gap: 0.85rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-card);
-    padding: 1rem;
-    background: var(--surface-muted);
+    min-height: 5.5rem;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 0;
   }
 
   .feeds-skeleton-avatar,
@@ -636,27 +572,26 @@ const hasTwikooEnv =
     }
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 639px) {
     .feeds-card-body {
-      gap: 0.55rem;
-      min-height: 5.6rem;
-      padding: 0.55rem;
+      gap: 0.75rem;
+      align-items: start;
     }
-
-    .feeds-card-avatar {
-      width: 2.5rem;
-      height: 2.5rem;
-      border-radius: 0.75rem;
-    }
-
-    .feeds-card-title {
-      font-size: 0.94rem;
-    }
-  }
-
-  @media (max-width: 700px) {
-    .feeds-list {
+    .feeds-card-main {
       grid-template-columns: minmax(0, 1fr);
+      gap: 0.3rem;
+    }
+    .feeds-card-meta {
+      flex-direction: row;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .feeds-card-date {
+      flex-shrink: 0;
+    }
+    .feeds-card-title {
+      font-size: 0.96rem;
     }
   }
 

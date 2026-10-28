@@ -1,0 +1,141 @@
+---
+import { withBase } from "@/utils/withBase";
+import type { NotesMonthYear } from "@/utils/notesMonths";
+
+interface Props {
+  months: NotesMonthYear[];
+  currentMonth?: string;
+}
+const { months, currentMonth } = Astro.props;
+const allMonths = months.flatMap(group => group.months);
+const currentIndex = allMonths.findIndex(item => item.month === currentMonth);
+const newer = currentIndex > 0 ? allMonths[currentIndex - 1] : undefined;
+const older = currentIndex >= 0 ? allMonths[currentIndex + 1] : undefined;
+---
+
+{
+  allMonths.length > 0 && (
+    <nav aria-label="Notes 月份导航" class="notes-month-nav">
+      {currentMonth && (
+        <div class="month-pagination">
+          <a href={withBase("/notes")}>全部 Notes</a>
+          <span>
+            {newer && (
+              <a
+                href={withBase(`/notes/${newer.month}`)}
+                aria-label={`较新月份 ${newer.month}`}
+              >
+                ← {newer.month}
+              </a>
+            )}
+            {older && (
+              <a
+                href={withBase(`/notes/${older.month}`)}
+                aria-label={`较早月份 ${older.month}`}
+              >
+                {older.month} →
+              </a>
+            )}
+          </span>
+        </div>
+      )}
+      <details>
+        <summary>按月浏览</summary>
+        <div class="month-directory">
+          {months.map(group => (
+            <section aria-label={`${group.year} 年`}>
+              <h2>{group.year}</h2>
+              <ul>
+                {group.months.map(item => (
+                  <li>
+                    <a
+                      href={withBase(`/notes/${item.month}`)}
+                      aria-current={
+                        item.month === currentMonth ? "page" : undefined
+                      }
+                      aria-label={`${item.month}，${item.count} 天记录`}
+                    >
+                      {Number(item.month.slice(5))} 月{" "}
+                      <small>{item.count} 天</small>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </details>
+    </nav>
+  )
+}
+
+<style>
+  .notes-month-nav {
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+  }
+  .month-pagination,
+  .month-pagination span {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.25rem;
+  }
+  .month-pagination {
+    justify-content: space-between;
+  }
+  summary {
+    min-height: 44px;
+    align-content: center;
+    cursor: pointer;
+    color: var(--foreground-muted);
+  }
+  .month-directory {
+    padding: 0.5rem 0 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  section {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 0.4rem;
+  }
+  h2 {
+    font-size: 0.875rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--foreground);
+    text-decoration: none;
+    gap: 0.4rem;
+  }
+  small {
+    color: var(--foreground-muted);
+    font-size: 0.75rem;
+  }
+  a:hover,
+  a[aria-current] {
+    color: var(--accent);
+  }
+  a[aria-current] {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  a:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+</style>

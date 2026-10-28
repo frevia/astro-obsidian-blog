@@ -63,6 +63,14 @@ export interface AlbumPhotoGroup {
   photos: AlbumPhoto[];
 }
 
+export interface AlbumTripGroup {
+  source: AlbumSource;
+  kind: "event" | "published";
+  start: string;
+  end?: string;
+  photos: AlbumPhoto[];
+}
+
 function preferredSource(photo: AlbumPhoto): AlbumSource | undefined {
   const periods = new Set(
     photo.sources.flatMap(source => {
@@ -110,5 +118,36 @@ export function groupAlbumPhotos(photos: AlbumPhoto[]): AlbumPhotoGroup[] {
       { start: b.start, end: b.end },
       { start: a.start, end: a.end }
     )
+  );
+}
+
+export function groupAlbumTrips(photos: AlbumPhoto[]): AlbumTripGroup[] {
+  const trips = new Map<string, AlbumTripGroup>();
+  for (const photo of photos) {
+    for (const source of photo.sources) {
+      if (!source.url) continue;
+      const trip = trips.get(source.url);
+      if (trip) {
+        if (!trip.photos.some(existing => existing.original === photo.original))
+          trip.photos.push(photo);
+        continue;
+      }
+      const eventPeriod = getEventPeriod(source);
+      const period: EventPeriod = eventPeriod ?? { start: source.date };
+      trips.set(source.url, {
+        source,
+        kind: eventPeriod ? "event" : "published",
+        start: period.start,
+        end: period.end,
+        photos: [photo],
+      });
+    }
+  }
+  return [...trips.values()].sort(
+    (a, b) =>
+      compareEventPeriods(
+        { start: b.start, end: b.end },
+        { start: a.start, end: a.end }
+      ) || a.source.url.localeCompare(b.source.url)
   );
 }
