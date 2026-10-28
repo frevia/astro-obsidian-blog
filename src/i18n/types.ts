@@ -14,6 +14,10 @@ export interface UIStrings {
     mainLabel: string;
     mobileLabel: string;
     rssFeed: string;
+    more: string;
+    mapFootprint: string;
+    travelAlbum: string;
+    recentComments: string;
   };
   post: {
     publishedAt: string;

@@ -34,20 +34,16 @@ describe("Header mobile menu accessibility behaviors", () => {
     expect(source).toContain("lastFocusedElement?.focus()");
   });
 
-  it("removes the previous Escape handler before rebinding after swaps", () => {
+  it("binds one Escape handler and resets menu state after swaps", () => {
     const source = readFileSync(headerPath, "utf-8");
 
-    expect(source).toContain("let currentEscCloseHandler");
+    expect(
+      source.match(/document\.addEventListener\("keydown", event =>/g)
+    ).toHaveLength(1);
     expect(source).toContain(
-      'document.removeEventListener("keydown", currentEscCloseHandler)'
+      'document.addEventListener("astro:after-swap", () => {'
     );
-    expect(source).toContain("currentEscCloseHandler = handleEscClose");
-    expect(source).toContain(
-      'document.addEventListener("keydown", currentEscCloseHandler)'
-    );
-    expect(source).not.toContain(
-      'document.removeEventListener("keydown", handleEscClose)'
-    );
+    expect(source).toContain("    toggleNav();");
   });
 
   it("locks body scroll while menu is open", () => {

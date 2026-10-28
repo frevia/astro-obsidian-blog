@@ -16,6 +16,10 @@ export default {
     mainLabel: "Main navigation",
     mobileLabel: "Mobile main navigation",
     rssFeed: "RSS Feed",
+    more: "More",
+    mapFootprint: "Travel map",
+    travelAlbum: "Travel album",
+    recentComments: "Recent comments",
   },
   post: {
     publishedAt: "Published at",

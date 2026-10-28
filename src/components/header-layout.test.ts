@@ -17,5 +17,14 @@ describe("header navigation layout", () => {
     );
     expect(source).toContain('class="hidden lg:flex lg:items-center"');
     expect(source).toContain("syncMenuState(false)");
+    expect(source).toContain('class="nav-disclosure relative"');
+    expect(source).toContain("closeDisclosures(true)");
+    expect(source).toContain("group.querySelector('a[aria-current=\"page\"]')");
+    expect(source).toContain(
+      'document.addEventListener("astro:after-swap", () => closeDisclosures())'
+    );
+    expect(source).toContain(
+      "max-h-[calc(100dvh-var(--header-top-height,5rem)-2rem)]"
+    );
   });
 });
