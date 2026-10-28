@@ -1,6 +1,4 @@
 ---
-import { getImage } from "astro:assets";
-import tornPaper from "@/assets/journal/torn-paper.png";
 import ArticleHero from "@/components/article/ArticleHero.astro";
 
 export interface Props {
@@ -16,15 +14,7 @@ export interface Props {
 }
 
 const { titleTransitionName } = Astro.props;
-const paper = await getImage({ src: tornPaper, width: 1024, format: "webp" });
 ---
-
-<style
-  is:inline
-  set:html={`.journal-page {
-  --journal-paper-image: url("${paper.src}");
-}`}
-></style>
 
 <ArticleHero
   {...Astro.props}

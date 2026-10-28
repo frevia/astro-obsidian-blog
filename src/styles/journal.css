@@ -228,13 +228,13 @@
     margin: 0;
     padding: 1.15rem 1.25rem;
     border-inline-start: 2px solid var(--line-soft);
-    background: color-mix(in oklab, var(--surface-muted) 55%, var(--surface));
+    background: color-mix(in oklab, var(--surface-muted) 80%, transparent);
     color: var(--foreground-muted);
   }
 
   .journal-page .journal-moment-label {
     margin-bottom: 0.5rem;
-    font-size: 0.8125rem;
+    font-size: 0.7rem;
     letter-spacing: 0.05em;
   }
 
@@ -366,12 +366,12 @@
 .journal-page .journal-moment {
   position: relative;
   border-inline-start: 0;
-  transform: none;
+  transform: rotate(-0.6deg);
 }
 
 .journal-page .journal-moment::before {
-  width: 2.6rem;
-  height: 0.85rem;
+  width: 3.5rem;
+  height: 1.1rem;
   transform: rotate(5deg);
 }
 
@@ -764,9 +764,8 @@
   font-size: 0.875rem;
 }
 
-/* A single-line trail sign keeps the date and period together. */
+/* Keep the date and period together without a decorative sign. */
 .journal-page .journal-date-sign {
-  --sign-paper: color-mix(in oklab, #a5af91 9%, var(--surface));
   position: relative;
   isolation: isolate;
   display: inline-flex;
@@ -777,28 +776,6 @@
   padding: 0.2rem 1rem 0.2rem 0.65rem;
   color: var(--foreground);
   white-space: nowrap;
-}
-
-.journal-page .journal-date-sign::before,
-.journal-page .journal-date-sign::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  clip-path: polygon(
-    0 0,
-    calc(100% - 12px) 0,
-    100% 50%,
-    calc(100% - 12px) 100%,
-    0 100%
-  );
-  background: color-mix(in oklab, #78856a 65%, var(--foreground-muted));
-  pointer-events: none;
-}
-
-.journal-page .journal-date-sign::after {
-  inset: 1px;
-  background: var(--sign-paper);
 }
 
 .journal-page .journal-date-sign time {
@@ -827,22 +804,6 @@
 
 .journal-page .journal-photos .photo-frame {
   position: relative;
-}
-
-.journal-page .journal-photos .photo-frame::after {
-  --corner-paper: color-mix(in oklab, #b59b70 35%, var(--surface));
-  content: "";
-  position: absolute;
-  inset: -1px;
-  background:
-    linear-gradient(135deg, var(--corner-paper) 48%, transparent 50%) top left,
-    linear-gradient(225deg, var(--corner-paper) 48%, transparent 50%) top right,
-    linear-gradient(45deg, var(--corner-paper) 48%, transparent 50%) bottom left,
-    linear-gradient(315deg, var(--corner-paper) 48%, transparent 50%) bottom
-      right;
-  background-size: 16px 16px;
-  background-repeat: no-repeat;
-  pointer-events: none;
 }
 
 .journal-page .journal-chapter > h2::after {
@@ -874,36 +835,6 @@
   pointer-events: none;
 }
 
-.journal-page .journal-moment {
-  --foreground: #34372f;
-  --foreground-muted: #575e4e;
-  --accent: #465d3e;
-  isolation: isolate;
-  padding: 1.8rem 2rem;
-  background: none;
-  border: 0;
-  color: #34372f;
-  font-family: "Kaiti SC", "STKaiti", "KaiTi", var(--font-serif);
-}
-
-.journal-page .journal-moment::before {
-  content: "";
-  z-index: -1;
-  inset: 0;
-  width: auto;
-  height: auto;
-  transform: none;
-  background: var(--journal-paper-image) center / 100% 100% no-repeat;
-  clip-path: none;
-  opacity: 1;
-}
-
-.journal-page .journal-moment-label {
-  color: #575e4e;
-  font-size: 0.9rem;
-  letter-spacing: 0.12em;
-}
-
 @media (max-width: 640px) {
   .journal-page .journal-chapter:nth-of-type(3n + 1) > h2 {
     padding-inline-end: 3.5rem;
@@ -913,9 +844,6 @@
     height: 2rem;
     top: 0;
     opacity: 0.55;
-  }
-  .journal-page .journal-moment {
-    padding: 1.4rem 1.5rem;
   }
 }
 
@@ -946,14 +874,6 @@ body:has(.journal-page) .year-progress[data-content-themed] {
 body:has(.journal-page) .year-progress-bar,
 body:has(.journal-page) .year-progress-bar::after {
   box-shadow: none;
-}
-
-[data-theme="dark"] .journal-page .journal-moment::before {
-  filter: brightness(0.78) saturate(0.65);
-}
-
-[data-theme="dark"] .journal-page .journal-moment-label {
-  color: #34372f;
 }
 
 /* Dock the mobile utility in the date strip, outside photo and EXIF targets. */
