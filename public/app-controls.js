@@ -212,6 +212,7 @@
     });
 
   // ===== 视频控制功能 =====
+  const initializedVideos = new WeakSet();
 
   // 初始化所有视频元素
   function initVideoControls() {
@@ -223,9 +224,14 @@
   }
 
   function setupVideoControls(video) {
+    if (initializedVideos.has(video)) return;
+    initializedVideos.add(video);
+
     // 创建视频容器和播放按钮
     createVideoContainer(video);
     const playButton = createPlayButton(video);
+    // ClientRouter adopts parsed media that may have failed before reaching this document.
+    if (video.readyState === 0) video.load();
     let hideControlsTimer = null;
 
     // 初始状态：隐藏控制器，显示播放按钮
