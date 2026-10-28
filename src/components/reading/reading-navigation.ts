@@ -160,6 +160,13 @@ export function initReadingNavigation(
       if (heading.getBoundingClientRect().top > offset) break;
       activeHeading = heading;
     }
+    // The last heading may never reach the header offset on a short final section.
+    if (
+      view &&
+      view.scrollY + view.innerHeight >= doc.documentElement.scrollHeight - 2
+    ) {
+      activeHeading = headings[headings.length - 1];
+    }
 
     activeHeadingState = activeHeading;
     const activeEntry = entries.find(entry => entry.heading === activeHeading);

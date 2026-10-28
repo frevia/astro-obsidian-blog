@@ -15,13 +15,11 @@
 
 .reading-navigation-card {
   display: flex;
-  height: 100%;
   min-height: 0;
   max-height: inherit;
   flex-direction: column;
   overflow: hidden;
   border: 0;
-  border-inline-start: 1px solid var(--reading-nav-accent);
   border-radius: 0;
   background: transparent;
   box-shadow: none;
@@ -29,14 +27,12 @@
 
 .reading-navigation-header {
   display: flex;
-  align-items: start;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 0.65rem;
-  padding: 0.65rem 0.55rem 0.55rem;
-  border-bottom: 1px solid var(--reading-nav-separator);
+  gap: 0.75rem;
+  padding: 0 0.85rem 0.75rem;
 }
 
-.reading-navigation-eyebrow,
 .reading-navigation-mobile-eyebrow {
   color: var(--reading-nav-accent);
   font-size: 0.58rem;
@@ -47,25 +43,11 @@
 }
 
 .reading-navigation-title {
-  margin-top: 0.25rem;
-  color: var(--foreground);
-  font-size: 0.9rem;
-  font-weight: 700;
-  line-height: 1.3;
-}
-
-.reading-navigation-count {
-  display: inline-grid;
-  min-width: 1.65rem;
-  height: 1.65rem;
-  flex: none;
-  place-items: center;
-  border-radius: 9999px;
-  color: var(--reading-nav-accent);
-  background: var(--reading-nav-accent-soft);
-  font-size: 0.66rem;
-  font-variant-numeric: tabular-nums;
-  font-weight: 800;
+  margin: 0;
+  color: var(--foreground-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 .reading-navigation-progress-wrap {
@@ -504,9 +486,12 @@
     top: calc(var(--site-header-height, 4rem) + 5rem);
     left: calc(50% + 26.5rem);
     z-index: 35;
-    width: 12rem;
-    height: min(42rem, calc(100vh - var(--site-header-height, 4rem) - 13.5rem));
-    max-height: none;
+    width: clamp(12rem, calc(50vw - 27.5rem), 16rem);
+    height: auto;
+    max-height: min(
+      42rem,
+      calc(100dvh - var(--site-header-height, 4rem) - 7rem)
+    );
     min-height: 0;
     margin: 0;
     padding: 0;
@@ -515,6 +500,76 @@
     background: transparent;
     box-shadow: none;
     transform: none;
+  }
+
+  .reading-navigation-desktop .reading-navigation-content {
+    flex: 0 1 auto;
+    padding: 0;
+  }
+
+  .reading-navigation-desktop .reading-navigation-nav {
+    border-inline-start: 1px solid var(--border);
+  }
+
+  .reading-navigation-desktop .reading-navigation-link {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0.5rem 0.85rem;
+    border-radius: 0;
+    color: var(--foreground-muted);
+    font-size: 0.8125rem;
+    line-height: 1.65;
+  }
+
+  .reading-navigation-desktop .reading-navigation-link--h3 {
+    padding-inline-start: 1.6rem;
+    font-size: 0.75rem;
+  }
+
+  .reading-navigation-desktop .reading-navigation-link--h4 {
+    padding-inline-start: 2.25rem;
+    font-size: 0.75rem;
+  }
+
+  .reading-navigation-desktop .reading-navigation-link:hover {
+    color: var(--foreground);
+    background: var(--interactive-hover);
+  }
+
+  .reading-navigation-desktop .reading-navigation-link.is-active-link {
+    color: var(--reading-nav-accent);
+    background: transparent;
+    font-weight: 600;
+  }
+
+  .reading-navigation-desktop .reading-navigation-progress {
+    color: var(--foreground-muted);
+    font-size: 0.7rem;
+    font-weight: 400;
+  }
+
+  .reading-navigation-desktop .reading-navigation-relations {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-color: var(--border);
+  }
+
+  .reading-navigation-desktop .reading-navigation-section-title,
+  .reading-navigation-desktop .reading-navigation-relation-group h4 {
+    padding-inline: 0.85rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+
+  .reading-navigation-desktop .reading-navigation-relation-group a {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.75rem;
+    line-height: 1.6;
+  }
+
+  .reading-navigation-desktop .reading-navigation-footer-link {
+    margin: 0.75rem 0.85rem 0;
+    font-size: 0.75rem;
   }
 
   .reading-navigation-mobile {
@@ -529,20 +584,6 @@ body:not(:has([data-article-hero])) .reading-navigation-mobile {
   visibility: visible;
   opacity: 1;
   pointer-events: auto;
-}
-
-/* The decorative date chime occupies the same right-hand column. Keep it out
- * of the reading controls while retaining it on wider detail pages. */
-@media (min-width: 1300px) and (max-width: 1399px) {
-  body:has(.reading-navigation-desktop) .calendar-chime-on-progress {
-    display: none;
-  }
-}
-
-@media (min-width: 1400px) {
-  body:has(.reading-navigation-desktop) .calendar-chime-on-progress {
-    right: 1rem;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

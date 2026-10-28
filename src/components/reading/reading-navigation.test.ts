@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
 
 const component = () =>
@@ -8,6 +9,35 @@ const behavior = () =>
 const styles = () => readFileSync("src/styles/reading-navigation.css", "utf-8");
 
 describe("shared reading navigation", () => {
+  it("marks a short final section active at the bottom of the page", () => {
+    const source = behavior();
+    const selection = source.slice(
+      source.indexOf("  const updateActiveLink = () => {"),
+      source.indexOf("    activeHeadingState = activeHeading;")
+    );
+    const headings = [-100, 150].map(top => ({
+      getBoundingClientRect: () => ({ top }),
+    }));
+    const context = {
+      headings,
+      updateMobileVisibility: () => {},
+      HTMLElement: class {},
+      doc: {
+        getElementById: () => null,
+        documentElement: { scrollHeight: 1450 },
+      },
+      view: { scrollY: 600, innerHeight: 600 },
+    };
+    const run = () =>
+      runInNewContext(
+        selection + "return activeHeading; }; updateActiveLink();",
+        { ...context }
+      );
+    expect(run()).toBe(headings[0]);
+    context.view.scrollY = 850;
+    expect(run()).toBe(headings[1]);
+  });
+
   it("keeps one data contract for desktop and mobile output", () => {
     const source = component();
 
@@ -82,7 +112,7 @@ describe("shared reading navigation", () => {
     expect(source).toContain("body:not(:has([data-article-hero]))");
     expect(source).toContain("left: 1rem");
     expect(source).toContain("outline: 2px solid var(--focus-ring)");
-    expect(source).toContain("body:has(.reading-navigation-desktop)");
+    expect(source).not.toContain(".calendar-chime-on-progress");
     expect(source).toContain("min-height: 2.75rem");
     expect(source).toContain("font-size: 0.8125rem");
     expect(source).toContain("touch-action: manipulation");

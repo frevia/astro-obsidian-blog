@@ -75,8 +75,6 @@ const outgoingLinks = prepareWikilinkReferences(outgoing);
 const backlinkLinks = prepareWikilinkReferences(backlinks);
 const hasHeadings = tocEntries.length > 0;
 const hasRelations = outgoingLinks.length > 0 || backlinkLinks.length > 0;
-const navigationItemCount =
-  tocEntries.length + outgoingLinks.length + backlinkLinks.length;
 const safeFooterHref = footerLink
   ? safeWikilinkHref(footerLink.href)
   : undefined;
@@ -95,42 +93,30 @@ const safeFooterHref = footerLink
   >
     <div class="reading-navigation-card">
       <header class="reading-navigation-header">
-        <div class="min-w-0">
-          {eyebrow && <span class="reading-navigation-eyebrow">{eyebrow}</span>}
-          <h2 class="reading-navigation-title">{title}</h2>
-        </div>
-        <span
-          class="reading-navigation-count"
-          aria-label={`${navigationItemCount} 个导航项`}
-        >
-          {navigationItemCount}
-        </span>
+        <h2 class="reading-navigation-title">
+          {hasHeadings ? tocTitle : title}
+        </h2>
+        {
+          hasHeadings && (
+            <span
+              class="reading-navigation-progress"
+              data-toc-progress
+              aria-label={progressLabel}
+              aria-live="polite"
+            >
+              1 / {tocEntries.length}
+            </span>
+          )
+        }
       </header>
-
-      {
-        hasHeadings && (
-          <div class="reading-navigation-progress-wrap">
-            <div class="reading-navigation-progress-label">
-              <span>{progressLabel}</span>
-              <span data-toc-progress aria-live="polite">
-                1 / {tocEntries.length}
-              </span>
-            </div>
-            <div class="reading-navigation-progress-track" aria-hidden="true">
-              <span data-toc-progress-bar />
-            </div>
-          </div>
-        )
-      }
 
       <div class="reading-navigation-content">
         {
           hasHeadings && (
             <section class="reading-navigation-toc" data-reading-toc>
-              <h3 class="reading-navigation-section-title">{tocTitle}</h3>
               <nav aria-label={tocTitle} class="reading-navigation-nav">
                 <ol class="reading-navigation-list">
-                  {tocEntries.map((heading, index) => (
+                  {tocEntries.map(heading => (
                     <li
                       class="reading-navigation-list-item"
                       data-toc-item
@@ -146,12 +132,6 @@ const safeFooterHref = footerLink
                         ]}
                         data-toc-link
                       >
-                        <span
-                          class="reading-navigation-number"
-                          aria-hidden="true"
-                        >
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
                         <span class="reading-navigation-link-text">
                           {heading.text}
                         </span>

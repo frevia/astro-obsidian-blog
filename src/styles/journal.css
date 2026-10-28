@@ -948,10 +948,6 @@ body:has(.journal-page) .year-progress-bar::after {
   box-shadow: none;
 }
 
-body:has(.journal-page) .calendar-chime-on-progress {
-  filter: saturate(0.35);
-}
-
 [data-theme="dark"] .journal-page .journal-moment::before {
   filter: brightness(0.78) saturate(0.65);
 }

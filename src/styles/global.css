@@ -860,6 +860,11 @@ video {
   border-radius: 9999px !important;
 }
 
+/* Header persists across routes; derive calendar visibility from the current page. */
+body:not(:has(main[data-home-page])) .calendar-chime-on-progress {
+  display: none;
+}
+
 /* 兜底：确保站点头部导航始终固定在顶部，不被第三方样式覆盖 */
 #site-header {
   position: fixed !important;
