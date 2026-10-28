@@ -1,106 +1,66 @@
 ---
-import { groupAlbumTrips, type AlbumPhoto } from "@/utils/album";
+import { groupAlbumPhotos, type AlbumPhoto } from "@/utils/album";
 import { formatEventPeriod } from "@/utils/contentDates";
 interface Props {
   photos: AlbumPhoto[];
 }
 const { photos } = Astro.props;
-const trips = groupAlbumTrips(photos);
-const years = [...new Set(trips.map(trip => trip.start.slice(0, 4)))];
-const tripId = (url: string) =>
-  `trip-${Buffer.from(url).toString("base64url")}`;
-const tripDate = (trip: (typeof trips)[number]) =>
-  trip.kind === "event"
-    ? formatEventPeriod({ start: trip.start, end: trip.end })
-    : `发布于 ${formatEventPeriod({ start: trip.start })}`;
+const groups = groupAlbumPhotos(photos);
 ---
 
 <div id="article" class="album-gallery">
   {
-    trips.length === 0 ? (
+    groups.length === 0 ? (
       <p class="album-empty">还没有收录照片。</p>
     ) : (
-      <>
-        <nav class="album-years" aria-label="按年份跳转">
-          {years.map(year => (
-            <a href={`#year-${year}`}>{year}</a>
-          ))}
-        </nav>
-        <details class="album-directory">
-          <summary>旅程目录（{trips.length}）</summary>
-          <nav aria-label="旅程目录">
-            {trips.map(trip => (
-              <a href={`#${tripId(trip.source.url)}`}>
-                <span>{trip.source.title}</span>
-                <small>
-                  {tripDate(trip)} · {trip.photos.length} 张
-                </small>
-              </a>
-            ))}
-          </nav>
-        </details>
-        {years.map(year => (
-          <section
-            class="album-year"
-            id={`year-${year}`}
-            aria-labelledby={`heading-${year}`}
-          >
-            <h2 id={`heading-${year}`}>{year}</h2>
-            {trips
-              .filter(trip => trip.start.slice(0, 4) === year)
-              .map(trip => (
-                <section class="album-trip" id={tripId(trip.source.url)}>
-                  <header class="album-trip-heading">
-                    <div>
-                      <h3>{trip.source.title}</h3>
-                      <p>
-                        {tripDate(trip)} · {trip.photos.length} 张 ·{" "}
-                        {trip.kind === "event"
-                          ? "按事件期间"
-                          : "事件日期未记录，按发布日期"}
-                      </p>
-                    </div>
+      groups.map(({ kind, start, end, photos }) => (
+        <section
+          class="album-date"
+          aria-labelledby={`date-${kind}-${start}-${end ?? ""}`}
+        >
+          <header class="album-date-heading">
+            <h2 id={`date-${kind}-${start}-${end ?? ""}`}>
+              <span>
+                {kind === "event"
+                  ? formatEventPeriod({ start, end })
+                  : `发布于 ${formatEventPeriod({ start })}`}
+              </span>
+            </h2>
+            <span>
+              {photos.length} 张 ·{" "}
+              {kind === "event" ? "按事件期间" : "事件日期未记录，按发布日期"}
+            </span>
+          </header>
+          <div class="album-grid">
+            {photos.map(photo => (
+              <figure class="album-photo">
+                <img
+                  src={photo.src}
+                  width={photo.width}
+                  height={photo.height}
+                  alt={photo.alt}
+                  loading="lazy"
+                  decoding="async"
+                  data-lightbox-src={photo.original}
+                  data-photo-exif={photo.exif}
+                />
+                <figcaption>
+                  {photo.alt && <p>{photo.alt}</p>}
+                  {photo.sources.map(source => (
                     <a
-                      class="album-trip-link"
-                      href={trip.source.url}
-                      title={`阅读原文：${trip.source.title}`}
+                      data-photo-source
+                      href={source.url}
+                      title={`阅读原文：${source.title}`}
                     >
-                      阅读游记
+                      {source.title}
                     </a>
-                  </header>
-                  <div class="album-grid">
-                    {trip.photos.map(photo => (
-                      <figure class="album-photo">
-                        <img
-                          src={photo.src}
-                          width={photo.width}
-                          height={photo.height}
-                          alt={photo.alt}
-                          loading="lazy"
-                          decoding="async"
-                          data-lightbox-src={photo.original}
-                          data-photo-exif={photo.exif}
-                        />
-                        <figcaption>
-                          {photo.alt && <p>{photo.alt}</p>}
-                          {photo.sources.map(source => (
-                            <a
-                              data-photo-source
-                              href={source.url}
-                              title={`阅读原文：${source.title}`}
-                            >
-                              {source.title}
-                            </a>
-                          ))}
-                        </figcaption>
-                      </figure>
-                    ))}
-                  </div>
-                </section>
-              ))}
-          </section>
-        ))}
-      </>
+                  ))}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      ))
     )
   }
 </div>
@@ -110,94 +70,23 @@ const tripDate = (trip: (typeof trips)[number]) =>
     padding-block: 3rem;
     color: var(--foreground-muted);
   }
-  .album-years {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-  }
-  .album-years a {
-    min-width: 44px;
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--foreground);
-    text-decoration: none;
-  }
-  .album-years a:hover,
-  .album-trip-link:hover {
-    color: var(--accent);
-    text-decoration: underline;
-  }
-  .album-directory {
-    margin-bottom: 2rem;
-  }
-  .album-directory summary {
-    min-height: 44px;
-    align-content: center;
-    cursor: pointer;
-  }
-  .album-directory nav {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
-    gap: 0.25rem 1rem;
-    padding-block: 0.5rem 1rem;
-  }
-  .album-directory nav a {
-    min-width: 0;
-    min-height: 44px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    color: var(--foreground);
-    text-decoration: none;
-  }
-  .album-directory nav a:hover {
-    color: var(--accent);
-  }
-  .album-directory small,
-  .album-trip-heading p {
-    color: var(--foreground-muted);
-    font-size: 0.75rem;
-  }
-  .album-year,
-  .album-trip {
-    scroll-margin-top: 5rem;
-  }
-  .album-year {
+  .album-date {
     margin-bottom: 3rem;
   }
-  .album-year > h2 {
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-    font-weight: 600;
-  }
-  .album-trip {
-    margin-bottom: 2.5rem;
-  }
-  .album-trip-heading {
+  .album-date-heading {
     display: flex;
     align-items: baseline;
-    justify-content: space-between;
     flex-wrap: wrap;
     gap: 0.5rem 1rem;
     margin-bottom: 1rem;
   }
-  .album-trip-heading h3 {
-    font-size: 1.125rem;
+  .album-date-heading h2 {
+    font-size: 1.25rem;
     font-weight: 600;
   }
-  .album-trip-heading p {
-    margin-top: 0.25rem;
-  }
-  .album-trip-link {
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
+  .album-date-heading span {
+    font-size: 0.75rem;
     color: var(--foreground-muted);
-    font-size: 0.875rem;
-    text-decoration: none;
   }
   .album-grid {
     columns: 3;

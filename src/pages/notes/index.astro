@@ -9,11 +9,8 @@ import { parseEntry } from "@/utils/parseEntry";
 import DiaryFeed from "@/components/diary/DiaryFeed.astro";
 import DiaryLoadMore from "@/components/diary/DiaryLoadMore";
 import ArchiveHero from "@/components/ArchiveHero.astro";
-import NotesMonthNav from "@/components/diary/NotesMonthNav.astro";
-import { groupNotesMonths } from "@/utils/notesMonths";
 
 const diaryEntries = await getCollection("diary");
-const monthGroups = groupNotesMonths(diaryEntries.map(entry => entry.id));
 
 // 按文件名（日期）排序，最新的在前；完整时间线只在 Notes 页面解析。
 const sortedEntries = diaryEntries.sort((a, b) => {
@@ -61,7 +58,6 @@ const paginationInfo = {
       aria-labelledby="notes-heading"
     >
       <ArchiveHero />
-      <NotesMonthNav months={monthGroups} />
 
       <div id="diary-description" class="sr-only">
         Notes 条目按时间倒序排列，每页显示 {ITEMS_PER_PAGE} 条记录，当前共有

@@ -6,7 +6,6 @@ import Main from "@/layouts/Main.astro";
 import ArticleLightbox from "@/components/ArticleLightbox.astro";
 import { getPostPhotos } from "@/utils/getAlbumPhotos";
 import FootprintMap from "@/components/FootprintMap.tsx";
-import FootprintStories from "@/components/footprint/FootprintStories.astro";
 import { SITE } from "@/config";
 import { getCollection } from "astro:content";
 import { getImage } from "astro:assets";
@@ -142,7 +141,6 @@ const places = Array.from(
       records={postLocationRecords}
       photos={photos}
     />
-    <FootprintStories records={postLocationRecords} />
   </Main>
   <ArticleLightbox />
   <Footer />

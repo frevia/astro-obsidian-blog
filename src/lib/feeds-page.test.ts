@@ -30,7 +30,7 @@ describe("feeds page presentation", () => {
     );
   });
 
-  it("keeps the neighbor overview and distinct site/article links in a single-column list", () => {
+  it("keeps the neighbor overview and latest-post card grid", () => {
     const page = readFileSync("src/pages/feeds/index.astro", "utf-8");
 
     expect(page).toContain('aria-label="邻居动态概览"');
@@ -38,7 +38,7 @@ describe("feeds page presentation", () => {
     expect(page).toContain("留言");
     expect(page).not.toContain("推荐新邻居");
     const client = readFileSync("public/feeds.js", "utf-8");
-    expect(client).not.toContain("feeds-card-latest-label");
+    expect(client).toContain("feeds-card-latest-label");
     expect(client).toContain("feeds-card-site-link");
     expect(client).toContain("feeds-card-article-link");
     expect(client).toContain("feeds-card-article-row");
@@ -48,7 +48,7 @@ describe("feeds page presentation", () => {
     );
     expect(page).toMatch(/\.feeds-comments\s*\{[^}]*overflow-x:\s*clip;/s);
     expect(page).toMatch(
-      /\.feeds-list\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s
+      /\.feeds-list\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/s
     );
     expect(page).not.toMatch(/\.feeds-card\s*\{[^}]*box-shadow:/s);
   });
