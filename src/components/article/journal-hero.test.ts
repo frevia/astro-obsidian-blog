@@ -22,6 +22,6 @@ describe("journal header", () => {
       expect(journalProps).toContain(prop);
     }
     expect(layout).toContain("cover: socialCover");
-    expect(layout).toContain("cover={displayCover}");
+    expect(layout).toContain("showMedia={false}");
   });
 });

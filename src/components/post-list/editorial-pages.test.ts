@@ -126,7 +126,7 @@ describe("editorial home and post list contracts", () => {
     expect(card).toContain('"border border-border/60 bg-muted/15": isStandard');
     expect(card).toContain(":global(.post-card-cover-image)");
     expect(card).toContain("animation: none");
-    expect(card).toContain("transform: translateY(-2px)");
+    expect(card).not.toContain("transform: translateY(-2px)");
     expect(card).toContain("background: var(--interactive-hover)");
     expect(card).not.toContain("translateY(-2px) scale(1.025)");
     expect(card).toContain("cardCover && (");

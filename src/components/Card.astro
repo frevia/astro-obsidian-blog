@@ -40,12 +40,6 @@ const isFeatured = presentation === "featured";
 const isEditorial = presentation === "editorial";
 const inferredKind = inferPostContentKind({ data, body });
 const contentKind: ContentKind = isFeatured ? "featured" : inferredKind;
-const contentKindLabel: Record<ContentKind, string> = {
-  text: "文字",
-  media: "媒体",
-  image: "图像",
-  featured: "精选",
-};
 const titleTransitionName = toTransitionName(title);
 const coverTransitionName = `${titleTransitionName}-cover`;
 
@@ -117,18 +111,9 @@ const titleClass = isStandard
         ? "rounded-[var(--radius-card)] px-4 py-4 hover:border-accent/55"
         : isEditorial
           ? "post-card-editorial rounded-[var(--radius-card-emphasis)] px-4 py-4"
-          : "home-lift-card rounded-[var(--radius-card-emphasis)] px-4 py-4 sm:px-5 sm:py-5",
+          : "home-featured-card rounded-[var(--radius-card-emphasis)] px-4 py-4 sm:px-5 sm:py-5",
     ]}
   >
-    {
-      isFeatured && (
-        <span
-          aria-hidden="true"
-          class="pointer-events-none absolute -top-16 -right-10 -z-10 h-48 w-48 rounded-full bg-[var(--content-accent-soft)] opacity-[var(--content-image-opacity)] blur-3xl"
-        />
-      )
-    }
-
     <div
       class:list={[
         isEditorial ? "post-card-layout" : "flex min-w-0 gap-4",
@@ -214,11 +199,8 @@ const titleClass = isStandard
         {
           isFeatured && (
             <div class="mb-3 flex flex-wrap items-center gap-2 text-xs tracking-wide text-foreground/55">
-              <span class="font-semibold text-accent uppercase">
-                {contentKindLabel[contentKind]}
-              </span>
               {data.tags.slice(0, 2).map(tag => (
-                <span class="app-chip">{tag}</span>
+                <span>{tag}</span>
               ))}
             </div>
           )
@@ -308,14 +290,26 @@ const titleClass = isStandard
   .post-card-editorial {
     border-color: var(--border);
     background: var(--surface);
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
+  }
+
+  .home-featured-card {
+    box-shadow: none;
+  }
+
+  .home-featured-card:hover,
+  .home-featured-card:focus-visible {
+    border-color: var(--accent);
+    background: var(--interactive-hover);
+    box-shadow: none;
+    transform: none;
   }
 
   .post-card-editorial:hover {
     border-color: color-mix(in oklab, var(--content-accent) 52%, var(--border));
     background: var(--interactive-hover);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+    box-shadow: none;
+    transform: none;
   }
 
   .post-card-layout {

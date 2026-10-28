@@ -81,13 +81,14 @@ describe("content hub presentation contracts", () => {
     expect(pageIntro).toContain("color: var(--accent-strong)");
   });
 
-  it("uses ambient lift instead of a blue hover frame on home cards", () => {
+  it("keeps latest-article feedback quiet and avoids claiming editorial selection", () => {
     const card = read("src/components/Card.astro");
-    const tokens = read("src/styles/design-tokens.css");
 
-    expect(card).toContain("home-lift-card");
-    expect(tokens).toContain(".home-lift-card:hover");
-    expect(tokens).toContain("var(--vibrant-secondary) 55%");
-    expect(tokens).toContain("transform: translateY(-4px)");
+    expect(card).toContain("home-featured-card");
+    expect(card).not.toContain("home-lift-card");
+    expect(card).not.toContain("blur-3xl");
+    expect(card).not.toContain('featured: "精选"');
+    expect(card).toContain("background: var(--interactive-hover)");
+    expect(card).toContain("focus-visible:outline-accent");
   });
 });

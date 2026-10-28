@@ -194,14 +194,14 @@ const hasJournalRelations =
           {eventEndDate}
           {timezone}
           readingMinutes={readingMinutes}
-          cover={displayCover}
+          showMedia={false}
           {titleTransitionName}
           {coverTransitionName}
-        />
+        >
+          <ArticlePlaces slot="places" post={post} />
+        </ArticleHero>
       )
     }
-
-    {!isJournal && <ArticlePlaces post={post} />}
 
     {summary && !isJournal && <AiSummaryCard {summary} />}
 

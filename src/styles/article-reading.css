@@ -523,3 +523,75 @@
     --article-reading-gap: 1rem;
   }
 }
+
+/* Shared text-first header for ordinary articles and Journal. */
+.article-page .article-hero {
+  margin-block: 1rem 1.5rem;
+  padding: clamp(0.75rem, 1.5vw, 1rem) clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.article-page .article-hero-category {
+  color: var(--foreground-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.article-page .article-hero-title {
+  color: var(--foreground);
+  font-size: clamp(1.625rem, 3vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-wrap: wrap;
+}
+
+.article-page .article-hero-summary {
+  display: block;
+  max-width: none;
+  text-wrap: wrap;
+  margin-top: 0.5rem;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--foreground-muted);
+}
+
+.article-page .article-hero-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1.25rem;
+  margin-top: 0.75rem;
+}
+
+.article-page .article-hero-context:empty {
+  display: none;
+}
+
+.article-page .article-hero-context :is(.article-event-date, .article-places) {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.article-page .article-hero-meta {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+}
+
+.article-page .article-hero-reading-time,
+.article-page .article-hero-meta-separator,
+.article-page .article-hero-date .datetime-meta-label {
+  color: var(--foreground-muted);
+  font-weight: 400;
+}
+
+@media (max-width: 480px) {
+  .article-page .article-hero-title {
+    font-size: 1.5rem;
+    text-wrap: pretty;
+  }
+}

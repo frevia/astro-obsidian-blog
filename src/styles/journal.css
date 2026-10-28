@@ -764,71 +764,6 @@
   font-size: 0.875rem;
 }
 
-/* Journal spacing and typography inherit the ordinary article decoration. */
-.journal-page .article-hero {
-  margin-block: 1rem 1.5rem;
-  padding: clamp(0.75rem, 1.5vw, 1rem) clamp(1rem, 2.5vw, 1.5rem);
-}
-
-.journal-page .article-hero-category {
-  color: var(--foreground-muted);
-  font-size: 0.75rem;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
-.journal-page .article-hero-title {
-  color: var(--foreground);
-  font-size: clamp(1.625rem, 3vw, 2.25rem);
-  font-weight: 600;
-  line-height: 1.45;
-  letter-spacing: 0;
-  text-wrap: wrap;
-}
-
-.journal-page .article-hero-summary {
-  display: block;
-  max-width: none;
-  text-wrap: wrap;
-  margin-top: 0.5rem;
-  overflow: visible;
-  -webkit-line-clamp: unset;
-  font-size: 1rem;
-  line-height: 1.8;
-  color: var(--foreground-muted);
-}
-
-.journal-page .article-hero-context {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25rem 1.25rem;
-  margin-top: 0.75rem;
-}
-
-.journal-page .article-hero-context:empty {
-  display: none;
-}
-
-.journal-page .article-hero-context :is(.article-event-date, .article-places) {
-  margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.7;
-}
-
-.journal-page .article-hero-meta {
-  margin-top: 0.5rem;
-  font-size: 0.8125rem;
-  line-height: 1.7;
-}
-
-.journal-page .article-hero-reading-time,
-.journal-page .article-hero-meta-separator,
-.journal-page .article-hero-date .datetime-meta-label {
-  color: var(--foreground-muted);
-  font-weight: 400;
-}
-
 /* A single-line trail sign keeps the date and period together. */
 .journal-page .journal-date-sign {
   --sign-paper: color-mix(in oklab, #a5af91 9%, var(--surface));
@@ -1023,13 +958,6 @@ body:has(.journal-page) .calendar-chime-on-progress {
 
 [data-theme="dark"] .journal-page .journal-moment-label {
   color: #34372f;
-}
-
-@media (max-width: 480px) {
-  .journal-page .article-hero-title {
-    font-size: 1.5rem;
-    text-wrap: pretty;
-  }
 }
 
 /* Dock the mobile utility in the date strip, outside photo and EXIF targets. */
